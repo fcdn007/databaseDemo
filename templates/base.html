@@ -1,0 +1,123 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    {% block title %}
+        <title>数据库管理系统Demo首页</title>
+    {% endblock %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 引入bootstrap的css文件 -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <!-- 引入datatables的css文件 -->
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.css' %}"/>
+
+</head>
+<body>
+<div class="container-fluid">
+    <nav class="navbar navbar-expand-lg bg-info navbar-dark">
+        <a class="navbar-brand" style="padding: 0 10px;">BGI</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
+                   style="margin: 0 20px">样本管理</a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#">样本临床信息</a>
+                    <a class="dropdown-item" href="#">样本DNA库存</a>
+                    <a class="dropdown-item" href="#">样本DNA提取信息</a>
+                    <a class="dropdown-item" href="#">样本DNA使用记录</a>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
+                   style="margin: 0 20px">文库管理</a>
+                <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">样本建库信息</a>
+                        <a class="dropdown-item" href="#">捕获文库信息</a>
+                        <a class="dropdown-item" href="#">Pooling映射表</a>
+                    </div>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
+                   style="margin: 0 20px">测序管理</a>
+                <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">测序信息</a>
+                        <a class="dropdown-item" href="#">样本测序质控信息</a>
+                    </div>
+                </div>
+            </li>
+
+        </ul>
+    </nav>
+
+    {% block content %}
+
+    {% endblock %}
+
+    <!-- New  button -->
+    <div class="text-center">
+        <button type="button" class="btn btn-primary" data-target="modal" id="new">添加</button>
+        <button type="button" class="btn btn-primary" style="margin: 0 50px">批量添加</button>
+    </div>
+
+    {% block table %}
+
+    {% endblock %}
+
+    <!-- NEW and EDIT Modal -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modal_title"></h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        {% csrf_token %}
+                        {% block ModalForm %}
+
+                        {% endblock %}
+                        <input type="hidden" id="type" name="type" value="">
+                        <button type="submit" class="btn btn-success btn-block">OK</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="confirm">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Are you sure?</h4>
+                </div>
+                <div class="modal-body">
+                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">Delete</button>
+                    <button type="button" data-dismiss="modal" class="btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- bootstrap.js 依赖 jquery.js 和popper.js，因此在这里引入 -->
+<script src="{% static 'jquery/jquery.min.js' %}"></script>
+<script src="{% static 'popper/popper.min.js' %}"></script>
+<!-- 引入bootstrap的js文件 -->
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+<!-- 引入datatables的js文件 -->
+<script type="text/javascript" src="{% static 'js/pdfmake.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vfs_fonts.js' %}"></script>
+<script type="text/javascript" src="{% static 'DataTables/datatables.js' %}"></script>
+{% block extra_js %}
+
+{% endblock %}
+</body>
+</html>

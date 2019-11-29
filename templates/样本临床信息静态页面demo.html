@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bootstrap4 实例</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/popper.js/1.12.5/umd/popper.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../static/stylesheets/datatables.min.css"/>
+
+    <script type="text/javascript" src="../static/js/pdfmake.min.js"></script>
+    <script type="text/javascript" src="../static/js/vfs_fonts.js"></script>
+    <script type="text/javascript" src="../static/js/datatables.min.js"></script>
+</head>
+<body>
+<div class="container-fluid">
+    <nav class="navbar navbar-expand-lg bg-info navbar-dark">
+        <a class="navbar-brand">BGI</a>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
+                   style="margin: 0 20px">样本管理</a>
+                <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">样本临床信息</a>
+                        <a class="dropdown-item" href="#">样本DNA库存</a>
+                        <a class="dropdown-item" href="#">样本DNA提取信息</a>
+                        <a class="dropdown-item" href="#">样本DNA使用记录</a>
+                    </div>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
+                   style="margin: 0 20px">文库管理</a>
+                <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">样本建库信息</a>
+                        <a class="dropdown-item" href="#">捕获文库信息</a>
+                        <a class="dropdown-item" href="#">Pooling映射表</a>
+                    </div>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
+                   style="margin: 0 20px">测序管理</a>
+                <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">测序信息</a>
+                        <a class="dropdown-item" href="#">样本测序质控信息</a>
+                    </div>
+                </div>
+            </li>
+
+        </ul>
+    </nav>
+
+
+    <div class="jumbotron">
+        <h1>甲基化项目数据库管理系统Demo</h1>
+        <p>样本临床信息表</p>
+    </div>
+
+    <!-- New  button -->
+    <div class="text-center">
+        <button type="button" class="btn btn-primary">添加</button>
+        <button type="button" class="btn btn-primary" style="margin: 0 50px">批量添加</button>
+    </div>
+
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>样本编号</th>
+            <th>姓名</th>
+            <th>性别</th>
+            <th>年龄</th>
+            <th>住院号</th>
+            <th>诊断</th>
+            <th>采样日期</th>
+            <th>离心日期</th>
+            <th>医院编号</th>
+            <th>科室</th>
+            <th>血浆管数</th>
+            <th>癌旁组织样本数量</th>
+            <th>癌组织样本数量</th>
+            <th>白细胞样本数量</th>
+            <th>粪便样本数量</th>
+            <th>寄送日期</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>索引</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#table_id').DataTable
+        ({
+            "scrollY": "5000px",
+            "scrollCollapse": true,
+            "scrollX": true,
+            "pagingType": "full_numbers",
+            fixedColumns: true,
+            rowReorder: true,
+            colReorder: true,
+            searching: true,
+            select: true,
+            responsive: true,
+
+            dom: 'lBfrtip',
+            buttons: {
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv']
+            },
+            "language": {
+                "lengthMenu": "选择每页 _MENU_ 展示 ",
+                "zeroRecords": "未找到匹配结果--抱歉",
+                "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                "infoEmpty": "没有数据",
+                "infoFiltered": "(获取 _MAX_ 项结果)",
+                "paginate": {
+                    "first": "首页",
+                    "previous": "上一页",
+                    "next": "下一页",
+                    "last": "末页"
+                }
+            },
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "/api/ClinicalInfo/",
+                "type": "GET"
+            },
+            "columns": [
+                {"data": "index"},
+                {"data": "sample_id"},
+                {"data": "name"},
+                {"data": "gender"},
+                {"data": "age"},
+                {"data": "patientId"},
+                {"data": "diagnose"},
+                {"data": "sampling_date"},
+                {"data": "centrifugation_date"},
+                {"data": "hospital"},
+                {"data": "department"},
+                {"data": "plasma_num"},
+                {"data": "adjacent_mucosa_num"},
+                {"data": "cancer_tissue_num"},
+                {"data": "WBC_num"},
+                {"data": "stool_num"},
+                {"data": "send_date"},
+                {"data": "others"},
+                {"data": "last_modify_date"},
+                {"data": "created"},
+                {
+                    "data": null,
+                    "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                        '<button type="button" class="btn btn-danger">Delete</button>'
+                }
+            ]
+
+        })
+    });
+
+
+</script>
+</body>
+</html>
