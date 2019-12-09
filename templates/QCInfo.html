@@ -1,0 +1,609 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>样本测序质控信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>样本测序质控信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>Sample</th>
+            <th>Data_Size(Gb)</th>
+            <th>Clean_Rate(%)</th>
+            <th>R1_Q20</th>
+            <th>R2_Q20</th>
+            <th>R1_Q30</th>
+            <th>R2_Q30</th>
+            <th>GC_Content</th>
+            <th>BS_conversion_rate(lambda_DNA)</th>
+            <th>BS_conversion_rate(CHH)</th>
+            <th>BS_conversion_rate(CHG)</th>
+            <th>Uniquely_Paired_Mapping_Rate</th>
+            <th>Mismatch_and_InDel_Rate</th>
+            <th>Mode_Fragment_Length(bp)</th>
+            <th>Genome_Duplication_Rate</th>
+            <th>Genome_Depth(X)</th>
+            <th>Genome_Dedupped_Depth(X)</th>
+            <th>Genome_Coverage</th>
+            <th>Genome_4X_CpG_Depth(X)</th>
+            <th>Genome_4X_CpG_Coverage</th>
+            <th>Genome_4X_CpG_methylation_level</th>
+            <th>Panel_4X_CpG_Depth(X)</th>
+            <th>Panel_4X_CpG_Coverage</th>
+            <th>Panel_4X_CpG_methylation_level</th>
+            <th>Panel_Ontarget_Rate(region)</th>
+            <th>Panel_Duplication_Rate(region)</th>
+            <th>Panel_Depth(site,X)</th>
+            <th>Panel_Dedupped_Depth(site,X)</th>
+            <th>Panel_Coverage(site,1X)</th>
+            <th>Panel_Coverage(site,10X)</th>
+            <th>Panel_Coverage(site,20X)</th>
+            <th>Panel_Coverage(site,50X)</th>
+            <th>Panel_Coverage(site,100X)</th>
+            <th>Panel_Uniformity(site,>20%mean)</th>
+            <th>Strand_balance(F)</th>
+            <th>Strand_balance(R)</th>
+            <th>GC_bin_depth_ratio</th>
+            <th>样本编号</th>
+            <th>DNA提取编号</th>
+            <th>建库编号</th>
+            <th>pooling号</th>
+            <th>文库编号</th>
+            <th>测序编号</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div class="form-group">
+        <label for="sample_id"> 样本编号</label>
+        <input type="text" class="form-control" id="sample_id" name="sample_id"
+               placeholder="请输入样本编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="dna_id"> DNA提取编号</label>
+        <input type="text" class="form-control" id="dna_id" name="dna_id"
+               placeholder="请输入DNA提取编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="singleLB_id"> 建库编号</label>
+        <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
+               placeholder="请输入建库编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="poolingLB_id"> pooling号</label>
+        <select class="form-control" id="poolingLB_id" name="poolingLB_id" required="true">
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="singleLB_Pooling_id"> 文库编号</label>
+        <input type="text" class="form-control" id="singleLB_Pooling_id" name="singleLB_Pooling_id"
+               placeholder="请输入文库编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="sequencing_id"> 测序编号</label>
+        <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
+               placeholder="请输入测序编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="QC_id"> Sample</label>
+        <input type="text" class="form-control" id="QC_id" name="QC_id"
+               placeholder="请输入Sample" required="true">
+    </div>
+    <div class="form-group">
+        <label for="data_size_gb_field"> Data_Size(Gb)</label>
+        <input type="number" step="0.01" class="form-control" id="data_size_gb_field" name="data_size_gb_field"
+               placeholder="请输入Data_Size(Gb)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="clean_rate_field"> Clean_Rate(%)</label>
+        <input type="number" step="0.01" class="form-control" id="clean_rate_field" name="clean_rate_field"
+               placeholder="请输入Clean_Rate(%)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="r1_q20"> R1_Q20</label>
+        <input type="number" step="0.01" class="form-control" id="r1_q20" name="r1_q20"
+               placeholder="请输入R1_Q20" required="true">
+    </div>
+    <div class="form-group">
+        <label for="r2_q20"> R2_Q20</label>
+        <input type="number" step="0.01" class="form-control" id="r2_q20" name="r2_q20"
+               placeholder="请输入R2_Q20" required="true">
+    </div>
+    <div class="form-group">
+        <label for="r1_q30"> R1_Q30</label>
+        <input type="number" step="0.01" class="form-control" id="r1_q30" name="r1_q30"
+               placeholder="请输入R1_Q30" required="true">
+    </div>
+    <div class="form-group">
+        <label for="r2_q30"> R2_Q30</label>
+        <input type="number" step="0.01" class="form-control" id="r2_q30" name="r2_q30"
+               placeholder="请输入R2_Q30" required="true">
+    </div>
+    <div class="form-group">
+        <label for="gc_content"> GC_Content</label>
+        <input type="number" step="0.01" class="form-control" id="gc_content" name="gc_content"
+               placeholder="请输入GC_Content" required="true">
+    </div>
+    <div class="form-group">
+        <label for="bs_conversion_rate_lambda_dna_field"> BS_conversion_rate(lambda_DNA)</label>
+        <input type="number" step="0.01" class="form-control" id="bs_conversion_rate_lambda_dna_field"
+               name="bs_conversion_rate_lambda_dna_field"
+               placeholder="请输入BS_conversion_rate(lambda_DNA)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="bs_conversion_rate_chh_field"> BS_conversion_rate(CHH)</label>
+        <input type="number" step="0.01" class="form-control" id="bs_conversion_rate_chh_field"
+               name="bs_conversion_rate_chh_field"
+               placeholder="请输入BS_conversion_rate(CHH)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="bs_conversion_rate_chg_field"> BS_conversion_rate(CHG)</label>
+        <input type="number" step="0.01" class="form-control" id="bs_conversion_rate_chg_field"
+               name="bs_conversion_rate_chg_field"
+               placeholder="请输入BS_conversion_rate(CHG)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="uniquely_paired_mapping_rate"> Uniquely_Paired_Mapping_Rate</label>
+        <input type="number" step="0.01" class="form-control" id="uniquely_paired_mapping_rate"
+               name="uniquely_paired_mapping_rate"
+               placeholder="请输入Uniquely_Paired_Mapping_Rate" required="true">
+    </div>
+    <div class="form-group">
+        <label for="mismatch_and_indel_rate"> Mismatch_and_InDel_Rate</label>
+        <input type="number" step="0.01" class="form-control" id="mismatch_and_indel_rate"
+               name="mismatch_and_indel_rate"
+               placeholder="请输入Mismatch_and_InDel_Rate" required="true">
+    </div>
+    <div class="form-group">
+        <label for="mode_fragment_length_bp_field"> Mode_Fragment_Length(bp)</label>
+        <input type="number" step="0.01" class="form-control" id="mode_fragment_length_bp_field"
+               name="mode_fragment_length_bp_field"
+               placeholder="请输入Mode_Fragment_Length(bp)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_duplication_rate"> Genome_Duplication_Rate</label>
+        <input type="number" step="0.01" class="form-control" id="genome_duplication_rate"
+               name="genome_duplication_rate"
+               placeholder="请输入Genome_Duplication_Rate" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_depth_x_field"> Genome_Depth(X)</label>
+        <input type="number" step="0.01" class="form-control" id="genome_depth_x_field" name="genome_depth_x_field"
+               placeholder="请输入Genome_Depth(X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_dedupped_depth_x_field"> Genome_Dedupped_Depth(X)</label>
+        <input type="number" step="0.01" class="form-control" id="genome_dedupped_depth_x_field"
+               name="genome_dedupped_depth_x_field"
+               placeholder="请输入Genome_Dedupped_Depth(X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_coverage"> Genome_Coverage</label>
+        <input type="number" step="0.01" class="form-control" id="genome_coverage" name="genome_coverage"
+               placeholder="请输入Genome_Coverage" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_4x_cpg_depth_x_field"> Genome_4X_CpG_Depth(X)</label>
+        <input type="number" step="0.01" class="form-control" id="genome_4x_cpg_depth_x_field"
+               name="genome_4x_cpg_depth_x_field"
+               placeholder="请输入Genome_4X_CpG_Depth(X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_4x_cpg_coverage"> Genome_4X_CpG_Coverage</label>
+        <input type="number" step="0.01" class="form-control" id="genome_4x_cpg_coverage" name="genome_4x_cpg_coverage"
+               placeholder="请输入Genome_4X_CpG_Coverage" required="true">
+    </div>
+    <div class="form-group">
+        <label for="genome_4x_cpg_methylation_level"> Genome_4X_CpG_methylation_level</label>
+        <input type="number" step="0.01" class="form-control" id="genome_4x_cpg_methylation_level"
+               name="genome_4x_cpg_methylation_level"
+               placeholder="请输入Genome_4X_CpG_methylation_level" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_4x_cpg_depth_x_field"> Panel_4X_CpG_Depth(X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_4x_cpg_depth_x_field"
+               name="panel_4x_cpg_depth_x_field"
+               placeholder="请输入Panel_4X_CpG_Depth(X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_4x_cpg_coverage"> Panel_4X_CpG_Coverage</label>
+        <input type="number" step="0.01" class="form-control" id="panel_4x_cpg_coverage" name="panel_4x_cpg_coverage"
+               placeholder="请输入Panel_4X_CpG_Coverage" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_4x_cpg_methylation_level"> Panel_4X_CpG_methylation_level</label>
+        <input type="number" step="0.01" class="form-control" id="panel_4x_cpg_methylation_level"
+               name="panel_4x_cpg_methylation_level"
+               placeholder="请输入Panel_4X_CpG_methylation_level" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_ontarget_rate_region_field"> Panel_Ontarget_Rate(region)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_ontarget_rate_region_field"
+               name="panel_ontarget_rate_region_field"
+               placeholder="请输入Panel_Ontarget_Rate(region)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_duplication_rate_region_field"> Panel_Duplication_Rate(region)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_duplication_rate_region_field"
+               name="panel_duplication_rate_region_field"
+               placeholder="请输入Panel_Duplication_Rate(region)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_depth_site_x_field"> Panel_Depth(site,X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_depth_site_x_field"
+               name="panel_depth_site_x_field"
+               placeholder="请输入Panel_Depth(site,X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_dedupped_depth_site_x_field"> Panel_Dedupped_Depth(site,X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_dedupped_depth_site_x_field"
+               name="panel_dedupped_depth_site_x_field"
+               placeholder="请输入Panel_Dedupped_Depth(site,X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_coverage_site_1x_field"> Panel_Coverage(site,1X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_1x_field"
+               name="panel_coverage_site_1x_field"
+               placeholder="请输入Panel_Coverage(site,1X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_coverage_site_10x_field"> Panel_Coverage(site,10X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_10x_field"
+               name="panel_coverage_site_10x_field"
+               placeholder="请输入Panel_Coverage(site,10X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_coverage_site_20x_field"> Panel_Coverage(site,20X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_20x_field"
+               name="panel_coverage_site_20x_field"
+               placeholder="请输入Panel_Coverage(site,20X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_coverage_site_50x_field"> Panel_Coverage(site,50X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_50x_field"
+               name="panel_coverage_site_50x_field"
+               placeholder="请输入Panel_Coverage(site,50X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_coverage_site_100x_field"> Panel_Coverage(site,100X)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_100x_field"
+               name="panel_coverage_site_100x_field"
+               placeholder="请输入Panel_Coverage(site,100X)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="panel_uniformity_site_20_mean_field"> Panel_Uniformity(site,>20%mean)</label>
+        <input type="number" step="0.01" class="form-control" id="panel_uniformity_site_20_mean_field"
+               name="panel_uniformity_site_20_mean_field"
+               placeholder="请输入Panel_Uniformity(site,>20%mean)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="strand_balance_f_field"> Strand_balance(F)</label>
+        <input type="number" step="0.01" class="form-control" id="strand_balance_f_field" name="strand_balance_f_field"
+               placeholder="请输入Strand_balance(F)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="strand_balance_r_field"> Strand_balance(R)</label>
+        <input type="number" step="0.01" class="form-control" id="strand_balance_r_field" name="strand_balance_r_field"
+               placeholder="请输入Strand_balance(R)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="gc_bin_depth_ratio"> GC_bin_depth_ratio</label>
+        <input type="number" step="0.01" class="form-control" id="gc_bin_depth_ratio" name="gc_bin_depth_ratio"
+               placeholder="请输入GC_bin_depth_ratio" required="true">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "scrollX": true,
+                "pagingType": "full_numbers",
+                fixedColumns: true,
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/QCInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "QC_id"},
+                    {"data": "data_size_gb_field"},
+                    {"data": "clean_rate_field"},
+                    {"data": "r1_q20"},
+                    {"data": "r2_q20"},
+                    {"data": "r1_q30"},
+                    {"data": "r2_q30"},
+                    {"data": "gc_content"},
+                    {"data": "bs_conversion_rate_lambda_dna_field"},
+                    {"data": "bs_conversion_rate_chh_field"},
+                    {"data": "bs_conversion_rate_chg_field"},
+                    {"data": "uniquely_paired_mapping_rate"},
+                    {"data": "mismatch_and_indel_rate"},
+                    {"data": "mode_fragment_length_bp_field"},
+                    {"data": "genome_duplication_rate"},
+                    {"data": "genome_depth_x_field"},
+                    {"data": "genome_dedupped_depth_x_field"},
+                    {"data": "genome_coverage"},
+                    {"data": "genome_4x_cpg_depth_x_field"},
+                    {"data": "genome_4x_cpg_coverage"},
+                    {"data": "genome_4x_cpg_methylation_level"},
+                    {"data": "panel_4x_cpg_depth_x_field"},
+                    {"data": "panel_4x_cpg_coverage"},
+                    {"data": "panel_4x_cpg_methylation_level"},
+                    {"data": "panel_ontarget_rate_region_field"},
+                    {"data": "panel_duplication_rate_region_field"},
+                    {"data": "panel_depth_site_x_field"},
+                    {"data": "panel_dedupped_depth_site_x_field"},
+                    {"data": "panel_coverage_site_1x_field"},
+                    {"data": "panel_coverage_site_10x_field"},
+                    {"data": "panel_coverage_site_20x_field"},
+                    {"data": "panel_coverage_site_50x_field"},
+                    {"data": "panel_coverage_site_100x_field"},
+                    {"data": "panel_uniformity_site_20_mean_field"},
+                    {"data": "strand_balance_f_field"},
+                    {"data": "strand_balance_r_field"},
+                    {"data": "gc_bin_depth_ratio"},
+                    {"data": "sample_id"},
+                    {"data": "dna_id"},
+                    {"data": "singleLB_id"},
+                    {"data": "poolingLB_id"},
+                    {"data": "singleLB_Pooling_id"},
+                    {"data": "sequencing_id"},
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">Delete</button>'
+                    }
+                ]
+            });
+
+            var id = 0;
+            $('#table_id tbody').on('click', 'button', function () {
+                var data = table.row($(this).parents('tr')).data();
+                var class_name = $(this).attr('class');
+                id = data['index'];
+                if (class_name == 'btn btn-info') {
+                    // EDIT button
+                    $('#QC_id').val(data['QC_id']);
+                    $('#data_size_gb_field').val(data['data_size_gb_field']);
+                    $('#clean_rate_field').val(data['clean_rate_field']);
+                    $('#r1_q20').val(data['r1_q20']);
+                    $('#r2_q20').val(data['r2_q20']);
+                    $('#r1_q30').val(data['r1_q30']);
+                    $('#r2_q30').val(data['r2_q30']);
+                    $('#gc_content').val(data['gc_content']);
+                    $('#bs_conversion_rate_lambda_dna_field').val(data['bs_conversion_rate_lambda_dna_field']);
+                    $('#bs_conversion_rate_chh_field').val(data['bs_conversion_rate_chh_field']);
+                    $('#bs_conversion_rate_chg_field').val(data['bs_conversion_rate_chg_field']);
+                    $('#uniquely_paired_mapping_rate').val(data['uniquely_paired_mapping_rate']);
+                    $('#mismatch_and_indel_rate').val(data['mismatch_and_indel_rate']);
+                    $('#mode_fragment_length_bp_field').val(data['mode_fragment_length_bp_field']);
+                    $('#genome_duplication_rate').val(data['genome_duplication_rate']);
+                    $('#genome_depth_x_field').val(data['genome_depth_x_field']);
+                    $('#genome_dedupped_depth_x_field').val(data['genome_dedupped_depth_x_field']);
+                    $('#genome_coverage').val(data['genome_coverage']);
+                    $('#genome_4x_cpg_depth_x_field').val(data['genome_4x_cpg_depth_x_field']);
+                    $('#genome_4x_cpg_coverage').val(data['genome_4x_cpg_coverage']);
+                    $('#genome_4x_cpg_methylation_level').val(data['genome_4x_cpg_methylation_level']);
+                    $('#panel_4x_cpg_depth_x_field').val(data['panel_4x_cpg_depth_x_field']);
+                    $('#panel_4x_cpg_coverage').val(data['panel_4x_cpg_coverage']);
+                    $('#panel_4x_cpg_methylation_level').val(data['panel_4x_cpg_methylation_level']);
+                    $('#panel_ontarget_rate_region_field').val(data['panel_ontarget_rate_region_field']);
+                    $('#panel_duplication_rate_region_field').val(data['panel_duplication_rate_region_field']);
+                    $('#panel_depth_site_x_field').val(data['panel_depth_site_x_field']);
+                    $('#panel_dedupped_depth_site_x_field').val(data['panel_dedupped_depth_site_x_field']);
+                    $('#panel_coverage_site_1x_field').val(data['panel_coverage_site_1x_field']);
+                    $('#panel_coverage_site_10x_field').val(data['panel_coverage_site_10x_field']);
+                    $('#panel_coverage_site_20x_field').val(data['panel_coverage_site_20x_field']);
+                    $('#panel_coverage_site_50x_field').val(data['panel_coverage_site_50x_field']);
+                    $('#panel_coverage_site_100x_field').val(data['panel_coverage_site_100x_field']);
+                    $('#panel_uniformity_site_20_mean_field').val(data['panel_uniformity_site_20_mean_field']);
+                    $('#strand_balance_f_field').val(data['strand_balance_f_field']);
+                    $('#strand_balance_r_field').val(data['strand_balance_r_field']);
+                    $('#gc_bin_depth_ratio').val(data['gc_bin_depth_ratio']);
+                    $('#sample_id').val(data['sample_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#singleLB_id').val(data['singleLB_id']);
+                    $('#poolingLB_id').val(data['poolingLB_id']);
+                    $('#singleLB_Pooling_id').val(data['singleLB_Pooling_id']);
+                    $('#sequencing_id').val(data['sequencing_id']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('EDIT');
+                    $("#myModal").modal();
+                } else {
+                    // DELETE button
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
+                    $("#confirm").modal();
+                }
+
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var type = $('#type').val();
+                var method = '';
+                var url = '/api/QCInfo/';
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                } else {
+                    // edit
+                    url = url + id + '/';
+                    method = 'PUT';
+                }
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: $(this).serialize(),
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+
+            $('#confirm').on('click', '#delete', function (e) {
+                $.ajax({
+                    url: '/api/QCInfo/' + id + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+            });
+
+
+            $('#new').on('click', function (e) {
+                $('#QC_id').val();
+                $('#data_size_gb_field').val();
+                $('#clean_rate_field').val();
+                $('#r1_q20').val();
+                $('#r2_q20').val();
+                $('#r1_q30').val();
+                $('#r2_q30').val();
+                $('#gc_content').val();
+                $('#bs_conversion_rate_lambda_dna_field').val();
+                $('#bs_conversion_rate_chh_field').val();
+                $('#bs_conversion_rate_chg_field').val();
+                $('#uniquely_paired_mapping_rate').val();
+                $('#mismatch_and_indel_rate').val();
+                $('#mode_fragment_length_bp_field').val();
+                $('#genome_duplication_rate').val();
+                $('#genome_depth_x_field').val();
+                $('#genome_dedupped_depth_x_field').val();
+                $('#genome_coverage').val();
+                $('#genome_4x_cpg_depth_x_field').val();
+                $('#genome_4x_cpg_coverage').val();
+                $('#genome_4x_cpg_methylation_level').val();
+                $('#panel_4x_cpg_depth_x_field').val();
+                $('#panel_4x_cpg_coverage').val();
+                $('#panel_4x_cpg_methylation_level').val();
+                $('#panel_ontarget_rate_region_field').val();
+                $('#panel_duplication_rate_region_field').val();
+                $('#panel_depth_site_x_field').val();
+                $('#panel_dedupped_depth_site_x_field').val();
+                $('#panel_coverage_site_1x_field').val();
+                $('#panel_coverage_site_10x_field').val();
+                $('#panel_coverage_site_20x_field').val();
+                $('#panel_coverage_site_50x_field').val();
+                $('#panel_coverage_site_100x_field').val();
+                $('#panel_uniformity_site_20_mean_field').val();
+                $('#strand_balance_f_field').val();
+                $('#strand_balance_r_field').val();
+                $('#gc_bin_depth_ratio').val();
+                $('#sample_id').val();
+                $('#dna_id').val();
+                $('#singleLB_id').val();
+                $('#poolingLB_id').val();
+                $('#singleLB_Pooling_id').val();
+                $('#sequencing_id').val();
+                $('#others').val();
+                $('#type').val('new');
+                $('#modal_title').text('NEW');
+                $("#myModal").modal();
+            });
+
+            $('#sample_id').blur(function () {
+                $('#dna_id').val($('#sample_id').val() + "_1");
+                $('#singleLB_id').val($('#sample_id').val() + "_1m1");
+                $('#singleLB_Pooling_id').val($('#sample_id').val() + "_1B1");
+                $('#QC_id').val($('#sample_id').val() + "_1B11");
+            });
+
+            $('#dna_id').blur(function () {
+                $('#singleLB_id').val($('#dna_id').val() + "m1");
+                $('#singleLB_Pooling_id').val($('#dna_id').val() + "B1");
+                $('#QC_id').val($('#dna_id').val() + "B11");
+            });
+
+            // pooling号下拉选框
+            $('#dna_id').change(function () {
+                try {
+                    var poolingLB_ids = $.ajax({
+                        url: '/api/PoolingInfo/', dataType: 'json',
+                        contentType: "application/json", type: "get",
+                        async: false, data: {dna_id: $('#dna_id').val()}
+                    }).responseJSON.results;
+                    $.each(poolingLB_ids, function (index, value) {
+                        $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
+                    });
+                } catch (e) {
+                    console.log(e + ' in fretching poolingLB_id select-list; dna_id: ' + $('#dna_id').val());
+                }
+            });
+
+            // 测序编号下拉选框
+            $('#poolingLB_id').change(function () {
+                try {
+                    var sequencing_ids = $.ajax({
+                        url: '/api/SequencingInfo/', dataType: 'json',
+                        contentType: "application/json", type: "get",
+                        async: false, data: {poolingLB_id: $('#poolingLB_id').val()}
+                    }).responseJSON.results;
+                    $.each(sequencing_ids, function (index, value) {
+                        $('#sequencing_id').append('<option value="' + value.sequencing_id + '">' + value.sequencing_id + '</option>')
+                    });
+                } catch (e) {
+                    console.log(e + ' in fretching sequencing_id select-list; poolingLB_id: ' + $('#poolingLB_id').val());
+                }
+            });
+        })
+    </script>
+{% endblock %}

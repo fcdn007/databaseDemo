@@ -1,0 +1,15 @@
+{
+  "database.connections": [
+    {
+      "type": "mysql",
+      "name": "django@172.16.184.138 (MySql)",
+      "host": "172.16.184.138:3306",
+      "username": "django",
+      "database": "databaseDemo",
+      "password": "django"
+    }
+  ],
+  "python.pythonPath": "/home/wsl/anaconda3/envs/django/bin/python",
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true
+}

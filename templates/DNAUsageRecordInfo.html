@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>样本DNA使用记录信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>样本DNA使用记录信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>样本编号</th>
+            <th>DNA提取编号</th>
+            <th>使用日期</th>
+            <th>使用量</th>
+            <th>用途</th>
+            <th>建库编号(如有)</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div class="form-group">
+        <label for="sample_id"> 样本编号</label>
+        <input type="text" class="form-control" id="sample_id" name="sample_id"
+               placeholder="请输入样本编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="dna_id"> DNA提取编号</label>
+        <input type="text" class="form-control" id="dna_id" name="dna_id"
+               placeholder="请输入DNA提取编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="LB_date"> 使用日期</label>
+        <input type="date" class="form-control" id="LB_date" name="LB_date"
+               placeholder="请输入使用日期" required="true">
+    </div>
+    <div class="form-group">
+        <label for="mass"> 使用量(ng)</label>
+        <input type="number" step="0.01" class="form-control" id="mass" name="mass"
+               placeholder="请输入使用量(ng)，默认0" value="0">
+    </div>
+    <div class="form-group">
+        <label for="usage"> 用途</label>
+        <select class="form-control" id="usage" name="usage" required="true">
+            <option value="建库成功">建库成功</option>
+            <option value="建库失败">建库失败</option>
+            <option value="科研项目">科研项目</option>
+            <option value="其他">其他</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="singleLB_id"> 建库编号(如有)</label>
+        <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
+               placeholder="请输入建库编号(如有)" value="无">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "pagingType": "full_numbers",
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/DNAUsageRecordInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "sample_id"},
+                    {"data": "dna_id"},
+                    {"data": "LB_date"},
+                    {"data": "mass"},
+                    {"data": "usage"},
+                    {"data": "singleLB_id"},
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">Delete</button>'
+                    }
+                ]
+            });
+
+            var url = '/api/DNAUsageRecordInfo/';
+            var url2 = '/api/DNAInventoryInfo/';
+            var data;
+            $('#table_id tbody').on('click', 'button', function () {
+                data = table.row($(this).parents('tr')).data();
+                var class_name = $(this).attr('class');
+                if (data['usage'] != '建库成功') {
+                    if (class_name == 'btn btn-info') {
+                        // EDIT button
+                        $('#sample_id').val(data['sample_id']);
+                        $('#dna_id').val(data['dna_id']);
+                        $('#LB_date').val(data['LB_date']);
+                        $('#mass').val(data['mass']);
+                        $('#usage').val(data['usage']);
+                        $('#singleLB_id').val(data['singleLB_id']);
+                        $('#others').val(data['others']);
+                        $('#type').val('edit');
+                        $('#modal_title').text('EDIT');
+                        $("#myModal").modal();
+                    } else {
+                        // DELETE button
+                        //alert('delete '+id);
+                        //$('#modal_title').text('DELETE');
+                        $("#confirm").modal();
+                    }
+                } else {
+                    $(this).css("background-color", "grey");
+                }
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var type = $('#type').val();
+                var method = '';
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                } else {
+                    // edit
+                    url = url + data['index'] + '/';
+                    method = 'PUT';
+                }
+
+                // 增、改：更新使用记录表
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: $(this).serialize(),
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+
+                // 增、改：更新库存表
+                var data0 = $.ajax({
+                    url: url2, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {dna_id: data['dna_id']}
+                }).responseJSON.results[0];
+                var data_tmp2;
+                if (method == 'POST') {
+                    if ($('#usage').val() == '建库失败') {
+                        data_tmp2 = $.param({
+                            dna_id: data0.dna_id, sample_id: data0.sample_id,
+                            totalM: data0.totalM, successM: data0.successM,
+                            failM: data0.failM + $('#mass').val(), researchM: data0.researchM,
+                            othersM: data0.othersM, remainM: data0.totalM - $('#mass').val()
+                        });
+                    } else if ($('#usage').val() == '科研项目') {
+                        data_tmp2 = $.param({
+                            dna_id: data0.dna_id, sample_id: data0.sample_id,
+                            totalM: data0.totalM, successM: data0.successM,
+                            failM: data0.failM, researchM: data0.researchM + $('#mass').val(),
+                            othersM: data0.othersM, remainM: data0.totalM - $('#mass').val()
+                        });
+                    } else if ($('#usage').val() == '其他') {
+                        data_tmp2 = $.param({
+                            dna_id: data0.dna_id, sample_id: data0.sample_id,
+                            totalM: data0.totalM, successM: data0.successM,
+                            failM: data0.failM, researchM: data0.researchM,
+                            othersM: data0.othersM + $('#mass').val(), remainM: data0.totalM - $('#mass').val()
+                        });
+                    } else {
+                    }
+                } else {
+                    sub = $('#mass').val() - data0['mass'];
+                    if ($('#usage').val() == '建库失败') {
+                        data_tmp2 = $.param({
+                            dna_id: data0.dna_id, sample_id: data0.sample_id,
+                            totalM: data0.totalM, successM: data0.successM,
+                            failM: data0.failM + sub, researchM: data0.researchM,
+                            othersM: data0.othersM, remainM: data0.totalM - sub
+                        });
+                    } else if ($('#usage').val() == '科研项目') {
+                        data_tmp2 = $.param({
+                            dna_id: data0.dna_id, sample_id: data0.sample_id,
+                            totalM: data0.totalM, successM: data0.successM,
+                            failM: data0.failM, researchM: data0.researchM + sub,
+                            othersM: data0.othersM, remainM: data0.totalM - sub
+                        });
+                    } else if ($('#usage').val() == '其他') {
+                        data_tmp2 = $.param({
+                            dna_id: data0.dna_id, sample_id: data0.sample_id,
+                            totalM: data0.totalM, successM: data0.successM,
+                            failM: data0.failM, researchM: data0.researchM,
+                            othersM: data0.othersM + sub, remainM: data0.totalM - sub
+                        });
+                    } else {
+                    }
+                }
+
+                $.ajax({
+                    url: url2 + data0.index + '/',
+                    method: 'PUT',
+                    data: data_tmp2,
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+
+            });
+
+            $('#confirm').on('click', '#delete', function (e) {
+                // 删： 更新使用记录表
+                $.ajax({
+                    url: url + data['index'] + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+
+                // 删：更新库存表
+                var data0 = $.ajax({
+                    url: url2, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {dna_id: data['dna_id']}
+                }).responseJSON.results[0];
+                var data_tmp2;
+                if (data['usage'] == '建库失败') {
+                    data_tmp2 = $.param({
+                        dna_id: data0.dna_id, sample_id: data0.sample_id,
+                        totalM: data0.totalM, successM: data0.successM,
+                        failM: data0.failM - data['mass'], researchM: data0.researchM,
+                        othersM: data0.othersM, remainM: data0.totalM + data['mass']
+                    });
+                } else if (data['usage'] == '科研项目') {
+                    data_tmp2 = $.param({
+                        dna_id: data0.dna_id, sample_id: data0.sample_id,
+                        totalM: data0.totalM, successM: data0.successM,
+                        failM: data0.failM, researchM: data0.researchM - data['mass'],
+                        othersM: data0.othersM, remainM: data0.totalM + data['mass']
+                    });
+                } else if (data['usage'] == '其他') {
+                    data_tmp2 = $.param({
+                        dna_id: data0.dna_id, sample_id: data0.sample_id,
+                        totalM: data0.totalM, successM: data0.successM,
+                        failM: data0.failM, researchM: data0.researchM,
+                        othersM: data0.othersM - data['mass'], remainM: data0.totalM + data['mass']
+                    });
+                } else {
+                }
+
+                $.ajax({
+                    url: url2 + data0.index + '/',
+                    method: 'PUT',
+                    data: data_tmp2,
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+
+            $('#new').on('click', function (e) {
+                $('#sample_id').val();
+                $('#dna_id').val();
+                $('#LB_date').val();
+                $('#mass').val();
+                $('#usage').val();
+                $('#singleLB_id').val();
+                $('#others').val();
+                $('#type').val('new');
+                $('#modal_title').text('NEW');
+                $("#myModal").modal();
+            });
+
+            $('#sample_id').blur(function () {
+                $('#dna_id').val($('#sample_id').val() + "_1");
+            });
+        })
+    </script>
+{% endblock %}

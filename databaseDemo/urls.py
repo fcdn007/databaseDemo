@@ -25,6 +25,7 @@ router = DefaultRouter()
 router.register(r'ClinicalInfo', views.ClinicalInfoViewSet)
 router.register(r'ExtractInfo', views.ExtractInfoViewSet)
 router.register(r'DNAUsageRecordInfo', views.DNAUsageRecordInfoViewSet)
+router.register(r'DNAInventoryInfo', views.DNAInventoryInfoViewSet)
 router.register(r'LibraryInfo', views.LibraryInfoViewSet)
 router.register(r'CaptureInfo', views.CaptureInfoViewSet)
 router.register(r'PoolingInfo', views.PoolingInfoViewSet)
@@ -33,17 +34,17 @@ router.register(r'QCInfo', views.QCInfoViewSet)
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+                  path('admin/', admin.site.urls),
                   path('home/', views.index, name='index'),
-                  path('ClinicalInfo/', views.ClinicalInfo, name='ClinicalInfo'),
-                  path('DNAInventoryInfo/', views.DNAInventoryInfo, name='DNAInventoryInfo'),
-                  path('ExtractInfo/', views.ExtractInfo, name='ExtractInfo'),
-                  path('DNAUsage/', views.DNAUsageRecordInfo, name='DNAUsageRecordInfo'),
-                  path('LibraryInfo/', views.LibraryInfo, name='LibraryInfo'),
-                  path('CaptureInfo/', views.CaptureInfo, name='CaptureInfo'),
-                  path('PoolingInfo/', views.PoolingInfo, name='PoolingInfo'),
-                  path('SequencingInfo/', views.SequencingInfo, name='SequencingInfo'),
-                  path('QCInfo/', views.QCInfo, name='QCInfo'),
+                  path('ClinicalInfo/', views.ClinicalInfoV, name='ClinicalInfo'),
+                  path('ExtractInfo/', views.ExtractInfoV, name='ExtractInfo'),
+                  path('DNAUsage/', views.DNAUsageRecordInfoV, name='DNAUsageRecordInfo'),
+                  path('DNAInventoryInfo/', views.DNAInventoryInfoV, name='DNAInventoryInfo'),
+                  path('LibraryInfo/', views.LibraryInfoV, name='LibraryInfo'),
+                  path('CaptureInfo/', views.CaptureInfoV, name='CaptureInfo'),
+                  path('PoolingInfo/', views.PoolingInfoV, name='PoolingInfo'),
+                  path('SequencingInfo/', views.SequencingInfoV, name='SequencingInfo'),
+                  path('QCInfo/', views.QCInfoV, name='QCInfo'),
                   # for rest_framework
                   path('api/', include(router.urls)),
                   # for rest_framework auth

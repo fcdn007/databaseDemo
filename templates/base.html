@@ -1,6 +1,7 @@
 {% load staticfiles %}
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="utf-8">
     {% block title %}
@@ -9,10 +10,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 引入bootstrap的css文件 -->
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
-    <!-- 引入datatables的css文件 -->
-    <link rel="stylesheet" href="{% static 'DataTables/datatables.css' %}"/>
 
+    <!-- 引入datatables的css文件 -->
+    <link rel="stylesheet" href="{% static 'DataTables/datatables.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'Buttons/css/buttons.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'stylesheets/rowReorder.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'stylesheets/colReorder.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'stylesheets/fixedColumns.dataTables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'stylesheets/select.dataTables.min.css' %}">
+
+    <!-- 引入自定义的css样式-->
+    <style type="text/css">
+        .dropdown-menu a:hover {
+            color: #fff;
+            background-color: #17a2b8;
+            border-color: #fff;
+        }
+    </style>
 </head>
+
 <body>
 <div class="container-fluid">
     <nav class="navbar navbar-expand-lg bg-info navbar-dark">
@@ -22,10 +38,10 @@
                 <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
                    style="margin: 0 20px">样本管理</a>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="#">样本临床信息</a>
-                    <a class="dropdown-item" href="#">样本DNA库存</a>
-                    <a class="dropdown-item" href="#">样本DNA提取信息</a>
-                    <a class="dropdown-item" href="#">样本DNA使用记录</a>
+                    <a class="dropdown-item" href="{% url 'ClinicalInfo' %}">样本临床信息</a>
+                    <a class="dropdown-item" href="{% url 'ExtractInfo' %}">样本DNA提取信息</a>
+                    <a class="dropdown-item" href="{% url 'DNAUsageRecordInfo' %}">样本DNA使用记录</a>
+                    <a class="dropdown-item" href="{% url 'DNAInventoryInfo' %}">样本DNA库存</a>
                 </div>
             </li>
             <li class="nav-item dropdown">
@@ -33,9 +49,9 @@
                    style="margin: 0 20px">文库管理</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">样本建库信息</a>
-                        <a class="dropdown-item" href="#">捕获文库信息</a>
-                        <a class="dropdown-item" href="#">Pooling映射表</a>
+                        <a class="dropdown-item" href="{% url 'LibraryInfo' %}">样本建库信息</a>
+                        <a class="dropdown-item" href="{% url 'CaptureInfo' %}">捕获文库信息</a>
+                        <a class="dropdown-item" href="{% url 'PoolingInfo' %}">Pooling映射表</a>
                     </div>
                 </div>
             </li>
@@ -44,8 +60,8 @@
                    style="margin: 0 20px">测序管理</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">测序信息</a>
-                        <a class="dropdown-item" href="#">样本测序质控信息</a>
+                        <a class="dropdown-item" href="{% url 'SequencingInfo' %}">测序信息</a>
+                        <a class="dropdown-item" href="{% url 'QCInfo' %}">样本测序质控信息</a>
                     </div>
                 </div>
             </li>
@@ -62,6 +78,7 @@
         <button type="button" class="btn btn-primary" data-target="modal" id="new">添加</button>
         <button type="button" class="btn btn-primary" style="margin: 0 50px">批量添加</button>
     </div>
+    <br>
 
     {% block table %}
 
@@ -76,8 +93,7 @@
                     <h4 class="modal-title" id="modal_title"></h4>
                 </div>
                 <div class="modal-body">
-                    <form role="form">
-                        {% csrf_token %}
+                    <form id="form">
                         {% block ModalForm %}
 
                         {% endblock %}
@@ -113,11 +129,20 @@
 <!-- 引入bootstrap的js文件 -->
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 <!-- 引入datatables的js文件 -->
-<script type="text/javascript" src="{% static 'js/pdfmake.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'js/vfs_fonts.js' %}"></script>
-<script type="text/javascript" src="{% static 'DataTables/datatables.js' %}"></script>
+<script src="{% static 'js/pdfmake.min.js' %}"></script>
+<script src="{% static 'js/vfs_fonts.js' %}"></script>
+<script src="{% static 'DataTables/datatables.min.js' %}"></script>
+<script src="{% static 'Buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'js/jszip.min.js' %}"></script>
+<script src="{% static 'Buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'js/dataTables.select.min.js' %}"></script>
+<script src="{% static 'js/dataTables.rowReorder.min.js' %}"></script>
+<script src="{% static 'js/dataTables.colReorder.min.js' %}"></script>
+<script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
 {% block extra_js %}
 
 {% endblock %}
+
 </body>
+
 </html>

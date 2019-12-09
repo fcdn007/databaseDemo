@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>样本DNA库存信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>样本DNA库存信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>样本编号</th>
+            <th>DNA提取编号</th>
+            <th>DNA提取总量(ng)</th>
+            <th>成功建库使用量(ng)</th>
+            <th>失败建库使用量(ng)</th>
+            <th>科研项目使用量(ng)</th>
+            <th>其他使用量(ng)</th>
+            <th>剩余量(ng)</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            $(".text-center").remove();
+
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "pagingType": "full_numbers",
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/DNAInventoryInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "sample_id"},
+                    {"data": "dna_id"},
+                    {"data": "totalM"},
+                    {"data": "successM"},
+                    {"data": "failM"},
+                    {"data": "researchM"},
+                    {"data": "othersM"},
+                    {"data": "remainM"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"}
+                ]
+            });
+
+        })
+
+    </script>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>捕获文库信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>捕获文库信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>pooling号</th>
+            <th>杂交日期</th>
+            <th>杂交探针</th>
+            <th>杂交时间(h)</th>
+            <th>PostPCR循环数</th>
+            <th>PostPCR浓度(ng/ul)</th>
+            <th>洗脱体积(ul)</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div class="form-group">
+        <label for="poolingLB_id"> pooling号</label>
+        <input type="text" class="form-control" id="poolingLB_id" name="poolingLB_id"
+               placeholder="请输入pooling号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="hybrid_date"> 杂交日期</label>
+        <input type="date" class="form-control" id="hybrid_date" name="hybrid_date"
+               placeholder="请输入杂交日期" required="true">
+    </div>
+    <div class="form-group">
+        <label for="probes"> 杂交探针</label>
+        <input type="text" class="form-control" id="probes" name="probes"
+               placeholder="请输入杂交探针" required="true">
+    </div>
+    <div class="form-group">
+        <label for="hybrid_hours"> 杂交时间(h)</label>
+        <input type="number" step="0.01" class="form-control" id="hybrid_hours" name="hybrid_hours"
+               placeholder="请输入杂交时间(h)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="postpcr_cycles"> PostPCR循环数</label>
+        <input type="number" class="form-control" id="postpcr_cycles" name="postpcr_cycles"
+               placeholder="请输入PostPCR循环数" required="true">
+    </div>
+    <div class="form-group">
+        <label for="postpcr_con"> PostPCR浓度(ng/ul)</label>
+        <input type="number" step="0.01" class="form-control" id="postpcr_con" name="postpcr_con"
+               placeholder="请输入PostPCR浓度(ng/ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="elution_vol"> 洗脱体积(ul)</label>
+        <input type="number" step="0.01" class="form-control" id="elution_vol" name="elution_vol"
+               placeholder="请输入洗脱体积(ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "scrollX": true,
+                "pagingType": "full_numbers",
+                fixedColumns: true,
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/CaptureInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "poolingLB_id"},
+                    {"data": "hybrid_date"},
+                    {"data": "probes"},
+                    {"data": "hybrid_hours"},
+                    {"data": "postpcr_cycles"},
+                    {"data": "postpcr_con"},
+                    {"data": "elution_vol"},
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">Delete</button>'
+                    }
+                ]
+            });
+
+            var id = 0;
+            $('#table_id tbody').on('click', 'button', function () {
+                var data = table.row($(this).parents('tr')).data();
+                var class_name = $(this).attr('class');
+                id = data['index'];
+                if (class_name == 'btn btn-info') {
+                    // EDIT button
+                    $('#poolingLB_id').val(data['poolingLB_id']);
+                    $('#hybrid_date').val(data['hybrid_date']);
+                    $('#probes').val(data['probes']);
+                    $('#hybrid_hours').val(data['hybrid_hours']);
+                    $('#postpcr_cycles').val(data['postpcr_cycles']);
+                    $('#postpcr_con').val(data['postpcr_con']);
+                    $('#elution_vol').val(data['elution_vol']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('EDIT');
+                    $("#myModal").modal();
+                } else {
+                    // DELETE button
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
+                    $("#confirm").modal();
+                }
+
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var type = $('#type').val();
+                var method = '';
+                var url = '/api/CaptureInfo/';
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                } else {
+                    // edit
+                    url = url + id + '/';
+                    method = 'PUT';
+                }
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: $(this).serialize(),
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+
+            $('#confirm').on('click', '#delete', function (e) {
+                $.ajax({
+                    url: '/api/CaptureInfo/' + id + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+            });
+
+
+            $('#new').on('click', function (e) {
+                $('#poolingLB_id').val();
+                $('#hybrid_date').val();
+                $('#probes').val();
+                $('#hybrid_hours').val();
+                $('#postpcr_cycles').val();
+                $('#postpcr_con').val();
+                $('#elution_vol').val();
+                $('#others').val();
+                $('#type').val('new');
+                $('#modal_title').text('NEW');
+                $("#myModal").modal();
+            });
+        })
+
+    </script>
+{% endblock %}

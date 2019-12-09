@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 
-from .models import *
 from .serializers import *
 
 
@@ -14,6 +13,8 @@ def index(request):
 
 class ClinicalInfoViewSet(viewsets.ModelViewSet):
     queryset = ClinicalInfo.objects.all()
+    # print("queryset.index:")
+    # pprint(ClinicalInfo.objects.values_list('index', flat=True).order_by('index'))
     serializer_class = ClinicalInfoSerializer
 
 
@@ -25,6 +26,11 @@ class ExtractInfoViewSet(viewsets.ModelViewSet):
 class DNAUsageRecordInfoViewSet(viewsets.ModelViewSet):
     queryset = DNAUsageRecordInfo.objects.all()
     serializer_class = DNAUsageRecordInfoSerializer
+
+
+class DNAInventoryInfoViewSet(viewsets.ModelViewSet):
+    queryset = DNAInventoryInfo.objects.all()
+    serializer_class = DNAInventoryInfoSerializer
 
 
 class LibraryInfoViewSet(viewsets.ModelViewSet):
@@ -52,37 +58,41 @@ class QCInfoViewSet(viewsets.ModelViewSet):
     serializer_class = QCInfoSerializer
 
 
-def ClinicalInfo(request):
+def ClinicalInfoV(request):
     return render(request, 'ClinicalInfo.html')
 
 
-def DNAInventoryInfo(request):
+def DNAInventoryInfoV(request):
     return render(request, 'DNAInventoryInfo.html')
 
 
-def ExtractInfo(request):
+def ExtractInfoV(request):
     return render(request, 'ExtractInfo.html')
 
 
-def DNAUsageRecordInfo(request):
+def DNAUsageRecordInfoV(request):
     return render(request, 'DNAUsageRecordInfo.html')
 
 
-def LibraryInfo(request):
+def DNAInventoryInfoV(request):
+    return render(request, 'DNAInventoryInfo.html')
+
+
+def LibraryInfoV(request):
     return render(request, 'LibraryInfo.html')
 
 
-def CaptureInfo(request):
+def CaptureInfoV(request):
     return render(request, 'CaptureInfo.html')
 
 
-def PoolingInfo(request):
+def PoolingInfoV(request):
     return render(request, 'PoolingInfo.html')
 
 
-def SequencingInfo(request):
+def SequencingInfoV(request):
     return render(request, 'SequencingInfo.html')
 
 
-def QCInfo(request):
+def QCInfoV(request):
     return render(request, 'QCInfo.html')

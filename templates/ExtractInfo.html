@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>样本DNA提取信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>样本DNA提取信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>DNA提取编号</th>
+            <th>样本编号</th>
+            <th>提取日期</th>
+            <th>样本类型</th>
+            <th>样本体积(ml)</th>
+            <th>提取方法</th>
+            <th>浓度(ng/ul)</th>
+            <th>体积(ul)</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div id="InventoryForm">
+        <div class="form-group">
+            <label for="sample_id"> 样本编号</label>
+            <input type="text" class="form-control" id="sample_id" name="sample_id"
+                   placeholder="请输入样本编号" required="true">
+        </div>
+        <div class="form-group">
+            <label for="dna_id"> DNA提取编号</label>
+            <input type="text" class="form-control" id="dna_id" name="dna_id"
+                   placeholder="请输入DNA提取编号" required="true">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="extract_date"> 提取日期</label>
+        <input type="date" class="form-control" id="extract_date" name="extract_date"
+               placeholder="请输入提取日期" required="true">
+    </div>
+    <div class="form-group">
+        <label for="sample_type"> 样本类型</label>
+        <input type="text" class="form-control" id="sample_type" name="sample_type"
+               placeholder="请输入样本类型" required="true">
+    </div>
+    <div class="form-group">
+        <label for="sample_volume"> 样本体积(ml)</label>
+        <input type="number" step="0.01" class="form-control" id="sample_volume" name="sample_volume"
+               placeholder="请输入样本体积(ml)，默认0" value="0">
+    </div>
+    <div class="form-group">
+        <label for="extract_method"> 提取方法</label>
+        <input type="text" class="form-control" id="extract_method" name="extract_method"
+               placeholder="请输入提取方法" required="true">
+    </div>
+    <div class="form-group">
+        <label for="dna_con"> 浓度(ng/ul)</label>
+        <input type="number" step="0.01" class="form-control" id="dna_con" name="dna_con"
+               placeholder="请输入浓度(ng/ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="dna_vol"> 体积(ul)</label>
+        <input type="number" step="0.01" class="form-control" id="dna_vol" name="dna_vol"
+               placeholder="请输入体积(ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "pagingType": "full_numbers",
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/ExtractInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "dna_id"},
+                    {"data": "sample_id"},
+                    {"data": "extract_date"},
+                    {"data": "sample_type"},
+                    {"data": "sample_volume"},
+                    {"data": "extract_method"},
+                    {"data": "dna_con"},
+                    {"data": "dna_vol"},
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">Delete</button>'
+                    }
+                ]
+            });
+
+            var id = 0;
+
+            $('#table_id tbody').on('click', 'button', function () {
+                var data = table.row($(this).parents('tr')).data();
+                var class_name = $(this).attr('class');
+                id = data['index'];
+                //alert(id);
+                if (class_name == 'btn btn-info') {
+                    // EDIT button
+                    $('#sample_id').val(data['sample_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#extract_date').val(data['extract_date']);
+                    $('#sample_type').val(data['sample_type']);
+                    $('#sample_volume').val(data['sample_volume']);
+                    $('#extract_method').val(data['extract_method']);
+                    $('#dna_con').val(data['dna_con']);
+                    $('#dna_vol').val(data['dna_vol']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('EDIT');
+                    $("#myModal").modal();
+                } else {
+                    // DELETE button
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
+                    $("#confirm").modal();
+                }
+
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var type = $('#type').val();
+                var method = '';
+                var url = '/api/ExtractInfo/';
+                var url2 = '/api/DNAInventoryInfo/';
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                } else {
+                    // edit
+                    url = url + id + '/';
+                    method = 'PUT';
+                }
+
+                // 增、改：更新提取表
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: $(this).serialize(),
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+
+                // 增、改：更新库存表
+                // 由于外键约束，需先创建提取表条目，再根据index创建库存表条目
+                if (method == 'POST') {
+                    // new
+                    // 增：增加库存表条目
+                    var data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                        totalM: $('#dna_con').val() * $('#dna_vol').val(), successM: '0', failM: '0',
+                        researchM: '0', othersM: '0', remainM: $('#dna_con').val() * $('#dna_vol').val()
+                    });
+
+                    $.ajax({
+                        url: url2,
+                        method: method,
+                        data: data_tmp,
+                        headers: {'X-HTTP-Method-Override': 'PATCH'},
+                        success: function () {
+                            console.log('POST /api/DNAInventoryInfo/ success ');
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log('POST /api/DNAInventoryInfo/ error: ' + jqXHR + ';' + textStatus + ';' + errorThrown)
+                        }
+                    });
+                } else {
+                    // edit
+                    // 改：修改库存表相应条目
+                    var data0 = $.ajax({
+                        url: url2, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {index: id}
+                    }).responseJSON.results[0];
+                    var totalM = $('#dna_con').val() * $('#dna_vol').val();
+                    var data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                        totalM: totalM, successM: data0.successM, failM: data0.failM,
+                        researchM: data0.researchM, othersM: data0.othersM,
+                        remainM: data0.totalM - totalM + data0.remainM
+                    });
+
+                    url2 = url2 + id + '/';
+                    $.ajax({
+                        url: url2,
+                        method: method,
+                        data: data_tmp,
+                        headers: {'X-HTTP-Method-Override': 'PATCH'},
+                        success: function () {
+                            alert('PUT success ');
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            alert('PUT error: ' + jqXHR + ';' + textStatus + ';' + errorThrown);
+                            console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                        }
+                    });
+                }
+            });
+
+            $('#confirm').on('click', '#delete', function (e) {
+                $.ajax({
+                    url: '/api/ExtractInfo/' + id + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+            });
+
+            $('#new').on('click', function (e) {
+                $('#sample_id').val();
+                $('#dna_id').val();
+                $('#extract_date').val();
+                $('#sample_type').val();
+                $('#sample_volume').val();
+                $('#extract_method').val();
+                $('#dna_con').val();
+                $('#dna_vol').val();
+                $('#others').val();
+                $('#type').val('new');
+                $('#modal_title').text('NEW');
+                $("#myModal").modal();
+            });
+
+            $('#sample_id').blur(function () {
+                $('#dna_id').val($('#sample_id').val() + "_1");
+            });
+        })
+    </script>
+{% endblock %}

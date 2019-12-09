@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>测序登记信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>测序登记信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>测序编号</th>
+            <th>pooling号</th>
+            <th>测序类型</th>
+            <th>上机时间</th>
+            <th>下机时间</th>
+            <th>机器号</th>
+            <th>芯片号</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div class="form-group">
+        <label for="sequencing_id"> 测序编号</label>
+        <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
+               placeholder="请输入测序编号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="poolingLB_id"> pooling号</label>
+        <input type="text" class="form-control" id="poolingLB_id" name="poolingLB_id"
+               placeholder="请输入pooling号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="sequencing_type"> 测序类型</label>
+        <input type="text" class="form-control" id="sequencing_type" name="sequencing_type"
+               placeholder="请输入测序类型" required="true">
+    </div>
+    <div class="form-group">
+        <label for="start_time"> 上机时间</label>
+        <input type="datetime-local" class="form-control" id="start_time" name="start_time"
+               placeholder="请输入上机时间" required="true">
+    </div>
+    <div class="form-group">
+        <label for="end_time"> 下机时间</label>
+        <input type="datetime-local" class="form-control" id="end_time" name="end_time"
+               placeholder="请输入下机时间" required="true">
+    </div>
+    <div class="form-group">
+        <label for="machine_id"> 机器号</label>
+        <input type="text" class="form-control" id="machine_id" name="machine_id"
+               placeholder="请输入机器号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="chip_id"> 芯片号</label>
+        <input type="text" class="form-control" id="chip_id" name="chip_id"
+               placeholder="请输入芯片号" required="true">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "pagingType": "full_numbers",
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/SequencingInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "sequencing_id"},
+                    {"data": "poolingLB_id"},
+                    {"data": "sequencing_type"},
+                    {"data": "start_time"},
+                    {"data": "end_time"},
+                    {"data": "machine_id"},
+                    {"data": "chip_id"},
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">Delete</button>'
+                    }
+                ]
+            });
+
+            var id = 0;
+            $('#table_id tbody').on('click', 'button', function () {
+                var data = table.row($(this).parents('tr')).data();
+                var class_name = $(this).attr('class');
+                id = data['index'];
+                if (class_name == 'btn btn-info') {
+                    // EDIT button
+                    $('#sequencing_id').val(data['sequencing_id']);
+                    $('#poolingLB_id').val(data['poolingLB_id']);
+                    $('#sequencing_type').val(data['sequencing_type']);
+                    $('#start_time').val(data['start_time']);
+                    $('#end_time').val(data['end_time']);
+                    $('#machine_id').val(data['machine_id']);
+                    $('#chip_id').val(data['chip_id']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('EDIT');
+                    $("#myModal").modal();
+                } else {
+                    // DELETE button
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
+                    $("#confirm").modal();
+                }
+
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var type = $('#type').val();
+                var method = '';
+                var url = '/api/SequencingInfo/';
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                } else {
+                    // edit
+                    url = url + id + '/';
+                    method = 'PUT';
+                }
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: $(this).serialize(),
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+
+            $('#confirm').on('click', '#delete', function (e) {
+                $.ajax({
+                    url: '/api/SequencingInfo/' + id + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+            });
+
+
+            $('#new').on('click', function (e) {
+                $('#sequencing_id').val();
+                $('#poolingLB_id').val();
+                $('#sequencing_type').val();
+                $('#start_time').val();
+                $('#end_time').val();
+                $('#machine_id').val();
+                $('#chip_id').val();
+                $('#others').val();
+                $('#type').val('new');
+                $('#modal_title').text('NEW');
+                $("#myModal").modal();
+            });
+        })
+
+    </script>
+{% endblock %}

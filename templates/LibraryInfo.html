@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>样本建库信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <p>样本建库信息表</p>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>建库编号</th>
+            <th>样本编号</th>
+            <th>DNA提取编号</th>
+            <th>文库名</th>
+            <th>样本标签</th>
+            <th>index列表</th>
+            <th>建库日期</th>
+            <th>建库方法</th>
+            <th>起始量</th>
+            <th>PCR循环数</th>
+            <th>文库浓度</th>
+            <th>文库体积</th>
+            <th>操作人</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div id="usageForm">
+        <div class="form-group InventoryForm">
+            <label for="sample_id"> 样本编号</label>
+            <input type="text" class="form-control" id="sample_id" name="sample_id"
+                   placeholder="请输入样本编号" required="true">
+        </div>
+        <div class="form-group InventoryForm">
+            <label for="dna_id"> DNA提取编号</label>
+            <input type="text" class="form-control" id="dna_id" name="dna_id"
+                   placeholder="请输入DNA提取编号" required="true">
+        </div>
+        <div class="form-group">
+            <label for="singleLB_id"> 建库编号</label>
+            <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
+                   placeholder="请输入建库编号" required="true">
+        </div>
+        <div class="form-group">
+            <label for="LB_date"> 建库日期</label>
+            <input type="date" class="form-control" id="LB_date" name="LB_date"
+                   placeholder="请输入建库日期" required="true">
+        </div>
+        <div class="form-group">
+            <label for="mass"> 起始量(ng)</label>
+            <input type="number" step="0.01" class="form-control" id="mass" name="mass"
+                   placeholder="请输入起始量(ng)，默认0" value="0">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="LB_method"> 建库方法</label>
+        <input type="text" class="form-control" id="LB_method" name="LB_method"
+               placeholder="请输入建库方法" required="true">
+    </div>
+    <div class="form-group">
+        <label for="pcr_cycles"> PCR循环数</label>
+        <input type="number" class="form-control" id="pcr_cycles" name="pcr_cycles"
+               placeholder="请输入PCR循环数" required="true">
+    </div>
+    <div class="form-group">
+        <label for="LB_con"> 文库浓度(ng/ul)</label>
+        <input type="number" step="0.01" class="form-control" id="LB_con" name="LB_con"
+               placeholder="请输入文库浓度(ng/ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="LB_vol"> 文库体积(ul)</label>
+        <input type="number" step="0.01" class="form-control" id="LB_vol" name="LB_vol"
+               placeholder="请输入文库体积(ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="operator"> 操作人</label>
+        <input type="text" class="form-control" id="operator" name="operator"
+               placeholder="请输入操作人" required="true">
+    </div>
+    <div class="form-group">
+        <label for="singleLB_name"> 文库名</label>
+        <input type="text" class="form-control" id="singleLB_name" name="singleLB_name"
+               placeholder="请输入文库名" required="true">
+    </div>
+    <div class="form-group">
+        <label for="label"> 样本标签</label>
+        <input type="text" class="form-control" id="label" name="label"
+               placeholder="请输入样本标签" required="true">
+    </div>
+    <div class="form-group">
+        <label for="barcodes"> index列表</label>
+        <input type="text" class="form-control" id="barcodes" name="barcodes"
+               placeholder="请输入index列表" required="true">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            var table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "scrollX": true,
+                "pagingType": "full_numbers",
+                fixedColumns: true,
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
+                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                "serverSide": true,
+                "processing": true,
+                "ajax": "/api/LibraryInfo/?format=datatables",
+                "columns": [
+                    {"data": "index"},
+                    {"data": "singleLB_id"},
+                    {"data": "sample_id"},
+                    {"data": "dna_id"},
+                    {"data": "singleLB_name"},
+                    {"data": "label"},
+                    {"data": "barcodes"},
+                    {"data": "LB_date"},
+                    {"data": "LB_method"},
+                    {"data": "mass"},
+                    {"data": "pcr_cycles"},
+                    {"data": "LB_con"},
+                    {"data": "LB_vol"},
+                    {"data": "operator"},
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">Delete</button>'
+                    }
+                ]
+            });
+
+            var id = 0;
+            var singleLB_id;
+            var id2;
+            var mass0;
+            var dnaid;
+            var url = '/api/LibraryInfo/';
+            var url2 = '/api/DNAUsageRecordInfo/';
+            var url3 = '/api/DNAInventoryInfo/';
+            $('#table_id tbody').on('click', 'button', function () {
+                var data = table.row($(this).parents('tr')).data();
+                var class_name = $(this).attr('class');
+                id = data['index'];
+                dnaid = data['dna_id']; //记录dna_id，用于更新库存表
+                mass0 = data['mass']; //记录原来的使用量，用于更新库存表
+                singleLB_id = data['singleLB_id'];
+                // 获取对应的使用记录数据
+                id2 = $.ajax({
+                    url: url2, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {singleLB_id: singleLB_id}
+                }).responseJSON.results[0];
+                if (class_name == 'btn btn-info') {
+                    // EDIT button
+                    $('#singleLB_id').val(data['singleLB_id']);
+                    $('#sample_id').val(data['sample_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#LB_date').val(data['LB_date']);
+                    $('#mass').val(data['mass']);
+                    $('#LB_method').val(data['LB_method']);
+                    $('#pcr_cycles').val(data['pcr_cycles']);
+                    $('#LB_con').val(data['LB_con']);
+                    $('#LB_vol').val(data['LB_vol']);
+                    $('#operator').val(data['operator']);
+                    $('#singleLB_name').val(data['singleLB_name']);
+                    $('#label').val(data['label']);
+                    $('#barcodes').val(data['barcodes']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('EDIT');
+                    $("#myModal").modal();
+                } else {
+                    // DELETE button
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
+                    $("#confirm").modal();
+                }
+
+            });
+
+            $('form').on('submit', function (e) {
+                e.preventDefault();
+                var type = $('#type').val();
+                var method = '';
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                } else {
+                    // edit
+                    url = url + id + '/';
+                    url2 = url2 + id2.index + '/';
+                    method = 'PUT';
+                }
+
+                // 增、改：更新建库表
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: $(this).serialize(),
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+
+                // 增、改：更新使用记录表
+                var data_tmp = $('#usageForm div input').serialize() + '&' + $.param({
+                    usage: '建库成功',
+                    others: $('#others').val()
+                });
+                $.ajax({
+                    url: url2,
+                    method: method,
+                    data: data_tmp,
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+
+                // 更新库存表
+                var data0 = $.ajax({
+                    url: url3, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {dna_id: $('#dna_id').val()}
+                }).responseJSON.results[0];
+                var data_tmp2;
+                if (method == 'POST') {
+                    data_tmp2 = $('#usageForm .InventoryForm input').serialize() + '&' + $.param({
+                        totalM: data0.totalM, successM: data0.successM + $('#mass').val(),
+                        failM: data0.failM, researchM: data0.researchM,
+                        othersM: data0.othersM, remainM: data0.totalM - $('#mass').val()
+                    });
+                } else {
+                    sub = $('#mass').val() - mass0;
+                    data_tmp2 = $('#usageForm .InventoryForm input').serialize() + '&' + $.param({
+                        totalM: data0.totalM, successM: data0.successM + sub,
+                        failM: data0.failM, researchM: data0.researchM,
+                        othersM: data0.othersM, remainM: data0.totalM - sub
+                    });
+                }
+
+                $.ajax({
+                    url: url3 + data0.index + '/',
+                    method: 'PUT',
+                    data: data_tmp2,
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+
+            $('#confirm').on('click', '#delete', function (e) {
+                // 删：删除建库表对应条目
+                $.ajax({
+                    url: url + id + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+
+                // 删：删除使用记录表对应条目
+                $.ajax({
+                    url: url2 + id2.index + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    }
+                });
+
+                // 删： 库存表减去相应量
+                var data0 = $.ajax({
+                    url: url3, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {dna_id: dnaid}
+                }).responseJSON.results[0];
+                var data_tmp2 = $.param({
+                    dna_id: data0.dna_id, sample_id: data0.sample_id,
+                    totalM: data0.totalM, successM: data0.successM - mass0,
+                    failM: data0.failM, researchM: data0.researchM,
+                    othersM: data0.othersM, remainM: data0.totalM + mass0
+                });
+                $.ajax({
+                    url: url3 + data0.index + '/',
+                    method: 'PUT',
+                    data: data_tmp2,
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+
+            $('#new').on('click', function (e) {
+                $('#singleLB_id').val();
+                $('#sample_id').val();
+                $('#dna_id').val();
+                $('#LB_date').val();
+                $('#mass').val();
+                $('#LB_method').val();
+                $('#pcr_cycles').val();
+                $('#LB_con').val();
+                $('#LB_vol').val();
+                $('#operator').val();
+                $('#singleLB_name').val();
+                $('#label').val();
+                $('#barcodes').val();
+                $('#others').val();
+                $('#type').val('new');
+                $('#modal_title').text('NEW');
+                $("#myModal").modal();
+            });
+
+            $('#sample_id').blur(function () {
+                $('#dna_id').val($('#sample_id').val() + "_1");
+                $('#singleLB_id').val($('#sample_id').val() + "_1m1");
+            });
+
+            $('#dna_id').blur(function () {
+                $('#singleLB_id').val($('#dna_id').val() + "m1");
+            });
+        })
+    </script>
+{% endblock %}

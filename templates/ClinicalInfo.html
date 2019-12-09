@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="jumbotron">
-        <h1>甲基化项目数据库管理系统Demo</h1>
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
         <p>样本临床信息表</p>
     </div>
 {% endblock %}
@@ -55,9 +55,11 @@
                placeholder="请输入姓名" required="true">
     </div>
     <div class="form-group">
-        <label for="name"> 性别</label>
-        <input type="text" class="form-control" id="gender" name="gender"
-               placeholder="请输入性别" required="true">
+        <label for="gender"> 性别</label>
+        <select class="form-control" id="gender" name="gender" required="true">
+            <option value="1">男</option>
+            <option value="0">女</option>
+        </select>
     </div>
     <div class="form-group">
         <label for="age"> 年龄</label>
@@ -129,10 +131,6 @@
         <input type="text" class="form-control" id="others" name="others"
                placeholder="请输入备注" value="无">
     </div>
-
-
-
-
 {% endblock %}
 
 {% block extra_js %}
@@ -146,30 +144,7 @@
                 }
             };
 
-            var manToInt = function (d) {
-                if (d == '男') {
-                    return parseInt("1")
-                } else {
-                    return parseInt("0")
-                }
-            };
-
-            $('#table_id').DataTable
-            ({
-                "scrollY": "5000px",
-                "scrollCollapse": true,
-                "scrollX": true,
-                "pagingType": "full_numbers",
-                fixedColumns: true,
-                rowReorder: true,
-                colReorder: true,
-                searching: true,
-                select: true,
-                dom: 'lBfrtip',
-                buttons: {
-                    buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
-                        'copy', 'csv']
-                },
+            var table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -183,13 +158,22 @@
                         "last": "末页"
                     }
                 },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "scrollX": true,
+                "pagingType": "full_numbers",
+                fixedColumns: true,
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                    'copy', 'csv'],
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
                 "serverSide": true,
-                "ajax": {
-                    "url": "/api/ClinicalInfo/",
-                    "dataSrc": "",
-                    "type": "GET"
-                },
+                "processing": true,
+                "ajax": "/api/ClinicalInfo/?format=datatables",
                 "columns": [
                     {"data": "index"},
                     {"data": "sample_id"},
@@ -222,14 +206,15 @@
                             '<button type="button" class="btn btn-danger">Delete</button>'
                     }
                 ]
-
             });
 
             var id = 0;
 
-            $('#datatables tbody').on('click', 'button', function () {
+            $('#table_id tbody').on('click', 'button', function () {
                 var data = table.row($(this).parents('tr')).data();
                 var class_name = $(this).attr('class');
+                id = data['index'];
+                //alert(id);
                 if (class_name == 'btn btn-info') {
                     // EDIT button
                     $('#sample_id').val(data['sample_id']);
@@ -254,11 +239,10 @@
                     $("#myModal").modal();
                 } else {
                     // DELETE button
-                    $('#modal_title').text('DELETE');
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
                     $("#confirm").modal();
                 }
-
-                id = data['id'];
 
             });
 
@@ -276,7 +260,7 @@
                     method = 'PUT';
                 }
 
-                alert($(this).serialize())
+
                 $.ajax({
                     url: url,
                     method: method,
@@ -293,7 +277,7 @@
 
             $('#confirm').on('click', '#delete', function (e) {
                 $.ajax({
-                    url: '/api/music/' + id + '/',
+                    url: '/api/ClinicalInfo/' + id + '/',
                     method: 'DELETE',
                     success: function () {
                         location.reload()
@@ -306,23 +290,23 @@
 
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val('');
-                $('#name').val('');
-                manToInt($('#gender').val(''));
-                $('#age').val('');
-                $('#patientId').val('');
-                $('#diagnose').val('');
-                $('#sampling_date').val('');
-                $('#centrifugation_date').val('');
-                $('#hospital').val('');
-                $('#department').val('');
-                $('#plasma_num').val('');
-                $('#adjacent_mucosa_num').val('');
-                $('#cancer_tissue_num').val('');
-                $('#WBC_num').val('');
-                $('#stool_num').val('');
-                $('#send_date').val('');
-                $('#others').val('');
+                $('#sample_id').val();
+                $('#name').val();
+                $('#gender').val();
+                $('#age').val();
+                $('#patientId').val();
+                $('#diagnose').val();
+                $('#sampling_date').val();
+                $('#centrifugation_date').val();
+                $('#hospital').val();
+                $('#department').val();
+                $('#plasma_num').val();
+                $('#adjacent_mucosa_num').val();
+                $('#cancer_tissue_num').val();
+                $('#WBC_num').val();
+                $('#stool_num').val();
+                $('#send_date').val();
+                $('#others').val();
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();

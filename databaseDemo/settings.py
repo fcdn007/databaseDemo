@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bootstrap4',
     'rest_framework',
+    'rest_framework_datatables',
     'databaseDemo',
 ]
 
@@ -83,7 +84,7 @@ WSGI_APPLICATION = 'databaseDemo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
-        'NAME': 'databaseDemo2',  # 数据库名
+        'NAME': 'databaseDemo',  # 数据库名
         'USER': 'django',  # 账号
         'PASSWORD': 'django',  # 密码
         'HOST': '127.0.0.1',  # HOST
@@ -148,14 +149,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
 DATE_FORMAT = '%m/%d/%Y'
 DATETIME_FORMAT = '%m/%d/%Y %I:%M'
 
+# DRF
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework.renderers.JSONRenderer',
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework_datatables.renderers.DatatablesRenderer',
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        # 'rest_framework.parsers.JSONParser',
-        # 'rest_framework.permissions.IsAuthenticated',
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework_datatables.filters.DatatablesFilterBackend',
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
+    'PAGE_SIZE': 10,
 }
