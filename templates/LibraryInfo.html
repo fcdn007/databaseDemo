@@ -222,7 +222,7 @@
 
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -379,6 +379,14 @@
 
             $('#dna_id').blur(function () {
                 $('#singleLB_id').val($('#dna_id').val() + "m1");
+            });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('LibraryInfo');
+                $("#uploadModal").modal();
             });
         })
     </script>

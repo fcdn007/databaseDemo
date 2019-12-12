@@ -246,7 +246,7 @@
 
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -259,7 +259,6 @@
                     url = url + id + '/';
                     method = 'PUT';
                 }
-
 
                 $.ajax({
                     url: url,
@@ -288,7 +287,6 @@
                 });
             });
 
-
             $('#new').on('click', function (e) {
                 $('#sample_id').val();
                 $('#name').val();
@@ -310,6 +308,14 @@
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
+            });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('ClinicalInfo');
+                $("#uploadModal").modal();
             });
         })
 

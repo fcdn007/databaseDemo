@@ -75,8 +75,8 @@
 
     <!-- New  button -->
     <div class="text-center">
-        <button type="button" class="btn btn-primary" data-target="modal" id="new">添加</button>
-        <button type="button" class="btn btn-primary" style="margin: 0 50px">批量添加</button>
+        <button type="button" class="btn btn-primary" id="new">添加</button>
+        <button type="button" class="btn btn-primary" id="upload" style="margin: 0 50px">批量添加</button>
     </div>
     <br>
 
@@ -93,13 +93,50 @@
                     <h4 class="modal-title" id="modal_title"></h4>
                 </div>
                 <div class="modal-body">
-                    <form id="form">
+                    <form id="modelForm">
                         {% block ModalForm %}
 
                         {% endblock %}
                         <input type="hidden" id="type" name="type" value="">
-                        <button type="submit" class="btn btn-success btn-block">OK</button>
+                        <button id="submit" type="submit" class="btn btn-success btn-block">OK</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- upload Modal -->
+    <div class="modal fade" id="uploadModal">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="uploadModal_title"> 上传文件进行批量添加</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="UploadForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="uploadUrl"> 数据表名称</label>
+                            <input type="text" class="form-control" id="uploadUrl" name="uploadUrl"
+                                   placeholder="请输入数据表名称" required="true">
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadOperator"> 上传者</label>
+                            <input type="text" class="form-control" id="uploadOperator" name="uploadOperator"
+                                   placeholder="请输入上传者" required="true">
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadFile"> 上传文件</label>
+                            <input type="file" class="form-control" id="uploadFile" name="uploadFile"
+                                   placeholder="请上传文件" required="true">
+                        </div>
+                        <button id='uploadSubmit' type="submit" class="btn btn-success btn-block">提交上传</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <p id="uploadError"></p>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
                 </div>
             </div>
         </div>
@@ -111,11 +148,11 @@
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Are you sure?</h4>
+                    <h4 class="modal-title">是否确认删除?</h4>
                 </div>
                 <div class="modal-body">
-                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">Delete</button>
-                    <button type="button" data-dismiss="modal" class="btn">Cancel</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">确认删除</button>
+                    <button type="button" data-dismiss="modal" class="btn">取消</button>
                 </div>
             </div>
         </div>
@@ -139,6 +176,48 @@
 <script src="{% static 'js/dataTables.rowReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.colReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
+<script src=" https://cdn.jsdelivr.net/jquery.cookie/1.4.1/jquery.cookie.min.js "></script>
+<script>
+    var csrftoken = $.cookie('csrftoken');
+
+    function csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    $(document).ready(function () {
+        $('#uploadSubmit').on('click', function (e) {
+            e.preventDefault();
+            // 构建FormData对象
+            var form_data = new FormData();
+            form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
+            form_data.append('uploadUrl', $('#uploadUrl').val());
+            form_data.append('uploadOperator', $('#uploadOperator').val());
+            var urlUpload = {% url "upload" %};
+
+            $.ajax({
+                async: false, url: urlUpload, processData: false,
+                method: 'POST', data: form_data, dataType: 'json',
+                contentType: false,
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                },
+                success: function (data) {
+                    if (data['error_msg']) {
+                        //alert('文件上传和批量添加失败。' + data['error_msg']);
+                        $('#uploadError').text('文件上传和批量添加失败。' + data['error_msg']);
+                    } else {
+                        //alert('文件上传和批量添加成功。');
+                        $("#uploadModal").find('form').trigger("reset");
+                        $('#uploadModal').modal('hide');
+                        location.reload();
+                    }
+                }
+            });
+        });
+    });
+</script>
 {% block extra_js %}
 
 {% endblock %}

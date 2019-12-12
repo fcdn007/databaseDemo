@@ -121,10 +121,10 @@
                     {"data": "dna_id"},
                     {"data": "singleLB_id"},
                     {"data": "poolingLB_id"},
+                    {"data": "singleLB_Pooling_id"},
                     {"data": "pooling_ratio"},
                     {"data": "mass"},
                     {"data": "volume"},
-                    {"data": "singleLB_Pooling_id"},
                     {"data": "others"},
                     {"data": "last_modify_date"},
                     {"data": "created"},
@@ -165,7 +165,7 @@
 
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -244,6 +244,15 @@
                     $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
                 });
             });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('PoolingInfo');
+                $("#uploadModal").modal();
+            });
         })
+
     </script>
 {% endblock %}

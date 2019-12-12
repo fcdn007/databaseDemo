@@ -21,7 +21,7 @@
             <th>pooling号</th>
             <th>杂交日期</th>
             <th>杂交探针</th>
-            <th>杂交时间(h)</th>
+            <th>杂交时间(min)</th>
             <th>PostPCR循环数</th>
             <th>PostPCR浓度(ng/ul)</th>
             <th>洗脱体积(ul)</th>
@@ -51,9 +51,9 @@
                placeholder="请输入杂交探针" required="true">
     </div>
     <div class="form-group">
-        <label for="hybrid_hours"> 杂交时间(h)</label>
-        <input type="number" step="0.01" class="form-control" id="hybrid_hours" name="hybrid_hours"
-               placeholder="请输入杂交时间(h)" required="true">
+        <label for="hybrid_hours"> 杂交时间(min)</label>
+        <input type="number" class="form-control" id="hybrid_hours" name="hybrid_hours"
+               placeholder="请输入杂交时间(min)" required="true">
     </div>
     <div class="form-group">
         <label for="postpcr_cycles"> PostPCR循环数</label>
@@ -157,7 +157,7 @@
 
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -212,6 +212,14 @@
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
+            });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('CaptureInfo');
+                $("#uploadModal").modal();
             });
         })
 

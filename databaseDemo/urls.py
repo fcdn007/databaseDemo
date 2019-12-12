@@ -38,13 +38,14 @@ urlpatterns = [
                   path('home/', views.index, name='index'),
                   path('ClinicalInfo/', views.ClinicalInfoV, name='ClinicalInfo'),
                   path('ExtractInfo/', views.ExtractInfoV, name='ExtractInfo'),
-                  path('DNAUsage/', views.DNAUsageRecordInfoV, name='DNAUsageRecordInfo'),
+                  path('DNAUsageRecordInfo/', views.DNAUsageRecordInfoV, name='DNAUsageRecordInfo'),
                   path('DNAInventoryInfo/', views.DNAInventoryInfoV, name='DNAInventoryInfo'),
                   path('LibraryInfo/', views.LibraryInfoV, name='LibraryInfo'),
                   path('CaptureInfo/', views.CaptureInfoV, name='CaptureInfo'),
                   path('PoolingInfo/', views.PoolingInfoV, name='PoolingInfo'),
                   path('SequencingInfo/', views.SequencingInfoV, name='SequencingInfo'),
                   path('QCInfo/', views.QCInfoV, name='QCInfo'),
+                  path('Upload/', views.uploadV, name='upload'),
                   # for rest_framework
                   path('api/', include(router.urls)),
                   # for rest_framework auth

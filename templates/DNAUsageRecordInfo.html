@@ -156,7 +156,7 @@
                 }
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -329,6 +329,15 @@
             $('#sample_id').blur(function () {
                 $('#dna_id').val($('#sample_id').val() + "_1");
             });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('DNAUsageRecordInfo');
+                $("#uploadModal").modal();
+            });
         })
+
     </script>
 {% endblock %}

@@ -1,9 +1,10 @@
+import os
+import uuid
+
 from django.db import models
 
 
 # 表1 临床信息表
-
-
 class ClinicalInfo(models.Model):
     sample_id = models.CharField(
         db_column='样本编号', unique=True, max_length=255, blank=True, null=True)
@@ -47,8 +48,14 @@ class ClinicalInfo(models.Model):
 # 表2 样本提取表
 class ExtractInfo(models.Model):
     dna_id = models.CharField(db_column='DNA提取编号', unique=True, max_length=255)
-    sample_id = models.ForeignKey("ClinicalInfo", on_delete=models.CASCADE, related_name='ExtractInfo_ClinicalInfo',
-                                  to_field="sample_id", db_column='样本编号', blank=True, null=True)
+    sample_id = models.ForeignKey(
+        "ClinicalInfo",
+        on_delete=models.CASCADE,
+        related_name='ExtractInfo_ClinicalInfo',
+        to_field="sample_id",
+        db_column='样本编号',
+        blank=True,
+        null=True)
     extract_date = models.DateField(db_column='提取日期', blank=True, null=True)
     sample_type = models.CharField(db_column='样本类型', max_length=255)
     sample_volume = models.FloatField(db_column='样本体积', blank=True, null=True)
@@ -73,11 +80,22 @@ class ExtractInfo(models.Model):
 
 # 表3 样本DNA使用记录表
 class DNAUsageRecordInfo(models.Model):
-    dna_id = models.ForeignKey("ExtractInfo", on_delete=models.CASCADE, related_name='DNAUsageRecordInfo_ExtractInfo',
-                               to_field="dna_id", db_column='DNA提取编号', blank=True, null=True)
-    sample_id = models.ForeignKey("ClinicalInfo", on_delete=models.CASCADE,
-                                  related_name='DNAUsageRecordInfo_ClinicalInfo',
-                                  to_field="sample_id", db_column='样本编号', blank=True, null=True)
+    dna_id = models.ForeignKey(
+        "ExtractInfo",
+        on_delete=models.CASCADE,
+        related_name='DNAUsageRecordInfo_ExtractInfo',
+        to_field="dna_id",
+        db_column='DNA提取编号',
+        blank=True,
+        null=True)
+    sample_id = models.ForeignKey(
+        "ClinicalInfo",
+        on_delete=models.CASCADE,
+        related_name='DNAUsageRecordInfo_ClinicalInfo',
+        to_field="sample_id",
+        db_column='样本编号',
+        blank=True,
+        null=True)
     LB_date = models.DateField(db_column='使用日期', blank=True, null=True)
     mass = models.FloatField(db_column='使用量', blank=True, null=True)
     usage = models.CharField(db_column='用途', max_length=255)
@@ -100,12 +118,23 @@ class DNAUsageRecordInfo(models.Model):
 
 # 表9 样本DNA库存信息表
 class DNAInventoryInfo(models.Model):
-    sample_id = models.ForeignKey("ClinicalInfo", on_delete=models.CASCADE,
-                                  related_name='DNAInventoryInfo_ClinicalInfo',
-                                  to_field="sample_id", db_column='样本编号', blank=True, null=True)
+    sample_id = models.ForeignKey(
+        "ClinicalInfo",
+        on_delete=models.CASCADE,
+        related_name='DNAInventoryInfo_ClinicalInfo',
+        to_field="sample_id",
+        db_column='样本编号',
+        blank=True,
+        null=True)
 
-    dna_id = models.ForeignKey("ExtractInfo", on_delete=models.CASCADE, related_name='DNAInventoryInfo_ExtractInfo',
-                               to_field="dna_id", db_column='DNA提取编号', blank=True, null=True)
+    dna_id = models.ForeignKey(
+        "ExtractInfo",
+        on_delete=models.CASCADE,
+        related_name='DNAInventoryInfo_ExtractInfo',
+        to_field="dna_id",
+        db_column='DNA提取编号',
+        blank=True,
+        null=True)
     totalM = models.FloatField(db_column='DNA提取总量', blank=True, null=True)
     successM = models.FloatField(db_column='成功建库使用量', blank=True, null=True)
     failM = models.FloatField(db_column='失败建库使用量', blank=True, null=True)
@@ -129,10 +158,22 @@ class DNAInventoryInfo(models.Model):
 class LibraryInfo(models.Model):
     singleLB_id = models.CharField(
         db_column='建库编号', unique=True, max_length=255, blank=True, null=True)
-    sample_id = models.ForeignKey("ClinicalInfo", on_delete=models.CASCADE, related_name='DLibraryInfo_ClinicalInfo',
-                                  to_field="sample_id", db_column='样本编号', blank=True, null=True)
-    dna_id = models.ForeignKey("ExtractInfo", on_delete=models.CASCADE, related_name='DLibraryInfo_ExtractInfo',
-                               to_field="dna_id", db_column='DNA提取编号', blank=True, null=True)
+    sample_id = models.ForeignKey(
+        "ClinicalInfo",
+        on_delete=models.CASCADE,
+        related_name='DLibraryInfo_ClinicalInfo',
+        to_field="sample_id",
+        db_column='样本编号',
+        blank=True,
+        null=True)
+    dna_id = models.ForeignKey(
+        "ExtractInfo",
+        on_delete=models.CASCADE,
+        related_name='DLibraryInfo_ExtractInfo',
+        to_field="dna_id",
+        db_column='DNA提取编号',
+        blank=True,
+        null=True)
     singleLB_name = models.CharField(
         db_column='文库名', max_length=255, blank=True, null=True)
     label = models.CharField(
@@ -166,7 +207,11 @@ class LibraryInfo(models.Model):
 # 表5 甲基化捕获文库信息表
 class CaptureInfo(models.Model):
     poolingLB_id = models.CharField(
-        db_column='pooling号', unique=True, max_length=255, blank=True, null=True)
+        db_column='pooling号',
+        unique=True,
+        max_length=255,
+        blank=True,
+        null=True)
     hybrid_date = models.DateField(db_column='杂交日期', blank=True, null=True)
     probes = models.CharField(
         db_column='杂交探针', max_length=255, blank=True, null=True)
@@ -193,14 +238,38 @@ class CaptureInfo(models.Model):
 
 # 表6 pooling表
 class PoolingInfo(models.Model):
-    sample_id = models.ForeignKey("ClinicalInfo", on_delete=models.CASCADE, related_name='PoolingInfo_ClinicalInfo',
-                                  to_field="sample_id", db_column='样本编号', blank=True, null=True)
-    dna_id = models.ForeignKey("ExtractInfo", on_delete=models.CASCADE, related_name='PoolingInfo_ExtractInfo',
-                               to_field="dna_id", db_column='DNA提取编号', blank=True, null=True)
-    singleLB_id = models.ForeignKey("LibraryInfo", on_delete=models.CASCADE, related_name='PoolingInfo_LibraryInfo',
-                                    to_field="singleLB_id", db_column='建库编号', blank=True, null=True)
-    poolingLB_id = models.ForeignKey("CaptureInfo", on_delete=models.CASCADE, related_name='PoolingInfo_CaptureInfo',
-                                     to_field="poolingLB_id", db_column='pooling号', blank=True, null=True)
+    sample_id = models.ForeignKey(
+        "ClinicalInfo",
+        on_delete=models.CASCADE,
+        related_name='PoolingInfo_ClinicalInfo',
+        to_field="sample_id",
+        db_column='样本编号',
+        blank=True,
+        null=True)
+    dna_id = models.ForeignKey(
+        "ExtractInfo",
+        on_delete=models.CASCADE,
+        related_name='PoolingInfo_ExtractInfo',
+        to_field="dna_id",
+        db_column='DNA提取编号',
+        blank=True,
+        null=True)
+    singleLB_id = models.ForeignKey(
+        "LibraryInfo",
+        on_delete=models.CASCADE,
+        related_name='PoolingInfo_LibraryInfo',
+        to_field="singleLB_id",
+        db_column='建库编号',
+        blank=True,
+        null=True)
+    poolingLB_id = models.ForeignKey(
+        "CaptureInfo",
+        on_delete=models.CASCADE,
+        related_name='PoolingInfo_CaptureInfo',
+        to_field="poolingLB_id",
+        db_column='pooling号',
+        blank=True,
+        null=True)
     pooling_ratio = models.FloatField(
         db_column='pooling比例', blank=True, null=True)
     mass = models.FloatField(db_column='取样', blank=True, null=True)
@@ -226,8 +295,14 @@ class PoolingInfo(models.Model):
 class SequencingInfo(models.Model):
     sequencing_id = models.CharField(
         db_column='测序编号', unique=True, max_length=255, blank=True, null=True)
-    poolingLB_id = models.ForeignKey("CaptureInfo", on_delete=models.CASCADE, related_name='SequencingInfo_CaptureInfo',
-                                     to_field="poolingLB_id", db_column='捕获pooling文库编号', blank=True, null=True)
+    poolingLB_id = models.ForeignKey(
+        "CaptureInfo",
+        on_delete=models.CASCADE,
+        related_name='SequencingInfo_CaptureInfo',
+        to_field="poolingLB_id",
+        db_column='pooling号',
+        blank=True,
+        null=True)
     sequencing_type = models.CharField(
         db_column='测序类型', max_length=255, blank=True, null=True)
     start_time = models.DateTimeField(db_column='上机时间', blank=True, null=True)
@@ -255,79 +330,122 @@ class SequencingInfo(models.Model):
 class QCInfo(models.Model):
     QC_id = models.CharField(
         db_column='Sample', unique=True, max_length=255, blank=True, null=True)
-    data_size_gb_field = models.FloatField(db_column='Data_Size(Gb)')
-    clean_rate_field = models.FloatField(db_column='Clean_Rate(%)')
-    r1_q20 = models.FloatField(db_column='R1_Q20')
-    r2_q20 = models.FloatField(db_column='R2_Q20')
-    r1_q30 = models.FloatField(db_column='R1_Q30')
-    r2_q30 = models.FloatField(db_column='R2_Q30')
-    gc_content = models.FloatField(db_column='GC_Content')
+    data_size_gb_field = models.FloatField(
+        db_column='Data_Size-Gb', blank=True, null=True)
+    clean_rate_field = models.FloatField(
+        db_column='Clean_Rate', blank=True, null=True)
+    r1_q20 = models.FloatField(db_column='R1_Q20', blank=True, null=True)
+    r2_q20 = models.FloatField(db_column='R2_Q20', blank=True, null=True)
+    r1_q30 = models.FloatField(db_column='R1_Q30', blank=True, null=True)
+    r2_q30 = models.FloatField(db_column='R2_Q30', blank=True, null=True)
+    gc_content = models.FloatField(
+        db_column='GC_Content', blank=True, null=True)
     bs_conversion_rate_lambda_dna_field = models.FloatField(
-        db_column='BS_conversion_rate(lambda_DNA)')
+        db_column='BS_conversion_rate-lambda_DNA', blank=True, null=True)
     bs_conversion_rate_chh_field = models.FloatField(
-        db_column='BS_conversion_rate(CHH)')
+        db_column='BS_conversion_rate-CHH', blank=True, null=True)
     bs_conversion_rate_chg_field = models.FloatField(
-        db_column='BS_conversion_rate(CHG)')
+        db_column='BS_conversion_rate-CHG', blank=True, null=True)
     uniquely_paired_mapping_rate = models.FloatField(
-        db_column='Uniquely_Paired_Mapping_Rate')
+        db_column='Uniquely_Paired_Mapping_Rate', blank=True, null=True)
     mismatch_and_indel_rate = models.FloatField(
-        db_column='Mismatch_and_InDel_Rate')
+        db_column='Mismatch_and_InDel_Rate', blank=True, null=True)
     mode_fragment_length_bp_field = models.FloatField(
-        db_column='Mode_Fragment_Length(bp)')
+        db_column='Mode_Fragment_Length-bp', blank=True, null=True)
     genome_duplication_rate = models.FloatField(
-        db_column='Genome_Duplication_Rate')
-    genome_depth_x_field = models.FloatField(db_column='Genome_Depth(X)')
+        db_column='Genome_Duplication_Rate', blank=True, null=True)
+    genome_depth_x_field = models.FloatField(
+        db_column='Genome_Depth', blank=True, null=True)
     genome_dedupped_depth_x_field = models.FloatField(
-        db_column='Genome_Dedupped_Depth(X)')
-    genome_coverage = models.FloatField(db_column='Genome_Coverage')
+        db_column='Genome_Dedupped_Depth', blank=True, null=True)
+    genome_coverage = models.FloatField(
+        db_column='Genome_Coverage', blank=True, null=True)
     genome_4x_cpg_depth_x_field = models.FloatField(
-        db_column='Genome_4X_CpG_Depth(X)')
+        db_column='Genome_4X_CpG_Depth', blank=True, null=True)
     genome_4x_cpg_coverage = models.FloatField(
-        db_column='Genome_4X_CpG_Coverage')
-    genome_4x_cpg_methylation_level = models.FloatField(db_column='Genome_4X_CpG_methylation_level',
-                                                        blank=True, null=True)
-    panel_4x_cpg_depth_x_field = models.FloatField(db_column='Panel_4X_CpG_Depth(X)',
-                                                   blank=True, null=True)
-    panel_4x_cpg_coverage = models.FloatField(db_column='Panel_4X_CpG_Coverage',
-                                              blank=True, null=True)
-    panel_4x_cpg_methylation_level = models.FloatField(db_column='Panel_4X_CpG_methylation_level',
-                                                       blank=True, null=True)
+        db_column='Genome_4X_CpG_Coverage', blank=True, null=True)
+    genome_4x_cpg_methylation_level = models.FloatField(
+        db_column='Genome_4X_CpG_methylation_level', blank=True, null=True)
+    panel_4x_cpg_depth_x_field = models.FloatField(
+        db_column='Panel_4X_CpG_Depth', blank=True, null=True)
+    panel_4x_cpg_coverage = models.FloatField(
+        db_column='Panel_4X_CpG_Coverage', blank=True, null=True)
+    panel_4x_cpg_methylation_level = models.FloatField(
+        db_column='Panel_4X_CpG_methylation_level', blank=True, null=True)
     panel_ontarget_rate_region_field = models.FloatField(
-        db_column='Panel_Ontarget_Rate(region)')
+        db_column='Panel_Ontarget_Rate-region', blank=True, null=True)
     panel_duplication_rate_region_field = models.FloatField(
-        db_column='Panel_Duplication_Rate(region)')
+        db_column='Panel_Duplication_Rate-region', blank=True, null=True)
     panel_depth_site_x_field = models.FloatField(
-        db_column='Panel_Depth(site,X)')
+        db_column='Panel_Depth-site_X', blank=True, null=True)
     panel_dedupped_depth_site_x_field = models.FloatField(
-        db_column='Panel_Dedupped_Depth(site,X)')
+        db_column='Panel_Dedupped_Depth-site_X', blank=True, null=True)
     panel_coverage_site_1x_field = models.FloatField(
-        db_column='Panel_Coverage(site,1X)')
+        db_column='Panel_Coverage-site_1X', blank=True, null=True)
     panel_coverage_site_10x_field = models.FloatField(
-        db_column='Panel_Coverage(site,10X)')
+        db_column='Panel_Coverage-site_10X', blank=True, null=True)
     panel_coverage_site_20x_field = models.FloatField(
-        db_column='Panel_Coverage(site,20X)')
+        db_column='Panel_Coverage-site_20X', blank=True, null=True)
     panel_coverage_site_50x_field = models.FloatField(
-        db_column='Panel_Coverage(site,50X)')
+        db_column='Panel_Coverage-site_50X', blank=True, null=True)
     panel_coverage_site_100x_field = models.FloatField(
-        db_column='Panel_Coverage(site,100X)')
+        db_column='Panel_Coverage-site_100X', blank=True, null=True)
     panel_uniformity_site_20_mean_field = models.FloatField(
-        db_column='Panel_Uniformity(site,>20%mean)')
+        db_column='Panel_Uniformity-site_gt0.2mean', blank=True, null=True)
     strand_balance_f_field = models.FloatField(
-        db_column='Strand_balance(F)', blank=True, null=True)
-    strand_balance_r_field = models.FloatField(db_column='Strand_balance(R)')
-    gc_bin_depth_ratio = models.FloatField(db_column='GC_bin_depth_ratio')
-    sample_id = models.ForeignKey("ClinicalInfo", on_delete=models.CASCADE, related_name='QCInfo_ClinicalInfo',
-                                  to_field="sample_id", db_column='样本编号', blank=True, null=True)
-    dna_id = models.ForeignKey("ExtractInfo", on_delete=models.CASCADE, related_name='QCInfo_ExtractInfo',
-                               to_field="dna_id", db_column='DNA提取编号', blank=True, null=True)
-    singleLB_id = models.ForeignKey("LibraryInfo", on_delete=models.CASCADE, related_name='QCInfo_LibraryInfo',
-                                    to_field="singleLB_id", db_column='建库编号', blank=True, null=True)
-    poolingLB_id = models.ForeignKey("CaptureInfo", on_delete=models.CASCADE, related_name='QCInfo_CaptureInfo',
-                                     to_field="poolingLB_id", db_column='pooling号', blank=True, null=True)
-    singleLB_Pooling_id = models.ForeignKey("PoolingInfo", on_delete=models.CASCADE, related_name='QCInfo_PoolingInfo',
-                                            to_field="singleLB_Pooling_id", db_column='文库编号', blank=True, null=True)
-    sequencing_id = models.ForeignKey("SequencingInfo", on_delete=models.CASCADE, related_name='QCInfo_SequencingInfo',
-                                      to_field="sequencing_id", db_column='测序编号', blank=True, null=True)
+        db_column='Strand_balance-F', blank=True, null=True)
+    strand_balance_r_field = models.FloatField(
+        db_column='Strand_balance-R', blank=True, null=True)
+    gc_bin_depth_ratio = models.FloatField(
+        db_column='GC_bin_depth_ratio', blank=True, null=True)
+    sample_id = models.ForeignKey(
+        "ClinicalInfo",
+        on_delete=models.CASCADE,
+        related_name='QCInfo_ClinicalInfo',
+        to_field="sample_id",
+        db_column='样本编号',
+        blank=True,
+        null=True)
+    dna_id = models.ForeignKey(
+        "ExtractInfo",
+        on_delete=models.CASCADE,
+        related_name='QCInfo_ExtractInfo',
+        to_field="dna_id",
+        db_column='DNA提取编号',
+        blank=True,
+        null=True)
+    singleLB_id = models.ForeignKey(
+        "LibraryInfo",
+        on_delete=models.CASCADE,
+        related_name='QCInfo_LibraryInfo',
+        to_field="singleLB_id",
+        db_column='建库编号',
+        blank=True,
+        null=True)
+    poolingLB_id = models.ForeignKey(
+        "CaptureInfo",
+        on_delete=models.CASCADE,
+        related_name='QCInfo_CaptureInfo',
+        to_field="poolingLB_id",
+        db_column='pooling号',
+        blank=True,
+        null=True)
+    singleLB_Pooling_id = models.ForeignKey(
+        "PoolingInfo",
+        on_delete=models.CASCADE,
+        related_name='QCInfo_PoolingInfo',
+        to_field="singleLB_Pooling_id",
+        db_column='文库编号',
+        blank=True,
+        null=True)
+    sequencing_id = models.ForeignKey(
+        "SequencingInfo",
+        on_delete=models.CASCADE,
+        related_name='QCInfo_SequencingInfo',
+        to_field="sequencing_id",
+        db_column='测序编号',
+        blank=True,
+        null=True)
     others = models.CharField(
         db_column='备注', max_length=255, blank=True, null=True)
     index = models.AutoField(primary_key=True)
@@ -341,3 +459,29 @@ class QCInfo(models.Model):
         db_table = '样本测序质控表'
         verbose_name = '样本测序质控表'
         ordering = ['index']
+
+
+def user_directory_path(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = '{}.{}'.format(uuid.uuid4().hex[:10], ext)
+    return os.path.join("files", filename)
+
+
+class UploadFile(models.Model):
+    uploadFile = models.FileField(
+        db_column='上传文件',
+        upload_to=user_directory_path,
+        null=True)
+    uploadUrl = models.CharField(db_column='项目', max_length=255)
+    uploadOperator = models.CharField(
+        db_column='上传者',
+        max_length=255,
+        blank=True,
+        null=True)
+
+    def __str__(self):
+        return self.uploadFile.url
+
+    class Meta:
+        db_table = '上传文件信息表'
+        verbose_name = '上传文件信息表'

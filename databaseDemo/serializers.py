@@ -80,6 +80,8 @@ class PoolingInfoSerializer(serializers.ModelSerializer):
 
 
 class SequencingInfoSerializer(serializers.ModelSerializer):
+    start_time = serializers.DateTimeField(format=settings.DATETIME_FORMAT)
+    end_time = serializers.DateTimeField(format=settings.DATETIME_FORMAT)
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 

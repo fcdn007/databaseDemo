@@ -98,8 +98,8 @@
     </div>
     <div class="form-group">
         <label for="sequencing_id"> 测序编号</label>
-        <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
-               placeholder="请输入测序编号" required="true">
+        <select class="form-control" id="sequencing_id" name="sequencing_id" required="true">
+        </select>
     </div>
     <div class="form-group">
         <label for="QC_id"> Sample</label>
@@ -113,73 +113,73 @@
     </div>
     <div class="form-group">
         <label for="clean_rate_field"> Clean_Rate(%)</label>
-        <input type="number" step="0.01" class="form-control" id="clean_rate_field" name="clean_rate_field"
+        <input type="number" step="0.0001" class="form-control" id="clean_rate_field" name="clean_rate_field"
                placeholder="请输入Clean_Rate(%)" required="true">
     </div>
     <div class="form-group">
         <label for="r1_q20"> R1_Q20</label>
-        <input type="number" step="0.01" class="form-control" id="r1_q20" name="r1_q20"
+        <input type="number" step="0.0001" class="form-control" id="r1_q20" name="r1_q20"
                placeholder="请输入R1_Q20" required="true">
     </div>
     <div class="form-group">
         <label for="r2_q20"> R2_Q20</label>
-        <input type="number" step="0.01" class="form-control" id="r2_q20" name="r2_q20"
+        <input type="number" step="0.0001" class="form-control" id="r2_q20" name="r2_q20"
                placeholder="请输入R2_Q20" required="true">
     </div>
     <div class="form-group">
         <label for="r1_q30"> R1_Q30</label>
-        <input type="number" step="0.01" class="form-control" id="r1_q30" name="r1_q30"
+        <input type="number" step="0.0001" class="form-control" id="r1_q30" name="r1_q30"
                placeholder="请输入R1_Q30" required="true">
     </div>
     <div class="form-group">
         <label for="r2_q30"> R2_Q30</label>
-        <input type="number" step="0.01" class="form-control" id="r2_q30" name="r2_q30"
+        <input type="number" step="0.0001" class="form-control" id="r2_q30" name="r2_q30"
                placeholder="请输入R2_Q30" required="true">
     </div>
     <div class="form-group">
         <label for="gc_content"> GC_Content</label>
-        <input type="number" step="0.01" class="form-control" id="gc_content" name="gc_content"
+        <input type="number" step="0.0001" class="form-control" id="gc_content" name="gc_content"
                placeholder="请输入GC_Content" required="true">
     </div>
     <div class="form-group">
         <label for="bs_conversion_rate_lambda_dna_field"> BS_conversion_rate(lambda_DNA)</label>
-        <input type="number" step="0.01" class="form-control" id="bs_conversion_rate_lambda_dna_field"
+        <input type="number" step="0.0001" class="form-control" id="bs_conversion_rate_lambda_dna_field"
                name="bs_conversion_rate_lambda_dna_field"
                placeholder="请输入BS_conversion_rate(lambda_DNA)" required="true">
     </div>
     <div class="form-group">
         <label for="bs_conversion_rate_chh_field"> BS_conversion_rate(CHH)</label>
-        <input type="number" step="0.01" class="form-control" id="bs_conversion_rate_chh_field"
+        <input type="number" step="0.0001" class="form-control" id="bs_conversion_rate_chh_field"
                name="bs_conversion_rate_chh_field"
                placeholder="请输入BS_conversion_rate(CHH)" required="true">
     </div>
     <div class="form-group">
         <label for="bs_conversion_rate_chg_field"> BS_conversion_rate(CHG)</label>
-        <input type="number" step="0.01" class="form-control" id="bs_conversion_rate_chg_field"
+        <input type="number" step="0.0001" class="form-control" id="bs_conversion_rate_chg_field"
                name="bs_conversion_rate_chg_field"
                placeholder="请输入BS_conversion_rate(CHG)" required="true">
     </div>
     <div class="form-group">
         <label for="uniquely_paired_mapping_rate"> Uniquely_Paired_Mapping_Rate</label>
-        <input type="number" step="0.01" class="form-control" id="uniquely_paired_mapping_rate"
+        <input type="number" step="0.0001" class="form-control" id="uniquely_paired_mapping_rate"
                name="uniquely_paired_mapping_rate"
                placeholder="请输入Uniquely_Paired_Mapping_Rate" required="true">
     </div>
     <div class="form-group">
         <label for="mismatch_and_indel_rate"> Mismatch_and_InDel_Rate</label>
-        <input type="number" step="0.01" class="form-control" id="mismatch_and_indel_rate"
+        <input type="number" step="0.0001" class="form-control" id="mismatch_and_indel_rate"
                name="mismatch_and_indel_rate"
                placeholder="请输入Mismatch_and_InDel_Rate" required="true">
     </div>
     <div class="form-group">
         <label for="mode_fragment_length_bp_field"> Mode_Fragment_Length(bp)</label>
-        <input type="number" step="0.01" class="form-control" id="mode_fragment_length_bp_field"
+        <input type="number" class="form-control" id="mode_fragment_length_bp_field"
                name="mode_fragment_length_bp_field"
                placeholder="请输入Mode_Fragment_Length(bp)" required="true">
     </div>
     <div class="form-group">
         <label for="genome_duplication_rate"> Genome_Duplication_Rate</label>
-        <input type="number" step="0.01" class="form-control" id="genome_duplication_rate"
+        <input type="number" step="0.0001" class="form-control" id="genome_duplication_rate"
                name="genome_duplication_rate"
                placeholder="请输入Genome_Duplication_Rate" required="true">
     </div>
@@ -196,52 +196,48 @@
     </div>
     <div class="form-group">
         <label for="genome_coverage"> Genome_Coverage</label>
-        <input type="number" step="0.01" class="form-control" id="genome_coverage" name="genome_coverage"
+        <input type="number" step="0.0001" class="form-control" id="genome_coverage" name="genome_coverage"
                placeholder="请输入Genome_Coverage" required="true">
     </div>
     <div class="form-group">
         <label for="genome_4x_cpg_depth_x_field"> Genome_4X_CpG_Depth(X)</label>
         <input type="number" step="0.01" class="form-control" id="genome_4x_cpg_depth_x_field"
-               name="genome_4x_cpg_depth_x_field"
-               placeholder="请输入Genome_4X_CpG_Depth(X)" required="true">
+               name="genome_4x_cpg_depth_x_field" placeholder="请输入Genome_4X_CpG_Depth(X)" required="true">
     </div>
     <div class="form-group">
         <label for="genome_4x_cpg_coverage"> Genome_4X_CpG_Coverage</label>
-        <input type="number" step="0.01" class="form-control" id="genome_4x_cpg_coverage" name="genome_4x_cpg_coverage"
-               placeholder="请输入Genome_4X_CpG_Coverage" required="true">
+        <input type="number" step="0.0001" class="form-control" id="genome_4x_cpg_coverage"
+               name="genome_4x_cpg_coverage" placeholder="请输入Genome_4X_CpG_Coverage" required="true">
     </div>
     <div class="form-group">
         <label for="genome_4x_cpg_methylation_level"> Genome_4X_CpG_methylation_level</label>
-        <input type="number" step="0.01" class="form-control" id="genome_4x_cpg_methylation_level"
+        <input type="number" step="0.0001" class="form-control" id="genome_4x_cpg_methylation_level"
                name="genome_4x_cpg_methylation_level"
                placeholder="请输入Genome_4X_CpG_methylation_level" required="true">
     </div>
     <div class="form-group">
         <label for="panel_4x_cpg_depth_x_field"> Panel_4X_CpG_Depth(X)</label>
         <input type="number" step="0.01" class="form-control" id="panel_4x_cpg_depth_x_field"
-               name="panel_4x_cpg_depth_x_field"
-               placeholder="请输入Panel_4X_CpG_Depth(X)" required="true">
+               name="panel_4x_cpg_depth_x_field" placeholder="请输入Panel_4X_CpG_Depth(X)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_4x_cpg_coverage"> Panel_4X_CpG_Coverage</label>
-        <input type="number" step="0.01" class="form-control" id="panel_4x_cpg_coverage" name="panel_4x_cpg_coverage"
+        <input type="number" step="0.0001" class="form-control" id="panel_4x_cpg_coverage" name="panel_4x_cpg_coverage"
                placeholder="请输入Panel_4X_CpG_Coverage" required="true">
     </div>
     <div class="form-group">
         <label for="panel_4x_cpg_methylation_level"> Panel_4X_CpG_methylation_level</label>
-        <input type="number" step="0.01" class="form-control" id="panel_4x_cpg_methylation_level"
-               name="panel_4x_cpg_methylation_level"
-               placeholder="请输入Panel_4X_CpG_methylation_level" required="true">
+        <input type="number" step="0.0001" class="form-control" id="panel_4x_cpg_methylation_level"
+               name="panel_4x_cpg_methylation_level" placeholder="请输入Panel_4X_CpG_methylation_level" required="true">
     </div>
     <div class="form-group">
         <label for="panel_ontarget_rate_region_field"> Panel_Ontarget_Rate(region)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_ontarget_rate_region_field"
-               name="panel_ontarget_rate_region_field"
-               placeholder="请输入Panel_Ontarget_Rate(region)" required="true">
+        <input type="number" step="0.0001" class="form-control" id="panel_ontarget_rate_region_field"
+               name="panel_ontarget_rate_region_field" placeholder="请输入Panel_Ontarget_Rate(region)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_duplication_rate_region_field"> Panel_Duplication_Rate(region)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_duplication_rate_region_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_duplication_rate_region_field"
                name="panel_duplication_rate_region_field"
                placeholder="请输入Panel_Duplication_Rate(region)" required="true">
     </div>
@@ -259,53 +255,55 @@
     </div>
     <div class="form-group">
         <label for="panel_coverage_site_1x_field"> Panel_Coverage(site,1X)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_1x_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_coverage_site_1x_field"
                name="panel_coverage_site_1x_field"
                placeholder="请输入Panel_Coverage(site,1X)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_coverage_site_10x_field"> Panel_Coverage(site,10X)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_10x_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_coverage_site_10x_field"
                name="panel_coverage_site_10x_field"
                placeholder="请输入Panel_Coverage(site,10X)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_coverage_site_20x_field"> Panel_Coverage(site,20X)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_20x_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_coverage_site_20x_field"
                name="panel_coverage_site_20x_field"
                placeholder="请输入Panel_Coverage(site,20X)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_coverage_site_50x_field"> Panel_Coverage(site,50X)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_50x_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_coverage_site_50x_field"
                name="panel_coverage_site_50x_field"
                placeholder="请输入Panel_Coverage(site,50X)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_coverage_site_100x_field"> Panel_Coverage(site,100X)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_coverage_site_100x_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_coverage_site_100x_field"
                name="panel_coverage_site_100x_field"
                placeholder="请输入Panel_Coverage(site,100X)" required="true">
     </div>
     <div class="form-group">
         <label for="panel_uniformity_site_20_mean_field"> Panel_Uniformity(site,>20%mean)</label>
-        <input type="number" step="0.01" class="form-control" id="panel_uniformity_site_20_mean_field"
+        <input type="number" step="0.0001" class="form-control" id="panel_uniformity_site_20_mean_field"
                name="panel_uniformity_site_20_mean_field"
                placeholder="请输入Panel_Uniformity(site,>20%mean)" required="true">
     </div>
     <div class="form-group">
         <label for="strand_balance_f_field"> Strand_balance(F)</label>
-        <input type="number" step="0.01" class="form-control" id="strand_balance_f_field" name="strand_balance_f_field"
+        <input type="number" step="0.0001" class="form-control" id="strand_balance_f_field"
+               name="strand_balance_f_field"
                placeholder="请输入Strand_balance(F)" required="true">
     </div>
     <div class="form-group">
         <label for="strand_balance_r_field"> Strand_balance(R)</label>
-        <input type="number" step="0.01" class="form-control" id="strand_balance_r_field" name="strand_balance_r_field"
+        <input type="number" step="0.0001" class="form-control" id="strand_balance_r_field"
+               name="strand_balance_r_field"
                placeholder="请输入Strand_balance(R)" required="true">
     </div>
     <div class="form-group">
         <label for="gc_bin_depth_ratio"> GC_bin_depth_ratio</label>
-        <input type="number" step="0.01" class="form-control" id="gc_bin_depth_ratio" name="gc_bin_depth_ratio"
+        <input type="number" step="0.0001" class="form-control" id="gc_bin_depth_ratio" name="gc_bin_depth_ratio"
                placeholder="请输入GC_bin_depth_ratio" required="true">
     </div>
     <div class="form-group">
@@ -451,9 +449,9 @@
                     $('#sample_id').val(data['sample_id']);
                     $('#dna_id').val(data['dna_id']);
                     $('#singleLB_id').val(data['singleLB_id']);
-                    $('#poolingLB_id').val(data['poolingLB_id']);
+                    $('#poolingLB_id').append('<option value="' + data['poolingLB_id'] + '">' + data['poolingLB_id'] + '</option>');
                     $('#singleLB_Pooling_id').val(data['singleLB_Pooling_id']);
-                    $('#sequencing_id').val(data['sequencing_id']);
+                    $('#sequencing_id').append('<option value="' + data['sequencing_id'] + '">' + data['sequencing_id'] + '</option>');
                     $('#others').val(data['others']);
                     $('#type').val('edit');
                     $('#modal_title').text('EDIT');
@@ -467,7 +465,7 @@
 
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -560,22 +558,9 @@
                 $("#myModal").modal();
             });
 
-            $('#sample_id').blur(function () {
-                $('#dna_id').val($('#sample_id').val() + "_1");
-                $('#singleLB_id').val($('#sample_id').val() + "_1m1");
-                $('#singleLB_Pooling_id').val($('#sample_id').val() + "_1B1");
-                $('#QC_id').val($('#sample_id').val() + "_1B11");
-            });
-
-            $('#dna_id').blur(function () {
-                $('#singleLB_id').val($('#dna_id').val() + "m1");
-                $('#singleLB_Pooling_id').val($('#dna_id').val() + "B1");
-                $('#QC_id').val($('#dna_id').val() + "B11");
-            });
-
-            // pooling号下拉选框
-            $('#dna_id').change(function () {
+            var selectdialog = function () {
                 try {
+                    // pooling号下拉选框
                     var poolingLB_ids = $.ajax({
                         url: '/api/PoolingInfo/', dataType: 'json',
                         contentType: "application/json", type: "get",
@@ -584,14 +569,7 @@
                     $.each(poolingLB_ids, function (index, value) {
                         $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
                     });
-                } catch (e) {
-                    console.log(e + ' in fretching poolingLB_id select-list; dna_id: ' + $('#dna_id').val());
-                }
-            });
-
-            // 测序编号下拉选框
-            $('#poolingLB_id').change(function () {
-                try {
+                    // 测序编号下拉选框
                     var sequencing_ids = $.ajax({
                         url: '/api/SequencingInfo/', dataType: 'json',
                         contentType: "application/json", type: "get",
@@ -601,9 +579,34 @@
                         $('#sequencing_id').append('<option value="' + value.sequencing_id + '">' + value.sequencing_id + '</option>')
                     });
                 } catch (e) {
+                    console.log(e + ' in fretching poolingLB_id select-list; dna_id: ' + $('#dna_id').val());
                     console.log(e + ' in fretching sequencing_id select-list; poolingLB_id: ' + $('#poolingLB_id').val());
                 }
+            };
+
+            $('#sample_id').blur(function () {
+                $('#dna_id').val($('#sample_id').val() + "_1");
+                $('#singleLB_id').val($('#sample_id').val() + "_1m1");
+                $('#singleLB_Pooling_id').val($('#sample_id').val() + "_1B1");
+                $('#QC_id').val($('#sample_id').val() + "_1B11");
+                selectdialog();
+            });
+
+            $('#dna_id').blur(function () {
+                $('#singleLB_id').val($('#dna_id').val() + "m1");
+                $('#singleLB_Pooling_id').val($('#dna_id').val() + "B1");
+                $('#QC_id').val($('#dna_id').val() + "B11");
+                selectdialog();
+            });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('QCInfo');
+                $("#uploadModal").modal();
             });
         })
+
     </script>
 {% endblock %}

@@ -143,11 +143,11 @@ TEMPLATE_DIRS = (
 
 # 上传文件目录
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "upload")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # 时间格式
-DATE_FORMAT = '%m/%d/%Y'
-DATETIME_FORMAT = '%m/%d/%Y %I:%M'
+DATE_FORMAT = '%Y/%m/%d'
+DATETIME_FORMAT = '%Y/%m/%d %I:%M'
 
 # DRF
 REST_FRAMEWORK = {

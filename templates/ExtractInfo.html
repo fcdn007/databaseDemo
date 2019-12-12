@@ -168,7 +168,7 @@
 
             });
 
-            $('form').on('submit', function (e) {
+            $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
                 var type = $('#type').val();
                 var method = '';
@@ -230,7 +230,7 @@
                     var data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                         totalM: totalM, successM: data0.successM, failM: data0.failM,
                         researchM: data0.researchM, othersM: data0.othersM,
-                        remainM: data0.totalM - totalM + data0.remainM
+                        remainM: data0.totalM + totalM - data0.remainM
                     });
 
                     url2 = url2 + id + '/';
@@ -280,6 +280,14 @@
 
             $('#sample_id').blur(function () {
                 $('#dna_id').val($('#sample_id').val() + "_1");
+            });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val();
+                $('#uploadFile').val();
+                $('#uploadError').val();
+                $('#uploadUrl').val('ExtractInfo');
+                $("#uploadModal").modal();
             });
         })
     </script>
