@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import pandas as pd
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -14,7 +16,10 @@ FILECOLUMN_TO_FIELD = {
             '性别': 'gender',
             '年龄': 'age',
             '住院号': 'patientId',
+            '癌种': 'category',
+            '分期': 'stage',
             '诊断': 'diagnose',
+            '诊断备注': 'diagnose_others',
             '采样日期': 'sampling_date',
             '离心日期': 'centrifugation_date',
             '医院编号': 'hospital',
@@ -489,3 +494,48 @@ def read_file(url, inf):
     # pprint(data)
     # print("<<<<<<<<<")
     return data
+
+
+def AdvancedSearchV(request):
+    return render(request, 'AdvancedSearch.html')
+
+
+def SearchProcess(request):
+    pprint(request)
+    pprint(request.GET)
+    modellist = request.GET['modellist'].split(', ')
+    queryset = {}
+    for i in request.GET['queryset'].split('\n'):
+        m, f, v = i.split('\t')
+        if m in queryset:
+            queryset[m][f] = v
+        else:
+            queryset[m] = {f: v}
+
+    pprint(modellist)
+    pprint(queryset)
+
+
+def uniqueV(request):
+    KEY1_TO_MODEL = {
+        'ClinicalInfo': ClinicalInfo,
+        'ExtractInfo': ExtractInfo,
+        'DNAUsageRecordInfo': DNAUsageRecordInfo,
+        'DNAInventoryInfo': DNAInventoryInfo,
+        'LibraryInfo': LibraryInfo,
+        'CaptureInfo': CaptureInfo,
+        'PoolingInfo': PoolingInfo,
+        'SequencingInfo': SequencingInfo,
+        'QCInfo': QCInfo
+    }
+    data = {}
+    try:
+        key1 = KEY1_TO_MODEL[request.GET['model']]
+        key2 = request.GET['filed']
+        pprint([key1, key2])
+        data['values'] = list(set([j for i in key1.objects.values_list(key2) for j in i]))
+        if request.GET['model'] == 'ClinicalInfo' and key2 == 'gender':
+            data['values'] = ['男' if x == 1 else '女' for x in data['values']]
+    except:
+        data['values'] = []
+    return JsonResponse(data)

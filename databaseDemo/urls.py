@@ -46,6 +46,9 @@ urlpatterns = [
                   path('SequencingInfo/', views.SequencingInfoV, name='SequencingInfo'),
                   path('QCInfo/', views.QCInfoV, name='QCInfo'),
                   path('Upload/', views.uploadV, name='upload'),
+                  path('AdvanceSearch/', views.AdvancedSearchV, name='AdvancedSearch'),
+                  path('SearchProcess/', views.SearchProcess, name='SearchProcess'),
+                  path('Unique/', views.uniqueV, name='unique'),
                   # for rest_framework
                   path('api/', include(router.urls)),
                   # for rest_framework auth

@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>样本测序质控信息表</p>
+        <h4>样本测序质控信息表</h4>
     </div>
 {% endblock %}
 
@@ -316,7 +316,7 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -402,10 +402,10 @@
                 ]
             });
 
-            var id = 0;
+            let id = 0;
             $('#table_id tbody').on('click', 'button', function () {
-                var data = table.row($(this).parents('tr')).data();
-                var class_name = $(this).attr('class');
+                let data = table.row($(this).parents('tr')).data();
+                let class_name = $(this).attr('class');
                 id = data['index'];
                 if (class_name == 'btn btn-info') {
                     // EDIT button
@@ -467,9 +467,9 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                var type = $('#type').val();
-                var method = '';
-                var url = '/api/QCInfo/';
+                let type = $('#type').val();
+                let method = '';
+                let url = '/api/QCInfo/';
                 if (type == 'new') {
                     // new
                     method = 'POST';
@@ -509,59 +509,59 @@
 
 
             $('#new').on('click', function (e) {
-                $('#QC_id').val();
-                $('#data_size_gb_field').val();
-                $('#clean_rate_field').val();
-                $('#r1_q20').val();
-                $('#r2_q20').val();
-                $('#r1_q30').val();
-                $('#r2_q30').val();
-                $('#gc_content').val();
-                $('#bs_conversion_rate_lambda_dna_field').val();
-                $('#bs_conversion_rate_chh_field').val();
-                $('#bs_conversion_rate_chg_field').val();
-                $('#uniquely_paired_mapping_rate').val();
-                $('#mismatch_and_indel_rate').val();
-                $('#mode_fragment_length_bp_field').val();
-                $('#genome_duplication_rate').val();
-                $('#genome_depth_x_field').val();
-                $('#genome_dedupped_depth_x_field').val();
-                $('#genome_coverage').val();
-                $('#genome_4x_cpg_depth_x_field').val();
-                $('#genome_4x_cpg_coverage').val();
-                $('#genome_4x_cpg_methylation_level').val();
-                $('#panel_4x_cpg_depth_x_field').val();
-                $('#panel_4x_cpg_coverage').val();
-                $('#panel_4x_cpg_methylation_level').val();
-                $('#panel_ontarget_rate_region_field').val();
-                $('#panel_duplication_rate_region_field').val();
-                $('#panel_depth_site_x_field').val();
-                $('#panel_dedupped_depth_site_x_field').val();
-                $('#panel_coverage_site_1x_field').val();
-                $('#panel_coverage_site_10x_field').val();
-                $('#panel_coverage_site_20x_field').val();
-                $('#panel_coverage_site_50x_field').val();
-                $('#panel_coverage_site_100x_field').val();
-                $('#panel_uniformity_site_20_mean_field').val();
-                $('#strand_balance_f_field').val();
-                $('#strand_balance_r_field').val();
-                $('#gc_bin_depth_ratio').val();
-                $('#sample_id').val();
-                $('#dna_id').val();
-                $('#singleLB_id').val();
-                $('#poolingLB_id').val();
-                $('#singleLB_Pooling_id').val();
-                $('#sequencing_id').val();
-                $('#others').val();
+                $('#QC_id').val("");
+                $('#data_size_gb_field').val("");
+                $('#clean_rate_field').val("");
+                $('#r1_q20').val("");
+                $('#r2_q20').val("");
+                $('#r1_q30').val("");
+                $('#r2_q30').val("");
+                $('#gc_content').val("");
+                $('#bs_conversion_rate_lambda_dna_field').val("");
+                $('#bs_conversion_rate_chh_field').val("");
+                $('#bs_conversion_rate_chg_field').val("");
+                $('#uniquely_paired_mapping_rate').val("");
+                $('#mismatch_and_indel_rate').val("");
+                $('#mode_fragment_length_bp_field').val("");
+                $('#genome_duplication_rate').val("");
+                $('#genome_depth_x_field').val("");
+                $('#genome_dedupped_depth_x_field').val("");
+                $('#genome_coverage').val("");
+                $('#genome_4x_cpg_depth_x_field').val("");
+                $('#genome_4x_cpg_coverage').val("");
+                $('#genome_4x_cpg_methylation_level').val("");
+                $('#panel_4x_cpg_depth_x_field').val("");
+                $('#panel_4x_cpg_coverage').val("");
+                $('#panel_4x_cpg_methylation_level').val("");
+                $('#panel_ontarget_rate_region_field').val("");
+                $('#panel_duplication_rate_region_field').val("");
+                $('#panel_depth_site_x_field').val("");
+                $('#panel_dedupped_depth_site_x_field').val("");
+                $('#panel_coverage_site_1x_field').val("");
+                $('#panel_coverage_site_10x_field').val("");
+                $('#panel_coverage_site_20x_field').val("");
+                $('#panel_coverage_site_50x_field').val("");
+                $('#panel_coverage_site_100x_field').val("");
+                $('#panel_uniformity_site_20_mean_field').val("");
+                $('#strand_balance_f_field').val("");
+                $('#strand_balance_r_field').val("");
+                $('#gc_bin_depth_ratio').val("");
+                $('#sample_id').val("");
+                $('#dna_id').val("");
+                $('#singleLB_id').val("");
+                $('#poolingLB_id').val("");
+                $('#singleLB_Pooling_id').val("");
+                $('#sequencing_id').val("");
+                $('#others').val("");
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
             });
 
-            var selectdialog = function () {
+            let selectdialog = function () {
                 try {
                     // pooling号下拉选框
-                    var poolingLB_ids = $.ajax({
+                    let poolingLB_ids = $.ajax({
                         url: '/api/PoolingInfo/', dataType: 'json',
                         contentType: "application/json", type: "get",
                         async: false, data: {dna_id: $('#dna_id').val()}
@@ -570,7 +570,7 @@
                         $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
                     });
                     // 测序编号下拉选框
-                    var sequencing_ids = $.ajax({
+                    let sequencing_ids = $.ajax({
                         url: '/api/SequencingInfo/', dataType: 'json',
                         contentType: "application/json", type: "get",
                         async: false, data: {poolingLB_id: $('#poolingLB_id').val()}
@@ -600,9 +600,9 @@
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('QCInfo');
                 $("#uploadModal").modal();
             });

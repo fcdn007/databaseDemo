@@ -15,7 +15,10 @@ class ClinicalInfo(models.Model):
     age = models.IntegerField(db_column='年龄', blank=True, null=True)
     patientId = models.CharField(
         db_column='住院号', max_length=255, blank=True, null=True)
+    category = models.TextField(db_column='癌种', blank=True, null=True)
+    stage = models.TextField(db_column='分期', blank=True, null=True)
     diagnose = models.TextField(db_column='诊断', blank=True, null=True)
+    diagnose_others = models.TextField(db_column='诊断备注', blank=True, null=True)
     sampling_date = models.DateField(db_column='采样日期', blank=True, null=True)
     centrifugation_date = models.DateField(
         db_column='离心日期', blank=True, null=True)
@@ -161,7 +164,7 @@ class LibraryInfo(models.Model):
     sample_id = models.ForeignKey(
         "ClinicalInfo",
         on_delete=models.CASCADE,
-        related_name='DLibraryInfo_ClinicalInfo',
+        related_name='LibraryInfo_ClinicalInfo',
         to_field="sample_id",
         db_column='样本编号',
         blank=True,
@@ -169,7 +172,7 @@ class LibraryInfo(models.Model):
     dna_id = models.ForeignKey(
         "ExtractInfo",
         on_delete=models.CASCADE,
-        related_name='DLibraryInfo_ExtractInfo',
+        related_name='LibraryInfo_ExtractInfo',
         to_field="dna_id",
         db_column='DNA提取编号',
         blank=True,

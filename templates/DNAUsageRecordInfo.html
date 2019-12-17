@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>样本DNA使用记录信息表</p>
+        <h4>样本DNA使用记录</h4>
     </div>
 {% endblock %}
 
@@ -79,7 +79,7 @@
     <script>
         $(document).ready(function () {
 
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -126,12 +126,12 @@
                 ]
             });
 
-            var url = '/api/DNAUsageRecordInfo/';
-            var url2 = '/api/DNAInventoryInfo/';
-            var data;
+            let url = '/api/DNAUsageRecordInfo/';
+            let url2 = '/api/DNAInventoryInfo/';
+            let data;
             $('#table_id tbody').on('click', 'button', function () {
                 data = table.row($(this).parents('tr')).data();
-                var class_name = $(this).attr('class');
+                let class_name = $(this).attr('class');
                 if (data['usage'] != '建库成功') {
                     if (class_name == 'btn btn-info') {
                         // EDIT button
@@ -158,8 +158,8 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                var type = $('#type').val();
-                var method = '';
+                let type = $('#type').val();
+                let method = '';
                 if (type == 'new') {
                     // new
                     method = 'POST';
@@ -184,11 +184,11 @@
                 });
 
                 // 增、改：更新库存表
-                var data0 = $.ajax({
+                let data0 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: data['dna_id']}
                 }).responseJSON.results[0];
-                var data_tmp2;
+                let data_tmp2;
                 if (method == 'POST') {
                     if ($('#usage').val() == '建库失败') {
                         data_tmp2 = $.param({
@@ -269,11 +269,11 @@
                 });
 
                 // 删：更新库存表
-                var data0 = $.ajax({
+                let data0 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: data['dna_id']}
                 }).responseJSON.results[0];
-                var data_tmp2;
+                let data_tmp2;
                 if (data['usage'] == '建库失败') {
                     data_tmp2 = $.param({
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
@@ -314,13 +314,13 @@
 
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val();
-                $('#dna_id').val();
-                $('#LB_date').val();
-                $('#mass').val();
-                $('#usage').val();
-                $('#singleLB_id').val();
-                $('#others').val();
+                $('#sample_id').val("");
+                $('#dna_id').val("");
+                $('#LB_date').val("");
+                $('#mass').val("");
+                $('#usage').val("");
+                $('#singleLB_id').val("");
+                $('#others').val("");
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
@@ -331,9 +331,9 @@
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('DNAUsageRecordInfo');
                 $("#uploadModal").modal();
             });

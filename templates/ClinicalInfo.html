@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>样本临床信息表</p>
+        <h4>样本临床信息表</h4>
     </div>
 {% endblock %}
 
@@ -23,7 +23,10 @@
             <th>性别</th>
             <th>年龄</th>
             <th>住院号</th>
+            <th>癌种</th>
+            <th>分期</th>
             <th>诊断</th>
+            <th>诊断备注</th>
             <th>采样日期</th>
             <th>离心日期</th>
             <th>医院编号</th>
@@ -72,8 +75,23 @@
                placeholder="请输入住院号" required="true">
     </div>
     <div class="form-group">
+        <label for="category"> 癌种</label>
+        <input type="text" class="form-control" id="category" name="category"
+               placeholder="请输入诊断信息" value="无">
+    </div>
+    <div class="form-group">
+        <label for="stage"> 分期</label>
+        <input type="text" class="form-control" id="stage" name="stage"
+               placeholder="请输入诊断信息" value="无">
+    </div>
+    <div class="form-group">
         <label for="diagnose"> 诊断</label>
         <input type="text" class="form-control" id="diagnose" name="diagnose"
+               placeholder="请输入诊断信息" value="无">
+    </div>
+    <div class="form-group">
+        <label for="diagnose_others"> 诊断备注</label>
+        <input type="text" class="form-control" id="diagnose_others" name="diagnose_others"
                placeholder="请输入诊断信息" value="无">
     </div>
     <div class="form-group">
@@ -136,7 +154,7 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            var intToMan = function (d) {
+            let intToMan = function (d) {
                 if (parseInt(d) > 0) {
                     return '男'
                 } else {
@@ -144,7 +162,7 @@
                 }
             };
 
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -186,7 +204,10 @@
                     },
                     {"data": "age"},
                     {"data": "patientId"},
+                    {"data": "category"},
+                    {"data": "stage"},
                     {"data": "diagnose"},
+                    {"data": "diagnose_others"},
                     {"data": "sampling_date"},
                     {"data": "centrifugation_date"},
                     {"data": "hospital"},
@@ -208,11 +229,11 @@
                 ]
             });
 
-            var id = 0;
+            let id = 0;
 
             $('#table_id tbody').on('click', 'button', function () {
-                var data = table.row($(this).parents('tr')).data();
-                var class_name = $(this).attr('class');
+                let data = table.row($(this).parents('tr')).data();
+                let class_name = $(this).attr('class');
                 id = data['index'];
                 //alert(id);
                 if (class_name == 'btn btn-info') {
@@ -222,7 +243,10 @@
                     $('#gender').val(data['gender']);
                     $('#age').val(data['age']);
                     $('#patientId').val(data['patientId']);
+                    $('#category').val(data['category']);
+                    $('#stage').val(data['stage']);
                     $('#diagnose').val(data['diagnose']);
+                    $('#diagnose_others').val(data['diagnose_others']);
                     $('#sampling_date').val(data['sampling_date']);
                     $('#centrifugation_date').val(data['centrifugation_date']);
                     $('#hospital').val(data['hospital']);
@@ -248,9 +272,9 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                var type = $('#type').val();
-                var method = '';
-                var url = '/api/ClinicalInfo/';
+                let type = $('#type').val();
+                let method = '';
+                let url = '/api/ClinicalInfo/';
                 if (type == 'new') {
                     // new
                     method = 'POST';
@@ -288,32 +312,35 @@
             });
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val();
-                $('#name').val();
-                $('#gender').val();
-                $('#age').val();
-                $('#patientId').val();
-                $('#diagnose').val();
-                $('#sampling_date').val();
-                $('#centrifugation_date').val();
-                $('#hospital').val();
-                $('#department').val();
-                $('#plasma_num').val();
-                $('#adjacent_mucosa_num').val();
-                $('#cancer_tissue_num').val();
-                $('#WBC_num').val();
-                $('#stool_num').val();
-                $('#send_date').val();
-                $('#others').val();
+                $('#sample_id').val("");
+                $('#name').val("");
+                $('#gender').val("");
+                $('#age').val("");
+                $('#patientId').val("");
+                $('#category').val("");
+                $('#stage').val("");
+                $('#diagnose').val("");
+                $('#diagnose_others').val("");
+                $('#sampling_date').val("");
+                $('#centrifugation_date').val("");
+                $('#hospital').val("");
+                $('#department').val("");
+                $('#plasma_num').val("");
+                $('#adjacent_mucosa_num').val("");
+                $('#cancer_tissue_num').val("");
+                $('#WBC_num').val("");
+                $('#stool_num').val("");
+                $('#send_date').val("");
+                $('#others').val("");
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('ClinicalInfo');
                 $("#uploadModal").modal();
             });

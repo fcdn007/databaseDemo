@@ -51,7 +51,7 @@
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="{% url 'LibraryInfo' %}">样本建库信息</a>
                         <a class="dropdown-item" href="{% url 'CaptureInfo' %}">捕获文库信息</a>
-                        <a class="dropdown-item" href="{% url 'PoolingInfo' %}">Pooling映射表</a>
+                        <a class="dropdown-item" href="{% url 'PoolingInfo' %}">Pooling映射</a>
                     </div>
                 </div>
             </li>
@@ -60,7 +60,7 @@
                    style="margin: 0 20px">测序管理</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="{% url 'SequencingInfo' %}">测序信息</a>
+                        <a class="dropdown-item" href="{% url 'SequencingInfo' %}">测序上机信息</a>
                         <a class="dropdown-item" href="{% url 'QCInfo' %}">样本测序质控信息</a>
                     </div>
                 </div>
@@ -74,7 +74,7 @@
     {% endblock %}
 
     <!-- New  button -->
-    <div class="text-center">
+    <div class="text-center" id="addbuttons">
         <button type="button" class="btn btn-primary" id="new">添加</button>
         <button type="button" class="btn btn-primary" id="upload" style="margin: 0 50px">批量添加</button>
     </div>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="modal-footer">
                     <p id="uploadError"></p>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
                 </div>
             </div>
         </div>
@@ -178,7 +178,7 @@
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
 <script src=" https://cdn.jsdelivr.net/jquery.cookie/1.4.1/jquery.cookie.min.js "></script>
 <script>
-    var csrftoken = $.cookie('csrftoken');
+    let csrftoken = $.cookie('csrftoken');
 
     function csrfSafeMethod(method) {
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
@@ -188,11 +188,11 @@
         $('#uploadSubmit').on('click', function (e) {
             e.preventDefault();
             // 构建FormData对象
-            var form_data = new FormData();
+            let form_data = new FormData();
             form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
             form_data.append('uploadUrl', $('#uploadUrl').val());
             form_data.append('uploadOperator', $('#uploadOperator').val());
-            var urlUpload = {% url "upload" %};
+            let urlUpload = {% url "upload" %};
 
             $.ajax({
                 async: false, url: urlUpload, processData: false,
@@ -208,7 +208,10 @@
                         //alert('文件上传和批量添加失败。' + data['error_msg']);
                         $('#uploadError').text('文件上传和批量添加失败。' + data['error_msg']);
                     } else {
-                        //alert('文件上传和批量添加成功。');
+                        let update_records = parseInt(data['all_records']) - parseInt(data['add_records']);
+                        alert('文件上传和批量添加成功，有效输入记录共有' + data['all_records'] +
+                            "行。\n其中往数据库中增加" + data['add_records'] + '行记录，更新了' +
+                            update_records + '行记录。');
                         $("#uploadModal").find('form').trigger("reset");
                         $('#uploadModal').modal('hide');
                         location.reload();

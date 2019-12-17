@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>样本DNA提取信息表</p>
+        <h4>样本DNA提取信息表</h4>
     </div>
 {% endblock %}
 
@@ -89,7 +89,7 @@
     <script>
         $(document).ready(function () {
 
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -138,11 +138,11 @@
                 ]
             });
 
-            var id = 0;
+            let id = 0;
 
             $('#table_id tbody').on('click', 'button', function () {
-                var data = table.row($(this).parents('tr')).data();
-                var class_name = $(this).attr('class');
+                let data = table.row($(this).parents('tr')).data();
+                let class_name = $(this).attr('class');
                 id = data['index'];
                 //alert(id);
                 if (class_name == 'btn btn-info') {
@@ -170,10 +170,10 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                var type = $('#type').val();
-                var method = '';
-                var url = '/api/ExtractInfo/';
-                var url2 = '/api/DNAInventoryInfo/';
+                let type = $('#type').val();
+                let method = '';
+                let url = '/api/ExtractInfo/';
+                let url2 = '/api/DNAInventoryInfo/';
                 if (type == 'new') {
                     // new
                     method = 'POST';
@@ -202,7 +202,7 @@
                 if (method == 'POST') {
                     // new
                     // 增：增加库存表条目
-                    var data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                    let data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                         totalM: $('#dna_con').val() * $('#dna_vol').val(), successM: '0', failM: '0',
                         researchM: '0', othersM: '0', remainM: $('#dna_con').val() * $('#dna_vol').val()
                     });
@@ -222,12 +222,12 @@
                 } else {
                     // edit
                     // 改：修改库存表相应条目
-                    var data0 = $.ajax({
+                    let data0 = $.ajax({
                         url: url2, dataType: 'json', contentType: "application/json",
                         type: "get", async: false, data: {index: id}
                     }).responseJSON.results[0];
-                    var totalM = $('#dna_con').val() * $('#dna_vol').val();
-                    var data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                    let totalM = $('#dna_con').val() * $('#dna_vol').val();
+                    let data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                         totalM: totalM, successM: data0.successM, failM: data0.failM,
                         researchM: data0.researchM, othersM: data0.othersM,
                         remainM: data0.totalM + totalM - data0.remainM
@@ -264,15 +264,15 @@
             });
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val();
-                $('#dna_id').val();
-                $('#extract_date').val();
-                $('#sample_type').val();
-                $('#sample_volume').val();
-                $('#extract_method').val();
-                $('#dna_con').val();
-                $('#dna_vol').val();
-                $('#others').val();
+                $('#sample_id').val("");
+                $('#dna_id').val("");
+                $('#extract_date').val("");
+                $('#sample_type').val("");
+                $('#sample_volume').val("");
+                $('#extract_method').val("");
+                $('#dna_con').val("");
+                $('#dna_vol').val("");
+                $('#others').val("");
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
@@ -283,9 +283,9 @@
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('ExtractInfo');
                 $("#uploadModal").modal();
             });

@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>样本建库信息表</p>
+        <h4>样本建库信息表</h4>
     </div>
 {% endblock %}
 
@@ -118,7 +118,7 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -174,17 +174,17 @@
                 ]
             });
 
-            var id = 0;
-            var singleLB_id;
-            var id2;
-            var mass0;
-            var dnaid;
-            var url = '/api/LibraryInfo/';
-            var url2 = '/api/DNAUsageRecordInfo/';
-            var url3 = '/api/DNAInventoryInfo/';
+            let id = 0;
+            let singleLB_id;
+            let id2;
+            let mass0;
+            let dnaid;
+            let url = '/api/LibraryInfo/';
+            let url2 = '/api/DNAUsageRecordInfo/';
+            let url3 = '/api/DNAInventoryInfo/';
             $('#table_id tbody').on('click', 'button', function () {
-                var data = table.row($(this).parents('tr')).data();
-                var class_name = $(this).attr('class');
+                let data = table.row($(this).parents('tr')).data();
+                let class_name = $(this).attr('class');
                 id = data['index'];
                 dnaid = data['dna_id']; //记录dna_id，用于更新库存表
                 mass0 = data['mass']; //记录原来的使用量，用于更新库存表
@@ -224,8 +224,8 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                var type = $('#type').val();
-                var method = '';
+                let type = $('#type').val();
+                let method = '';
                 if (type == 'new') {
                     // new
                     method = 'POST';
@@ -251,7 +251,7 @@
                 });
 
                 // 增、改：更新使用记录表
-                var data_tmp = $('#usageForm div input').serialize() + '&' + $.param({
+                let data_tmp = $('#usageForm div input').serialize() + '&' + $.param({
                     usage: '建库成功',
                     others: $('#others').val()
                 });
@@ -266,11 +266,11 @@
                 });
 
                 // 更新库存表
-                var data0 = $.ajax({
+                let data0 = $.ajax({
                     url: url3, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: $('#dna_id').val()}
                 }).responseJSON.results[0];
-                var data_tmp2;
+                let data_tmp2;
                 if (method == 'POST') {
                     data_tmp2 = $('#usageForm .InventoryForm input').serialize() + '&' + $.param({
                         totalM: data0.totalM, successM: data0.successM + $('#mass').val(),
@@ -327,11 +327,11 @@
                 });
 
                 // 删： 库存表减去相应量
-                var data0 = $.ajax({
+                let data0 = $.ajax({
                     url: url3, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: dnaid}
                 }).responseJSON.results[0];
-                var data_tmp2 = $.param({
+                let data_tmp2 = $.param({
                     dna_id: data0.dna_id, sample_id: data0.sample_id,
                     totalM: data0.totalM, successM: data0.successM - mass0,
                     failM: data0.failM, researchM: data0.researchM,
@@ -353,20 +353,20 @@
 
 
             $('#new').on('click', function (e) {
-                $('#singleLB_id').val();
-                $('#sample_id').val();
-                $('#dna_id').val();
-                $('#LB_date').val();
-                $('#mass').val();
-                $('#LB_method').val();
-                $('#pcr_cycles').val();
-                $('#LB_con').val();
-                $('#LB_vol').val();
-                $('#operator').val();
-                $('#singleLB_name').val();
-                $('#label').val();
-                $('#barcodes').val();
-                $('#others').val();
+                $('#singleLB_id').val("");
+                $('#sample_id').val("");
+                $('#dna_id').val("");
+                $('#LB_date').val("");
+                $('#mass').val("");
+                $('#LB_method').val("");
+                $('#pcr_cycles').val("");
+                $('#LB_con').val("");
+                $('#LB_vol').val("");
+                $('#operator').val("");
+                $('#singleLB_name').val("");
+                $('#label').val("");
+                $('#barcodes').val("");
+                $('#others').val("");
                 $('#type').val('new');
                 $('#modal_title').text('NEW');
                 $("#myModal").modal();
@@ -382,9 +382,9 @@
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('LibraryInfo');
                 $("#uploadModal").modal();
             });

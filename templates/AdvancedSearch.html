@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>高级查询</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <h4>高级查询</h4>
+        <form id="searchForm1" role="form">
+            <div class="form-group">
+                <p class="bg-primary text-white">
+                    &nbsp;&nbsp;<label for="searchModels"> 查询表</label>
+                </p>
+                <div>
+                    <div><span class="checkbox-inline">样本管理  </span>&nbsp;&nbsp;
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchClinicalInfo"
+                                   value="ClinicalInfo" name="searchModels" checked> 样本临床信息
+                        </label>&nbsp;&nbsp
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchExtractInfo"
+                                   value="ExtractInfo" name="searchModels"> 样本DNA提取信息
+                        </label>&nbsp;&nbsp
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchDNAUsageRecordInfo"
+                                   value="DNAUsageRecordInfo" name="searchModels"> 样本DNA使用记录
+                        </label>&nbsp;&nbsp
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchDNAInventoryInfo"
+                                   value="DNAInventoryInfo" name="searchModels"> 样本DNA库存
+                        </label>
+                    </div>
+                    <br>
+                    <div><span class="checkbox-inline">文库管理  </span>&nbsp;&nbsp;
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchLibraryInfo"
+                                   value="LibraryInfo" name="searchModels"> 样本建库信息
+                        </label>&nbsp;&nbsp
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchCaptureInfo"
+                                   value="CaptureInfo" name="searchModels"> 捕获文库信息
+                        </label>&nbsp;&nbsp
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchPoolingInfo"
+                                   value="PoolingInfo" name="searchModels"> Pooling映射表
+                        </label>
+                    </div>
+                    <br>
+                    <div><span class="checkbox-inline">测序管理  </span>&nbsp;&nbsp;
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchSequencingInfo"
+                                   value="SequencingInfo" name="searchModels"> 测序上机信息
+                        </label>&nbsp;&nbsp
+                        <label class="checkbox-inline">
+                            <input type="checkbox" id="searchQCInfo"
+                                   value="QCInfo" name="searchModels"> 样本测序质控信息
+                        </label>
+                    </div>
+                    <br>
+                </div>
+            </div>
+        </form>
+        <form id="searchForm2" class="form-inline" role="form">
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="SearchModelName" class="bg-primary text-white badge badge-primary"><h6>查询字表</h6></label>&nbsp;&nbsp;
+                    <select class="form-control" id="SearchModelName" name="SearchModelName" required="true">
+                        <option value=""></option>
+                    </select>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="SearchFieldName" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6></label>&nbsp;&nbsp;
+                    <select class="form-control" id="SearchFieldName" name="SearchFieldName" required="true">
+                        <option value=""></option>
+                        <!--
+                        <option value="sample_id">样本编号</option>
+                        <option value="dna_id">DNA提取编号</option>
+                        <option value="singleLB_id">建库编号</option>
+                        <option value="poolingLB_id">pooling号</option>
+                        <option value="singleLB_Pooling_id">文库编号</option>
+                        <option value="sequencing_id">测序编号</option>
+                        <option value="QC_id">样本质控编号</option>
+                        -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="SearchFieldValue" class="bg-primary text-white badge badge-primary"><h6>查询字段值</h6>
+                    </label>&nbsp;&nbsp;
+                    <select class="form-control" id="SearchFieldValue" name="SearchFieldValue" required="true">
+                        <option value=""></option>
+                    </select>
+                </div>
+                <br>
+                <button id='textareaAdd' class="btn btn-primary">添加到查询文本框</button>
+            </div>
+
+        </form>
+        <br>
+        <form id="searchForm3" role="form" class="border-top border-info">
+            <div class="form-group">
+                <p class="bg-primary text-white">
+                    &nbsp;&nbsp; <label class="bg-primary text-white" for="SearchText"> 查询文本集合</label></p>
+                <textarea class="form-control" rows="3" id="SearchText" name="SearchText"></textarea>
+            </div>
+            <button id='textareaSubmit' type="submit"
+                    class="btn btn-success">查询
+            </button>
+            <button id='textareaClear' type="button" class="btn btn-danger">清除</button>
+        </form>
+    </div>
+{% endblock %}
+
+
+{% block table %}
+    <!-- datatables -->
+    <div id="resetTable">
+    </div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            $("#addbuttons").remove();
+
+            // 查询字表下拉选框
+            let models2label = {
+                ClinicalInfo: '样本临床信息',
+                ExtractInfo: '样本DNA提取信息',
+                DNAUsageRecordInfo: '样本DNA使用记录',
+                DNAInventoryInfo: '样本DNA库存',
+                LibraryInfo: '样本建库信息',
+                CaptureInfo: '捕获文库信息',
+                PoolingInfo: 'Pooling映射表',
+                SequencingInfo: '测序上机信息',
+                QCInfo: '样本测序质控信息'
+            };
+            $('#SearchModelName').focus(function () {
+                // 获取想要查询的表
+                $("#SearchModelName").empty();
+                $("#SearchFieldName").empty();
+                $("#SearchFieldValue").empty();
+                $("input[name='searchModels']:checked").each(function (i) {
+                    let key_ = $(this).val();
+                    $('#SearchModelName').append('<option value="' + key_ +
+                        '">' + models2label[key_] + '</option>');
+                });
+            });
+
+            let modelLabel = {
+                'normal': {
+                    'ClinicalInfo': ['姓名', '性别', '年龄', '住院号', '癌种', '分期', '诊断', '诊断备注',
+                        '采样日期', '离心日期', '医院编号', '科室', '血浆管数', '癌旁组织样本数量', '癌组织样本数量',
+                        '白细胞样本数量', '粪便样本数量', '寄送日期', '临床信息-备注'],
+                    'ExtractInfo': ['提取日期', '样本类型', '样本体积(ml)', '提取方法',
+                        '浓度(ng/ul)', '体积(ul)', '提取信息-备注'],
+                    'DNAUsageRecordInfo': ['使用日期', '使用量', '用途', '建库编号(如有)', '使用记录-备注'],
+                    'DNAInventoryInfo': ['DNA提取总量(ng)', '成功建库使用量(ng)', '失败建库使用量(ng)',
+                        '科研项目使用量(ng)', '其他使用量(ng)', '剩余量(ng)'],
+                    'LibraryInfo': ['文库名', '样本标签', 'index列表', '建库日期', '建库方法',
+                        '建库-起始量', '建库-PCR循环数', '建库-文库浓度', '建库-文库体积', '建库-操作人',
+                        '建库信息-备注'],
+                    'CaptureInfo': ['杂交日期', '杂交探针', '捕获文库-杂交时间(min)',
+                        '捕获文库-PostPCR循环数', '捕获文库-PostPCR浓度(ng/ul)', '捕获文库-洗脱体积(ul)',
+                        '捕获文库-备注'],
+                    'PoolingInfo': ['pooling比例', 'pooling取样(ng)', 'pooling体积(ul)',
+                        'pooling信息-备注'],
+                    'SequencingInfo': ['测序类型', '上机时间', '下机时间', '测序-机器号',
+                        '测序-芯片号', '测序-备注'],
+                    'QCInfo': ['QC编号', 'Data_Size(Gb)', 'Clean_Rate(%)', 'R1_Q20', 'R2_Q20', 'R1_Q30',
+                        'R2_Q30', 'GC_Content', 'BS_conversion_rate(lambda_DNA)', 'BS_conversion_rate(CHH)',
+                        'BS_conversion_rate(CHG)', 'Uniquely_Paired_Mapping_Rate', 'Mismatch_and_InDel_Rate',
+                        'Mode_Fragment_Length(bp)', 'Genome_Duplication_Rate', 'Genome_Depth(X)',
+                        'Genome_Dedupped_Depth(X)', 'Genome_Coverage', 'Genome_4X_CpG_Depth(X)',
+                        'Genome_4X_CpG_Coverage', 'Genome_4X_CpG_methylation_level', 'Panel_4X_CpG_Depth(X)',
+                        'Panel_4X_CpG_Coverage', 'Panel_4X_CpG_methylation_level', 'Panel_Ontarget_Rate(region)',
+                        'Panel_Duplication_Rate(region)', 'Panel_Depth(site,X)', 'Panel_Dedupped_Depth(site,X)',
+                        'Panel_Coverage(site,1X)', 'Panel_Coverage(site,10X)', 'Panel_Coverage(site,20X)',
+                        'Panel_Coverage(site,50X)', 'Panel_Coverage(site,100X)', 'Panel_Uniformity(site,>20%mean)',
+                        'Strand_balance(F)', 'Strand_balance(R)', 'GC_bin_depth_ratio', '质控-备注']
+                },
+                'link': {
+                    'ClinicalInfo': ['样本编号'],
+                    'ExtractInfo': ['样本编号', 'DNA提取编号'],
+                    'DNAUsageRecordInfo': ['样本编号', 'DNA提取编号'],
+                    'DNAInventoryInfo': ['样本编号', 'DNA提取编号'],
+                    'LibraryInfo': ['样本编号', 'DNA提取编号', '建库编号'],
+                    'CaptureInfo': ['pooling号'],
+                    'PoolingInfo': ['样本编号', 'DNA提取编号', '建库编号', 'pooling号', '文库编号'],
+                    'SequencingInfo': ['pooling号'],
+                    'QCInfo': ['样本编号', 'DNA提取编号', '建库编号', 'pooling号', '文库编号', '测序编号']
+                }
+            };
+            let modelCol = {
+                'normal': {
+                    'ClinicalInfo': ['name', 'gender', 'age', 'patientId', 'category', 'stage', 'diagnose',
+                        'diagnose_others', 'sampling_date', 'centrifugation_date', 'hospital', 'department',
+                        'plasma_num', 'adjacent_mucosa_num', 'cancer_tissue_num', 'WBC_num', 'stool_num',
+                        'send_date', 'others'],
+                    'ExtractInfo': ['extract_date', 'sample_type', 'sample_volume', 'extract_method',
+                        'dna_con', 'dna_vol', 'others'],
+                    'DNAUsageRecordInfo': ['LB_date', 'mass', 'usage', 'singleLB_id', 'others'],
+                    'DNAInventoryInfo': ['totalM', 'successM', 'failM', 'researchM', 'othersM', 'remainM'],
+                    'LibraryInfo': ['singleLB_name', 'label', 'barcodes', 'LB_date', 'LB_method',
+                        'mass', 'pcr_cycles', 'LB_con', 'LB_vol', 'operator', 'others'],
+                    'CaptureInfo': ['hybrid_date', 'probes', 'hybrid_hours', 'postpcr_cycles', 'postpcr_con',
+                        'elution_vol', 'others'],
+                    'PoolingInfo': ['pooling_ratio', 'mass', 'volume', 'others'],
+                    'SequencingInfo': ['sequencing_type', 'start_time', 'end_time', 'machine_id', 'chip_id', 'others'],
+                    'QCInfo': ['QC_id', 'data_size_gb_field', 'clean_rate_field', 'r1_q20', 'r2_q20', 'r1_q30',
+                        'r2_q30', 'gc_content', 'bs_conversion_rate_lambda_dna_field', 'bs_conversion_rate_chh_field',
+                        'bs_conversion_rate_chg_field', 'uniquely_paired_mapping_rate', 'mismatch_and_indel_rate',
+                        'mode_fragment_length_bp_field', 'genome_duplication_rate', 'genome_depth_x_field',
+                        'genome_dedupped_depth_x_field', 'genome_coverage', 'genome_4x_cpg_depth_x_field',
+                        'genome_4x_cpg_coverage', 'genome_4x_cpg_methylation_level', 'panel_4x_cpg_depth_x_field',
+                        'panel_4x_cpg_coverage', 'panel_4x_cpg_methylation_level', 'panel_ontarget_rate_region_field',
+                        'panel_duplication_rate_region_field', 'panel_depth_site_x_field', 'panel_dedupped_depth_site_x_field',
+                        'panel_coverage_site_1x_field', 'panel_coverage_site_10x_field', 'panel_coverage_site_20x_field',
+                        'panel_coverage_site_50x_field', 'panel_coverage_site_100x_field', 'panel_uniformity_site_20_mean_field',
+                        'strand_balance_f_field', 'strand_balance_r_field', 'gc_bin_depth_ratio', 'others']
+                },
+                'link': {
+                    'ClinicalInfo': ['sample_id'],
+                    'ExtractInfo': ['sample_id', 'dna_id'],
+                    'DNAUsageRecordInfo': ['sample_id', 'dna_id'],
+                    'DNAInventoryInfo': ['sample_id', 'dna_id'],
+                    'LibraryInfo': ['sample_id', 'dna_id', 'singleLB_id'],
+                    'CaptureInfo': ['poolingLB_id'],
+                    'PoolingInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'],
+                    'SequencingInfo': ['poolingLB_id'],
+                    'QCInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
+                }
+            };
+            // 查询字段字段下拉选框
+            $('#SearchFieldName').focus(function () {
+                // 获取想要查询的字段名
+                $("#SearchFieldName").empty();
+                $("#SearchFieldValue").empty();
+                let key_ = $("#SearchModelName").val();
+                for (let i in modelLabel['link'][key_]) {
+                    $('#SearchFieldName').append('<option value="' + modelCol['link'][key_][i] +
+                        '">' + modelLabel['link'][key_][i] + '</option>');
+                }
+                for (let i in modelLabel['normal'][key_]) {
+                    $('#SearchFieldName').append('<option value="' + modelCol['normal'][key_][i] +
+                        '">' + modelLabel['normal'][key_][i] + '</option>');
+                }
+            });
+
+            $('#SearchFieldValue').focus(function () {
+                // 获取想要查询的字段值
+                $("#SearchFieldValue").empty();
+                let key1 = $("#SearchModelName").val();
+                let key2 = $('#SearchFieldName').val();
+                let values = $.ajax({
+                    url: "{% url 'unique' %}", data: {model: key1, filed: key2},
+                    dataType: 'json', contentType: "application/json",
+                    method: "GET", async: false
+                }).responseJSON.values;
+                $.each(values, function (index, value) {
+                    $('#SearchFieldValue').append('<option value="' + value +
+                        '">' + value + '</option>')
+                });
+            });
+
+            // 实现"添加到文本框"按钮的功能
+            $('#textareaAdd').click(function (e) {
+                e.preventDefault();
+                let model = $('#SearchModelName').val(); //获取查询字段
+                let name = $('#SearchFieldName').val(); //获取查询字段
+                let value = $('#SearchFieldValue').val(); //获取查询字段值
+                let str = $('#SearchText').val(); //读取当前文本框里面的值
+                let text;
+                if (str === undefined || !str) {  //如果文本框值为undefined，则输入为空
+                    text = model + "\t" + name + "\t" + value;
+                } else {
+                    text = str + "\n" + model + "\t" + name + "\t" + value;
+                }
+                $("#SearchText").val(text);  //最后再直接输入到文本框，覆盖原本的值
+            });
+
+            // 实现"清除"按钮的功能
+            $('#textareaClear').click(function (e) {
+                e.preventDefault();
+                $("#SearchText").val("");
+            });
+
+            // 实现"查询"按钮的功能
+            $('#textareaSubmit').click(function (e) {
+                e.preventDefault();
+                console.log('#textareaSubmit begin');
+                $("#resetTable").empty(); //再次click后，先将datatable删除
+                console.log('#textareaSubmit stop1');
+                // 获取想要查询的表
+                let models = [];
+                $("input[name='searchModels']:checked").each(function (i) {
+                    models[i] = $(this).val();
+                });
+                // 根据查询模型生成table列标题，前面列固定为连接字段数组(['样本编号', 'DNA提取编号', '建库编号',
+                // 'pooling号', '文库编号', '测序编号'])中的元素，后面为各表自定义字段
+                console.log('#textareaSubmit stop2');
+                console.log(models);
+                let tableLinkCol = []; // 记录有效的连接字段数组元素
+                let tableNormalCol = []; // 记录各表自定义字段
+                let returnCols = []; // 构建request返回数据对应的col数组
+                let htmlStr = ""; // 储存生成的html代码
+                htmlStr = '<table id="table_id" class="display"><thead><tr id="tableColName">';
+                console.log('#textareaSubmit stop3');
+                let forlist = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo',
+                    'LibraryInfo', 'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo'];
+                for (let i in forlist) {
+                    console.log(forlist[i]);
+                    if (models.indexOf(forlist[i]) > -1) {
+                        console.log('models.indexOf(forlist[i])>-1');
+                        for (let j in modelLabel['normal'][forlist[i]]) {
+                            console.log(modelLabel['normal'][forlist[i]][j]);
+                            tableNormalCol.push(modelLabel['normal'][forlist[i]][j]);
+                        }
+                        for (let j in modelLabel['link'][forlist[i]]) {
+                            console.log(modelLabel['link'][forlist[i]][j]);
+                            if (tableLinkCol.indexOf(modelLabel['link'][forlist[i]][j]) == -1) {
+                                tableLinkCol.push(modelLabel['link'][forlist[i]][j]);
+                            }
+                        }
+                    }
+                }
+                console.log('#textareaSubmit stop4');
+                for (let i = 0; i < tableLinkCol.length; i++) {
+                    htmlStr += '<th>' + tableLinkCol[i] + '</th>';
+                    returnCols.push({"data": "link" + i});
+                }
+                console.log('#textareaSubmit stop5');
+                for (let i = 0; i < tableNormalCol.length; i++) {
+                    htmlStr += '<th>' + tableNormalCol[i] + '</th>';
+                    returnCols.push({"data": "normal" + i});
+                }
+                console.log('#textareaSubmit stop6');
+                console.log(returnCols);
+                htmlStr += '</tr></thead></table>';
+                $("#table_id").append(htmlStr); //插入html代码
+                console.log('#textareaSubmit stop7');
+                console.log(htmlStr);
+                // 构建data，用于get
+                let requestData = {
+                    modellist: models.join(', '),
+                    queryset: $("#SearchText").val()
+                };
+                console.log('#textareaSubmit stop8');
+                console.log(requestData);
+                console.log("{% url 'SearchProcess' %}");
+                let returnD = $.ajax({
+                    url: "{% url 'SearchProcess' %}", dataType: 'json', contentType: "application/json",
+                    async: false, data: requestData, method: "GET"
+                });
+                console.log(returnD);
+                // 使用ajax跟后端进行交互，获取数据后生成datatables
+                let table = $('#table_id').DataTable({
+                    "language": {
+                        "lengthMenu": "选择每页 _MENU_ 展示 ",
+                        "zeroRecords": "未找到匹配结果--抱歉",
+                        "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                        "infoEmpty": "没有数据",
+                        "infoFiltered": "(获取 _MAX_ 项结果)",
+                        "paginate": {
+                            "first": "首页",
+                            "previous": "上一页",
+                            "next": "下一页",
+                            "last": "末页"
+                        }
+                    },
+                    "scrollY": "5000px",
+                    "scrollCollapse": true,
+                    "pagingType": "full_numbers",
+                    rowReorder: true,
+                    colReorder: true,
+                    searching: true,
+                    select: true,
+                    dom: 'lB<"clear">frtip',
+                    buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
+                        'copy', 'csv'],
+                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    "serverSide": true,
+                    "processing": true,
+                    "ajax": {
+                        "url": "{% url 'SearchProcess' %}",
+                        "data": requestData, "method": "GET"
+                    },
+                    "columns": returnCols
+                });
+                console.log('#textareaSubmit stop9');
+            });
+        })
+
+    </script>
+{% endblock %}

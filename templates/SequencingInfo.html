@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>测序登记信息表</p>
+        <h4>测序上机信息表</h4>
     </div>
 {% endblock %}
 
@@ -80,7 +80,7 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
@@ -130,10 +130,10 @@
                 ]
             });
 
-            var id = 0;
+            let id = 0;
             $('#table_id tbody').on('click', 'button', function () {
-                var data = table.row($(this).parents('tr')).data();
-                var class_name = $(this).attr('class');
+                let data = table.row($(this).parents('tr')).data();
+                let class_name = $(this).attr('class');
                 id = data['index'];
                 if (class_name == 'btn btn-info') {
                     // EDIT button
@@ -160,9 +160,9 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                var type = $('#type').val();
-                var method = '';
-                var url = '/api/SequencingInfo/';
+                let type = $('#type').val();
+                let method = '';
+                let url = '/api/SequencingInfo/';
                 if (type == 'new') {
                     // new
                     method = 'POST';
@@ -217,8 +217,8 @@
             });
 
             // pooling号下拉选框
-            var selectDialog = function () {
-                var poolingLB_ids = $.ajax({
+            let selectDialog = function () {
+                let poolingLB_ids = $.ajax({
                     url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
                     type: "get", async: false
                 }).responseJSON.results;
@@ -231,17 +231,17 @@
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('SequencingInfo');
                 $("#uploadModal").modal();
             });
 
             $('#upload').on('click', function (e) {
-                $('#uploadOperator').val();
-                $('#uploadFile').val();
-                $('#uploadError').val();
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
                 $('#uploadUrl').val('SequencingInfo');
                 $("#uploadModal").modal();
             });

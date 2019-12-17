@@ -7,7 +7,7 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <p>样本DNA库存信息表</p>
+        <h4>样本DNA库存信息表</h4>
     </div>
 {% endblock %}
 
@@ -37,9 +37,9 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            $(".text-center").remove();
+            $("#addbuttons").remove();
 
-            var table = $('#table_id').DataTable({
+            let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
                     "zeroRecords": "未找到匹配结果--抱歉",
