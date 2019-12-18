@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "button.html" %}
 {% block title %}
     <title>Pooling信息</title>
 {% endblock %}
@@ -93,6 +93,7 @@
                     "zeroRecords": "未找到匹配结果--抱歉",
                     "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
                     "infoEmpty": "没有数据",
+                    "search": "搜索",
                     "infoFiltered": "(获取 _MAX_ 项结果)",
                     "paginate": {
                         "first": "首页",
@@ -109,14 +110,51 @@
                 searching: true,
                 select: true,
                 dom: 'lB<"clear">frtip',
-                buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
-                    'copy', 'csv'],
-                "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                buttons: [
+                    {
+                        text: '显示列', extend: 'colvis',
+                        postfixButtons: ['colvisRestore'],
+                        columnText: function (dt, idx, title) {
+                            return (idx + 1) + ': ' + title;
+                        }
+                    },
+                    {
+                        extend: 'selectAll',
+                        text: '全选'
+                    }, {
+                        extend: 'selectRows',
+                        text: '选择多行'
+                    }, {
+                        extend: 'selectColumns',
+                        text: '选择多列'
+                    }, {
+                        extend: 'selectCells',
+                        text: '选择多个单元格'
+                    }, {
+                        extend: 'selectNone',
+                        text: '取消当前选择'
+                    },
+                    {
+                        extend: 'copy',
+                        text: '复制到剪切板'
+                    }, {
+                        extend: 'csv',
+                        text: '输出到csv'
+                    }
+                ],
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
                 "serverSide": true,
                 "processing": true,
                 "ajax": "/api/PoolingInfo/?format=datatables",
                 "columns": [
-                    {"data": "index"},
+                    {
+                        data: 'index',
+                        width: "1%",
+                        // 若想前端显示的不一样，则需要"render"函数
+                        'render': function (data, type, full, meta) {
+                            return meta.row + 1 + meta.settings._iDisplayStart;
+                        }
+                    },
                     {"data": "sample_id"},
                     {"data": "dna_id"},
                     {"data": "singleLB_id"},
@@ -251,6 +289,11 @@
                 $('#uploadError').val("");
                 $('#uploadUrl').val('PoolingInfo');
                 $("#uploadModal").modal();
+            });
+
+            $('#bulkDel').on('click', function (e) {
+                $('#bulkDelUrl').val('PoolingInfo');
+                $("#bulkDelModal").modal();
             });
         })
 

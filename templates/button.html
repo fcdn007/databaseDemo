@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block button %}
+    <!-- New  button -->
+    <div class="text-center" id="addbuttons">
+        <button type="button" class="btn btn-primary" id="new">添加</button>
+        <button type="button" class="btn btn-primary" id="upload" style="margin: 0 50px">批量添加</button>
+        <button type="button" class="btn btn-danger" id="bulkDel">批量删除</button>
+    </div>
+    <br>
+
+    <!-- NEW and EDIT Modal -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modal_title"></h4>
+                </div>
+                <div class="modal-body">
+                    <form id="modelForm">
+                        {% block ModalForm %}
+
+                        {% endblock %}
+                        <input type="hidden" id="type" name="type" value="">
+                        <button id="submit" type="submit" class="btn btn-success btn-block">OK</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- upload Modal -->
+    <div class="modal fade" id="uploadModal">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="uploadModal_title"> 上传文件进行批量添加</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="UploadForm" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="uploadUrl"> 数据表名称</label>
+                            <input type="text" class="form-control" id="uploadUrl" name="uploadUrl"
+                                   placeholder="请输入数据表名称" required="true">
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadOperator"> 上传者</label>
+                            <input type="text" class="form-control" id="uploadOperator" name="uploadOperator"
+                                   placeholder="请输入上传者" required="true">
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadFile"> 上传文件</label>
+                            <input type="file" class="form-control" id="uploadFile" name="uploadFile"
+                                   placeholder="请上传文件" required="true">
+                        </div>
+                        <button id='uploadSubmit' type="submit" class="btn btn-success btn-block">提交上传</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <p id="uploadError"></p>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="confirm">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">是否确认删除?</h4>
+                </div>
+                <div class="modal-body">
+                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">确认删除</button>
+                    <button type="button" data-dismiss="modal" class="btn">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Modal -->
+    <div class="modal fade" id="bulkDelModal">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">是否确认批量删除?</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="bulkDelUrl" value="">
+                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">确认删除</button>
+                    <button type="button" data-dismiss="modal" class="btn">取消</button>
+                </div>
+                <div class="modal-footer">
+                    <p id="bulkDelError"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block button_js %}
+    <script>
+        $(document).ready(function () {
+            $('#uploadSubmit').on('click', function (e) {
+                e.preventDefault();
+                // 构建FormData对象
+                let form_data = new FormData();
+                form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
+                form_data.append('uploadUrl', $('#uploadUrl').val());
+                form_data.append('uploadOperator', $('#uploadOperator').val());
+                let urlUpload = {% url "upload" %};
+
+                $.ajax({
+                    async: false, url: urlUpload, processData: false,
+                    method: 'POST', data: form_data, dataType: 'json',
+                    contentType: false,
+                    beforeSend: function (xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    },
+                    success: function (data) {
+                        if (data['error_msg']) {
+                            //alert('文件上传和批量添加失败。' + data['error_msg']);
+                            $('#uploadError').text('文件上传和批量添加失败。' + data['error_msg']);
+                        } else {
+                            let update_records = parseInt(data['all_records']) - parseInt(data['add_records']);
+                            alert('文件上传和批量添加成功，有效输入记录共有' + data['all_records'] +
+                                "行。\n其中往数据库中增加" + data['add_records'] + '行记录，更新了' +
+                                update_records + '行记录。');
+                            $("#uploadModal").find('form').trigger("reset");
+                            $('#uploadModal').modal('hide');
+                            location.reload();
+                        }
+                    }
+                });
+            });
+
+            $('#bulkDelModal').on('click', '#delete', function (e) {
+                let table = $('#table_id').DataTable();
+                let arrayLen = table.rows(".selected").data().length;
+                if (arrayLen > 0) {
+                    for (let i = 0; i < arrayLen; i++) {
+                        $.ajax({
+                            url: '/api/' + $('#bulkDelUrl').val() + '/' + table.rows(".selected").data()[i]['index'] + '/',
+                            method: 'DELETE',
+                            success: function () {
+                                location.reload()
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.log(jqXHR)
+                            }
+                        });
+                    }
+                } else {
+                    $('#bulkDelError').text('没有行被选中，请先选中目标行。');
+                }
+
+            });
+        });
+    </script>
+{% endblock %}

@@ -75,15 +75,6 @@
                     <label for="SearchFieldName" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6></label>&nbsp;&nbsp;
                     <select class="form-control" id="SearchFieldName" name="SearchFieldName" required="true">
                         <option value=""></option>
-                        <!--
-                        <option value="sample_id">样本编号</option>
-                        <option value="dna_id">DNA提取编号</option>
-                        <option value="singleLB_id">建库编号</option>
-                        <option value="poolingLB_id">pooling号</option>
-                        <option value="singleLB_Pooling_id">文库编号</option>
-                        <option value="sequencing_id">测序编号</option>
-                        <option value="QC_id">样本质控编号</option>
-                        -->
                     </select>
                 </div>
             </div>
@@ -97,7 +88,7 @@
                     </select>
                 </div>
                 <br>
-                <button id='textareaAdd' class="btn btn-primary">添加到查询文本框</button>
+                <button id='textareaAdd' class="btn btn-success">添加到查询文本框</button>
             </div>
 
         </form>
@@ -194,7 +185,7 @@
                     'LibraryInfo': ['样本编号', 'DNA提取编号', '建库编号'],
                     'CaptureInfo': ['pooling号'],
                     'PoolingInfo': ['样本编号', 'DNA提取编号', '建库编号', 'pooling号', '文库编号'],
-                    'SequencingInfo': ['pooling号'],
+                    'SequencingInfo': ['pooling号', '测序编号'],
                     'QCInfo': ['样本编号', 'DNA提取编号', '建库编号', 'pooling号', '文库编号', '测序编号']
                 }
             };
@@ -234,11 +225,11 @@
                     'LibraryInfo': ['sample_id', 'dna_id', 'singleLB_id'],
                     'CaptureInfo': ['poolingLB_id'],
                     'PoolingInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'],
-                    'SequencingInfo': ['poolingLB_id'],
+                    'SequencingInfo': ['poolingLB_id', 'sequencing_id'],
                     'QCInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
                 }
             };
-            // 查询字段字段下拉选框
+            // 查询字段名下拉选框
             $('#SearchFieldName').focus(function () {
                 // 获取想要查询的字段名
                 $("#SearchFieldName").empty();
@@ -344,7 +335,7 @@
                 console.log('#textareaSubmit stop6');
                 console.log(returnCols);
                 htmlStr += '</tr></thead></table>';
-                $("#table_id").append(htmlStr); //插入html代码
+                $("#resetTable").append(htmlStr); //插入html代码
                 console.log('#textareaSubmit stop7');
                 console.log(htmlStr);
                 // 构建data，用于get
@@ -353,13 +344,18 @@
                     queryset: $("#SearchText").val()
                 };
                 console.log('#textareaSubmit stop8');
-                console.log(requestData);
+                console.log('requestData: ' + requestData);
                 console.log("{% url 'SearchProcess' %}");
-                let returnD = $.ajax({
-                    url: "{% url 'SearchProcess' %}", dataType: 'json', contentType: "application/json",
-                    async: false, data: requestData, method: "GET"
-                });
-                console.log(returnD);
+                //let returnD = $.ajax({
+                //    url: "{% url 'SearchProcess' %}", headers: {'X-HTTP-Method-Override': 'PATCH'},
+                //    async: false, type:'post', data: requestData, dataType:'json',
+                //    beforeSend: function (xhr, settings) {
+                //        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                //            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                //        }
+                //    }
+                //});
+                //console.log(returnD);
                 // 使用ajax跟后端进行交互，获取数据后生成datatables
                 let table = $('#table_id').DataTable({
                     "language": {
@@ -367,6 +363,7 @@
                         "zeroRecords": "未找到匹配结果--抱歉",
                         "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
                         "infoEmpty": "没有数据",
+                        "search": "搜索",
                         "infoFiltered": "(获取 _MAX_ 项结果)",
                         "paginate": {
                             "first": "首页",
@@ -377,20 +374,63 @@
                     },
                     "scrollY": "5000px",
                     "scrollCollapse": true,
+                    "scrollX": true,
                     "pagingType": "full_numbers",
+                    fixedColumns: true,
                     rowReorder: true,
                     colReorder: true,
                     searching: true,
                     select: true,
                     dom: 'lB<"clear">frtip',
-                    buttons: ['selectAll', 'selectRows', 'selectColumns', 'selectCells', 'selectNone',
-                        'copy', 'csv'],
-                    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                    buttons: [
+                        {
+                            text: '显示列', extend: 'colvis',
+                            postfixButtons: ['colvisRestore'],
+                            columnText: function (dt, idx, title) {
+                                return (idx + 1) + ': ' + title;
+                            }
+                        },
+                        {
+                            extend: 'selectAll',
+                            text: '全选'
+                        }, {
+                            extend: 'selectRows',
+                            text: '选择多行'
+                        }, {
+                            extend: 'selectColumns',
+                            text: '选择多列'
+                        }, {
+                            extend: 'selectCells',
+                            text: '选择多个单元格'
+                        }, {
+                            extend: 'selectNone',
+                            text: '取消当前选择'
+                        },
+                        {
+                            extend: 'copy',
+                            text: '复制到剪切板'
+                        }, {
+                            extend: 'csv',
+                            text: '输出到csv'
+                        }
+                    ],
+                    "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
                     "serverSide": true,
                     "processing": true,
                     "ajax": {
+                        beforeSend: function (xhr, settings) {
+                            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                            }
+                        },
                         "url": "{% url 'SearchProcess' %}",
-                        "data": requestData, "method": "GET"
+                        "type": "POST",
+                        "data": function (d) {
+                            return $.extend({}, d, {
+                                "modellist": models.join(', '),
+                                "queryset": $("#SearchText").val()
+                            });
+                        }
                     },
                     "columns": returnCols
                 });

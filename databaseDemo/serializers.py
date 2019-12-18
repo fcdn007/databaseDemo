@@ -13,9 +13,10 @@ class ClinicalInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClinicalInfo
-        fields = ('sample_id', 'name', 'gender', 'age', 'patientId', 'diagnose', 'sampling_date', 'centrifugation_date',
-                  'hospital', 'department', 'plasma_num', 'adjacent_mucosa_num', 'cancer_tissue_num', 'WBC_num',
-                  'stool_num', 'send_date', 'others', 'index', 'last_modify_date', 'created')
+        fields = ('sample_id', 'name', 'gender', 'age', 'patientId', 'category', 'stage', 'diagnose', 'diagnose_others',
+                  'sampling_date', 'centrifugation_date', 'hospital', 'department', 'plasma_num', 'adjacent_mucosa_num',
+                  'cancer_tissue_num', 'WBC_num', 'stool_num', 'send_date', 'others', 'index', 'last_modify_date',
+                  'created')
 
 
 class ExtractInfoSerializer(serializers.ModelSerializer):

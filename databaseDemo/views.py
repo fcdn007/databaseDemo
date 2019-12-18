@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import pandas as pd
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -496,46 +494,189 @@ def read_file(url, inf):
     return data
 
 
+KEY1_TO_MODEL = {
+    'ClinicalInfo': ClinicalInfo,
+    'ExtractInfo': ExtractInfo,
+    'DNAUsageRecordInfo': DNAUsageRecordInfo,
+    'DNAInventoryInfo': DNAInventoryInfo,
+    'LibraryInfo': LibraryInfo,
+    'CaptureInfo': CaptureInfo,
+    'PoolingInfo': PoolingInfo,
+    'SequencingInfo': SequencingInfo,
+    'QCInfo': QCInfo
+}
+
+
 def AdvancedSearchV(request):
     return render(request, 'AdvancedSearch.html')
 
 
 def SearchProcess(request):
-    pprint(request)
-    pprint(request.GET)
-    modellist = request.GET['modellist'].split(', ')
+    # print(">>>>>> request >>>>>>>")
+    # pprint(request)
+    # print(">>>>>> request.POST >>>>>>>")
+    # pprint(request.POST)
+    modellist = request.POST['modellist'].split(', ')
     queryset = {}
-    for i in request.GET['queryset'].split('\n'):
+    for i in request.POST['queryset'].split('\n'):
         m, f, v = i.split('\t')
+        if f == 'gender':
+            v = 1 if v == '男' else 0
         if m in queryset:
             queryset[m][f] = v
         else:
             queryset[m] = {f: v}
-
-    pprint(modellist)
-    pprint(queryset)
+    # print(">>>>>> modellist >>>>>>>")
+    # pprint(modellist)
+    # print(">>>>>> queryset >>>>>>>")
+    # pprint(queryset)
+    filter_dict = {}
+    values_list1 = []
+    values_list2 = []
+    model_col = {
+        'normal': {
+            'ClinicalInfo': ['name', 'gender', 'age', 'patientId', 'category', 'stage', 'diagnose',
+                             'diagnose_others', 'sampling_date', 'centrifugation_date', 'hospital', 'department',
+                             'plasma_num', 'adjacent_mucosa_num', 'cancer_tissue_num', 'WBC_num', 'stool_num',
+                             'send_date', 'others'],
+            'ExtractInfo': ['ExtractInfo_ClinicalInfo__extract_date', 'ExtractInfo_ClinicalInfo__sample_type',
+                            'ExtractInfo_ClinicalInfo__sample_volume', 'ExtractInfo_ClinicalInfo__extract_method',
+                            'ExtractInfo_ClinicalInfo__dna_con', 'ExtractInfo_ClinicalInfo__dna_vol',
+                            'ExtractInfo_ClinicalInfo__others'],
+            'DNAUsageRecordInfo': ['DNAUsageRecordInfo_ClinicalInfo__LB_date', 'DNAUsageRecordInfo_ClinicalInfo__mass',
+                                   'DNAUsageRecordInfo_ClinicalInfo__usage',
+                                   'DNAUsageRecordInfo_ClinicalInfo__singleLB_id',
+                                   'DNAUsageRecordInfo_ClinicalInfo__others'],
+            'DNAInventoryInfo': ['DNAInventoryInfo_ClinicalInfo__totalM', 'DNAInventoryInfo_ClinicalInfo__successM',
+                                 'DNAInventoryInfo_ClinicalInfo__failM', 'DNAInventoryInfo_ClinicalInfo__researchM',
+                                 'DNAInventoryInfo_ClinicalInfo__othersM', 'DNAInventoryInfo_ClinicalInfo__remainM'],
+            'LibraryInfo': ['LibraryInfo_ClinicalInfo__singleLB_name', 'LibraryInfo_ClinicalInfo__label',
+                            'LibraryInfo_ClinicalInfo__barcodes', 'LibraryInfo_ClinicalInfo__LB_date',
+                            'LibraryInfo_ClinicalInfo__LB_method', 'LibraryInfo_ClinicalInfo__mass',
+                            'LibraryInfo_ClinicalInfo__pcr_cycles', 'LibraryInfo_ClinicalInfo__LB_con',
+                            'LibraryInfo_ClinicalInfo__LB_vol', 'LibraryInfo_ClinicalInfo__operator',
+                            'LibraryInfo_ClinicalInfo__others'],
+            'CaptureInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id__hybrid_date',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id__probes',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id__hybrid_hours',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id__postpcr_cycles',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id__postpcr_con',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id__elution_vol',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id__others'],
+            'PoolingInfo': ['PoolingInfo_ClinicalInfo__pooling_ratio', 'PoolingInfo_ClinicalInfo__mass',
+                            'PoolingInfo_ClinicalInfo__volume', 'PoolingInfo_ClinicalInfo__others'],
+            'SequencingInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__sequencing_type',
+                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__start_time',
+                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__end_time',
+                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__machine_id',
+                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__chip_id',
+                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__others'],
+            'QCInfo': ['QCInfo_ClinicalInfo__QC_id', 'QCInfo_ClinicalInfo__data_size_gb_field',
+                       'QCInfo_ClinicalInfo__clean_rate_field', 'QCInfo_ClinicalInfo__r1_q20',
+                       'QCInfo_ClinicalInfo__r2_q20', 'QCInfo_ClinicalInfo__r1_q30',
+                       'QCInfo_ClinicalInfo__r2_q30', 'QCInfo_ClinicalInfo__gc_content',
+                       'QCInfo_ClinicalInfo__bs_conversion_rate_lambda_dna_field',
+                       'QCInfo_ClinicalInfo__bs_conversion_rate_chh_field',
+                       'QCInfo_ClinicalInfo__bs_conversion_rate_chg_field',
+                       'QCInfo_ClinicalInfo__uniquely_paired_mapping_rate',
+                       'QCInfo_ClinicalInfo__mismatch_and_indel_rate',
+                       'QCInfo_ClinicalInfo__mode_fragment_length_bp_field',
+                       'QCInfo_ClinicalInfo__genome_duplication_rate', 'QCInfo_ClinicalInfo__genome_depth_x_field',
+                       'QCInfo_ClinicalInfo__genome_dedupped_depth_x_field', 'QCInfo_ClinicalInfo__genome_coverage',
+                       'QCInfo_ClinicalInfo__genome_4x_cpg_depth_x_field',
+                       'QCInfo_ClinicalInfo__genome_4x_cpg_coverage',
+                       'QCInfo_ClinicalInfo__genome_4x_cpg_methylation_level',
+                       'QCInfo_ClinicalInfo__panel_4x_cpg_depth_x_field',
+                       'QCInfo_ClinicalInfo__panel_4x_cpg_coverage',
+                       'QCInfo_ClinicalInfo__panel_4x_cpg_methylation_level',
+                       'QCInfo_ClinicalInfo__panel_ontarget_rate_region_field',
+                       'QCInfo_ClinicalInfo__panel_duplication_rate_region_field',
+                       'QCInfo_ClinicalInfo__panel_depth_site_x_field',
+                       'QCInfo_ClinicalInfo__panel_dedupped_depth_site_x_field',
+                       'QCInfo_ClinicalInfo__panel_coverage_site_1x_field',
+                       'QCInfo_ClinicalInfo__panel_coverage_site_10x_field',
+                       'QCInfo_ClinicalInfo__panel_coverage_site_20x_field',
+                       'QCInfo_ClinicalInfo__panel_coverage_site_50x_field',
+                       'QCInfo_ClinicalInfo__panel_coverage_site_100x_field',
+                       'QCInfo_ClinicalInfo__panel_uniformity_site_20_mean_field',
+                       'QCInfo_ClinicalInfo__strand_balance_f_field', 'QCInfo_ClinicalInfo__strand_balance_r_field',
+                       'QCInfo_ClinicalInfo__gc_bin_depth_ratio', 'QCInfo_ClinicalInfo__others']
+        },
+        'link': {
+            'ClinicalInfo': ['sample_id'],
+            'ExtractInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id'],
+            'DNAUsageRecordInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id'],
+            'DNAInventoryInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id'],
+            'LibraryInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id', 'LibraryInfo_ClinicalInfo__singleLB_id'],
+            'CaptureInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id__poolingLB_id'],
+            'PoolingInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id', 'LibraryInfo_ClinicalInfo__singleLB_id',
+                            'PoolingInfo_ClinicalInfo__poolingLB_id', 'PoolingInfo_ClinicalInfo__singleLB_Pooling_id'],
+            'SequencingInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id',
+                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__sequencing_id'],
+            'QCInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id', 'LibraryInfo_ClinicalInfo__singleLB_id',
+                       'PoolingInfo_ClinicalInfo__poolingLB_id', 'PoolingInfo_ClinicalInfo__singleLB_Pooling_id',
+                       'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__sequencing_id']
+        }
+    }
+    for model_ in ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo',
+                   'LibraryInfo', 'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo']:
+        # 记录输出的字段
+        if model_ in modellist:
+            for item in model_col['link'][model_]:
+                if item not in values_list1:
+                    values_list1.append(item)
+            values_list2 = values_list2 + model_col['normal'][model_]
+        # 记录过滤的条件
+        if model_ in queryset:
+            for field_ in queryset[model_]:
+                for item in model_col['link'][model_] + model_col['normal'][model_]:
+                    if item.split('__')[-1] == field_:
+                        filter_dict[item] = queryset[model_][field_]
+                        break
+    # 查询数据库
+    values_list = values_list1 + values_list2
+    raw_data = ClinicalInfo.objects.filter(**filter_dict).values_list(*values_list)
+    # print(">>>>>> raw_data >>>>>>>")
+    # pprint(raw_data)
+    tmp = ClinicalInfo.objects.values_list(*values_list)
+    pro_data = []
+    for row in raw_data:
+        check_l = list(set(row))
+        if len(check_l) == 1 and None in check_l:
+            continue
+        dat = {}
+        for col in range(len(row)):
+            if col >= len(values_list1):
+                value = row[col]
+                if values_list[col] == 'gender':
+                    value = '男' if row[col] == 1 else '女'
+                dat["normal%s" % (col - len(values_list1))] = value
+            else:
+                dat["link%s" % col] = row[col]
+        pro_data.append(dat)
+    # print(">>>>>> pro_data >>>>>>>")
+    # pprint(pro_data)
+    # print(">>>>>> request.GET >>>>>>>")
+    # pprint(request.POST)
+    result = {
+        'draw': 1,
+        'recordsTotal': len(tmp),
+        'recordsFiltered': len(pro_data),
+        'data': pro_data
+    }
+    return JsonResponse(result)
 
 
 def uniqueV(request):
-    KEY1_TO_MODEL = {
-        'ClinicalInfo': ClinicalInfo,
-        'ExtractInfo': ExtractInfo,
-        'DNAUsageRecordInfo': DNAUsageRecordInfo,
-        'DNAInventoryInfo': DNAInventoryInfo,
-        'LibraryInfo': LibraryInfo,
-        'CaptureInfo': CaptureInfo,
-        'PoolingInfo': PoolingInfo,
-        'SequencingInfo': SequencingInfo,
-        'QCInfo': QCInfo
-    }
     data = {}
     try:
         key1 = KEY1_TO_MODEL[request.GET['model']]
         key2 = request.GET['filed']
-        pprint([key1, key2])
         data['values'] = list(set([j for i in key1.objects.values_list(key2) for j in i]))
+        data['values'].sort()
         if request.GET['model'] == 'ClinicalInfo' and key2 == 'gender':
             data['values'] = ['男' if x == 1 else '女' for x in data['values']]
     except:
         data['values'] = []
     return JsonResponse(data)
+
