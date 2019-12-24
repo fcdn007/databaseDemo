@@ -10,8 +10,8 @@ class ClinicalInfo(models.Model):
         db_column='样本编号', unique=True, max_length=255, blank=True, null=True)
     name = models.CharField(
         db_column='姓名', max_length=255, blank=True, null=True)
-    gender = models.IntegerField(
-        db_column='性别', blank=True, null=True, default=1)
+    gender = models.CharField(
+        db_column='性别', max_length=255, blank=True, null=True, default=1)
     age = models.IntegerField(db_column='年龄', blank=True, null=True)
     patientId = models.CharField(
         db_column='住院号', max_length=255, blank=True, null=True)
@@ -19,7 +19,6 @@ class ClinicalInfo(models.Model):
     stage = models.TextField(db_column='分期', blank=True, null=True)
     diagnose = models.TextField(db_column='诊断', blank=True, null=True)
     diagnose_others = models.TextField(db_column='诊断备注', blank=True, null=True)
-    sampling_date = models.DateField(db_column='采样日期', blank=True, null=True)
     centrifugation_date = models.DateField(
         db_column='离心日期', blank=True, null=True)
     hospital = models.CharField(
@@ -143,7 +142,6 @@ class DNAInventoryInfo(models.Model):
     failM = models.FloatField(db_column='失败建库使用量', blank=True, null=True)
     researchM = models.FloatField(db_column='科研项目使用量', blank=True, null=True)
     othersM = models.FloatField(db_column='其他使用量', blank=True, null=True)
-    remainM = models.FloatField(db_column='剩余量', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -177,6 +175,10 @@ class LibraryInfo(models.Model):
         db_column='DNA提取编号',
         blank=True,
         null=True)
+    tube_id = models.CharField(
+        db_column='管上编号', max_length=255, blank=True, null=True)
+    clinical_boolen = models.CharField(
+        db_column='是否临床', max_length=255, blank=True, null=True, default=1)
     singleLB_name = models.CharField(
         db_column='文库名', max_length=255, blank=True, null=True)
     label = models.CharField(
@@ -186,6 +188,9 @@ class LibraryInfo(models.Model):
     LB_date = models.DateField(db_column='建库日期', blank=True, null=True)
     LB_method = models.CharField(
         db_column='建库方法', max_length=255, blank=True, null=True)
+    kit_batch = models.CharField(
+        db_column='试剂批次', max_length=255, blank=True, null=True)
+    con = models.FloatField(db_column='样本浓度', blank=True, null=True)
     mass = models.FloatField(db_column='起始量', blank=True, null=True)
     pcr_cycles = models.IntegerField(db_column='PCR循环数', blank=True, null=True)
     LB_con = models.FloatField(db_column='文库浓度', blank=True, null=True)
@@ -210,7 +215,7 @@ class LibraryInfo(models.Model):
 # 表5 甲基化捕获文库信息表
 class CaptureInfo(models.Model):
     poolingLB_id = models.CharField(
-        db_column='pooling号',
+        db_column='捕获文库名',
         unique=True,
         max_length=255,
         blank=True,
@@ -218,12 +223,14 @@ class CaptureInfo(models.Model):
     hybrid_date = models.DateField(db_column='杂交日期', blank=True, null=True)
     probes = models.CharField(
         db_column='杂交探针', max_length=255, blank=True, null=True)
-    hybrid_hours = models.FloatField(db_column='杂交时间', blank=True, null=True)
+    hybrid_min = models.FloatField(db_column='杂交时间', blank=True, null=True)
     postpcr_cycles = models.IntegerField(
         db_column='PostPCR循环数', blank=True, null=True)
     postpcr_con = models.FloatField(
         db_column='PostPCR浓度', blank=True, null=True)
     elution_vol = models.FloatField(db_column='洗脱体积', blank=True, null=True)
+    operator = models.CharField(
+        db_column='操作人', max_length=255, blank=True, null=True)
     others = models.CharField(
         db_column='备注', max_length=255, blank=True, null=True)
     index = models.AutoField(primary_key=True)
@@ -270,15 +277,14 @@ class PoolingInfo(models.Model):
         on_delete=models.CASCADE,
         related_name='PoolingInfo_CaptureInfo',
         to_field="poolingLB_id",
-        db_column='pooling号',
+        db_column='捕获文库名',
         blank=True,
         null=True)
-    pooling_ratio = models.FloatField(
-        db_column='pooling比例', blank=True, null=True)
+    pooling_ratio = models.FloatField(db_column='pooling比例', blank=True, null=True)
     mass = models.FloatField(db_column='取样', blank=True, null=True)
     volume = models.FloatField(db_column='体积', blank=True, null=True)
     singleLB_Pooling_id = models.CharField(
-        db_column='文库编号', unique=True, max_length=255, blank=True, null=True)
+        db_column='测序文库编号', unique=True, max_length=255, blank=True, null=True)
     others = models.CharField(
         db_column='备注', max_length=255, blank=True, null=True)
     index = models.AutoField(primary_key=True)
@@ -297,19 +303,15 @@ class PoolingInfo(models.Model):
 # 表7 测序登记表
 class SequencingInfo(models.Model):
     sequencing_id = models.CharField(
-        db_column='测序编号', unique=True, max_length=255, blank=True, null=True)
-    poolingLB_id = models.ForeignKey(
+        db_column='上机文库号', unique=True, max_length=255, blank=True, null=True)
+    poolingLB_id = models.ManyToManyField(
         "CaptureInfo",
-        on_delete=models.CASCADE,
         related_name='SequencingInfo_CaptureInfo',
-        to_field="poolingLB_id",
-        db_column='pooling号',
-        blank=True,
-        null=True)
-    sequencing_type = models.CharField(
-        db_column='测序类型', max_length=255, blank=True, null=True)
-    start_time = models.DateTimeField(db_column='上机时间', blank=True, null=True)
-    end_time = models.DateTimeField(db_column='下机时间', blank=True, null=True)
+        db_column='捕获文库名',
+        blank=True)
+    send_date = models.DateField(db_column='送测日期', blank=True, null=True)
+    start_time = models.DateField(db_column='上机时间', blank=True, null=True)
+    end_time = models.DateField(db_column='下机时间', blank=True, null=True)
     machine_id = models.CharField(
         db_column='机器号', max_length=255, blank=True, null=True)
     chip_id = models.CharField(
@@ -430,7 +432,7 @@ class QCInfo(models.Model):
         on_delete=models.CASCADE,
         related_name='QCInfo_CaptureInfo',
         to_field="poolingLB_id",
-        db_column='pooling号',
+        db_column='捕获文库名',
         blank=True,
         null=True)
     singleLB_Pooling_id = models.ForeignKey(
@@ -438,7 +440,7 @@ class QCInfo(models.Model):
         on_delete=models.CASCADE,
         related_name='QCInfo_PoolingInfo',
         to_field="singleLB_Pooling_id",
-        db_column='文库编号',
+        db_column='测序文库名',
         blank=True,
         null=True)
     sequencing_id = models.ForeignKey(
@@ -446,7 +448,7 @@ class QCInfo(models.Model):
         on_delete=models.CASCADE,
         related_name='QCInfo_SequencingInfo',
         to_field="sequencing_id",
-        db_column='测序编号',
+        db_column='上机文库号',
         blank=True,
         null=True)
     others = models.CharField(

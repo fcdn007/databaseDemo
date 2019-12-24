@@ -35,11 +35,6 @@
 
 {% block ModalForm %}
     <div class="form-group">
-        <label for="sample_id"> 样本编号</label>
-        <input type="text" class="form-control" id="sample_id" name="sample_id"
-               placeholder="请输入样本编号" required="true">
-    </div>
-    <div class="form-group">
         <label for="dna_id"> DNA提取编号</label>
         <input type="text" class="form-control" id="dna_id" name="dna_id"
                placeholder="请输入DNA提取编号" required="true">
@@ -57,7 +52,6 @@
     <div class="form-group">
         <label for="usage"> 用途</label>
         <select class="form-control" id="usage" name="usage" required="true">
-            <option value="建库成功">建库成功</option>
             <option value="建库失败">建库失败</option>
             <option value="科研项目">科研项目</option>
             <option value="其他">其他</option>
@@ -158,8 +152,8 @@
                     {"data": "created"},
                     {
                         "data": null,
-                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
-                            '<button type="button" class="btn btn-danger">Delete</button>'
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
                     }
                 ]
             });
@@ -173,7 +167,6 @@
                 if (data['usage'] != '建库成功') {
                     if (class_name == 'btn btn-info') {
                         // EDIT button
-                        $('#sample_id').val(data['sample_id']);
                         $('#dna_id').val(data['dna_id']);
                         $('#LB_date').val(data['LB_date']);
                         $('#mass').val(data['mass']);
@@ -181,7 +174,7 @@
                         $('#singleLB_id').val(data['singleLB_id']);
                         $('#others').val(data['others']);
                         $('#type').val('edit');
-                        $('#modal_title').text('EDIT');
+                        $('#modal_title').text('更新');
                         $("#myModal").modal();
                     } else {
                         // DELETE button
@@ -207,21 +200,6 @@
                     method = 'PUT';
                 }
 
-                // 增、改：更新使用记录表
-                $.ajax({
-                    url: url,
-                    method: method,
-                    data: $(this).serialize(),
-                    headers: {'X-HTTP-Method-Override': 'PATCH'},
-                    success: function () {
-                        location.reload();
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
-                    }
-                });
-
-                // 增、改：更新库存表
                 let data0 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: data['dna_id']}
@@ -233,23 +211,22 @@
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM + $('#mass').val(), researchM: data0.researchM,
-                            othersM: data0.othersM, remainM: data0.totalM - $('#mass').val()
+                            othersM: data0.othersM
                         });
                     } else if ($('#usage').val() == '科研项目') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM, researchM: data0.researchM + $('#mass').val(),
-                            othersM: data0.othersM, remainM: data0.totalM - $('#mass').val()
+                            othersM: data0.othersM
                         });
                     } else if ($('#usage').val() == '其他') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM, researchM: data0.researchM,
-                            othersM: data0.othersM + $('#mass').val(), remainM: data0.totalM - $('#mass').val()
+                            othersM: data0.othersM + $('#mass').val()
                         });
-                    } else {
                     }
                 } else {
                     sub = $('#mass').val() - data0['mass'];
@@ -258,32 +235,47 @@
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM + sub, researchM: data0.researchM,
-                            othersM: data0.othersM, remainM: data0.totalM - sub
+                            othersM: data0.othersM
                         });
                     } else if ($('#usage').val() == '科研项目') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM, researchM: data0.researchM + sub,
-                            othersM: data0.othersM, remainM: data0.totalM - sub
+                            othersM: data0.othersM
                         });
                     } else if ($('#usage').val() == '其他') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM, researchM: data0.researchM,
-                            othersM: data0.othersM + sub, remainM: data0.totalM - sub
+                            othersM: data0.othersM + sub
                         });
-                    } else {
                     }
                 }
 
+
+                // 增、改：更新使用记录表
                 $.ajax({
-                    url: url2 + data0.index + '/',
-                    method: 'PUT',
-                    data: data_tmp2,
+                    url: url, async: false,
+                    method: method,
+                    data: $(this).serialize() + '&' + $.param({
+                        sample_id: data0.sample_id
+                    }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
+                        // 增、改：更新库存表
+                        $.ajax({
+                            url: url2 + data0.index + '/',
+                            method: 'PUT',
+                            data: data_tmp2,
+                            headers: {'X-HTTP-Method-Override': 'PATCH'},
+                            success: function () {
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                            }
+                        });
                         location.reload();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -291,22 +283,10 @@
                     }
                 });
 
+
             });
 
             $('#confirm').on('click', '#delete', function (e) {
-                // 删： 更新使用记录表
-                $.ajax({
-                    url: url + data['index'] + '/',
-                    method: 'DELETE',
-                    success: function () {
-                        location.reload()
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR)
-                    }
-                });
-
-                // 删：更新库存表
                 let data0 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: data['dna_id']}
@@ -317,42 +297,53 @@
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
                         totalM: data0.totalM, successM: data0.successM,
                         failM: data0.failM - data['mass'], researchM: data0.researchM,
-                        othersM: data0.othersM, remainM: data0.totalM + data['mass']
+                        othersM: data0.othersM
                     });
                 } else if (data['usage'] == '科研项目') {
                     data_tmp2 = $.param({
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
                         totalM: data0.totalM, successM: data0.successM,
                         failM: data0.failM, researchM: data0.researchM - data['mass'],
-                        othersM: data0.othersM, remainM: data0.totalM + data['mass']
+                        othersM: data0.othersM
                     });
                 } else if (data['usage'] == '其他') {
                     data_tmp2 = $.param({
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
                         totalM: data0.totalM, successM: data0.successM,
                         failM: data0.failM, researchM: data0.researchM,
-                        othersM: data0.othersM - data['mass'], remainM: data0.totalM + data['mass']
+                        othersM: data0.othersM - data['mass']
                     });
-                } else {
                 }
 
+                // 删： 更新使用记录表
                 $.ajax({
-                    url: url2 + data0.index + '/',
-                    method: 'PUT',
-                    data: data_tmp2,
-                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    url: url + data['index'] + '/',
+                    method: 'DELETE',
                     success: function () {
-                        location.reload();
+                        // 删：更新库存表
+                        $.ajax({
+                            url: url2 + data0.index + '/',
+                            method: 'PUT',
+                            data: data_tmp2,
+                            headers: {'X-HTTP-Method-Override': 'PATCH'},
+                            success: function () {
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                            }
+                        });
+                        location.reload()
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                        console.log(jqXHR)
                     }
                 });
+
+
             });
 
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val("");
                 $('#dna_id').val("");
                 $('#LB_date').val("");
                 $('#mass').val("");
@@ -360,12 +351,8 @@
                 $('#singleLB_id').val("");
                 $('#others').val("");
                 $('#type').val('new');
-                $('#modal_title').text('NEW');
+                $('#modal_title').text('新增');
                 $("#myModal").modal();
-            });
-
-            $('#sample_id').blur(function () {
-                $('#dna_id').val($('#sample_id').val() + "_1");
             });
 
             $('#upload').on('click', function (e) {

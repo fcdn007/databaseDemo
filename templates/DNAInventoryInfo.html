@@ -37,8 +37,6 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            $("#addbuttons").remove();
-
             let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
@@ -95,7 +93,7 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                "serverSide": true,
+                //"serverSide": true,
                 "processing": true,
                 "ajax": "/api/DNAInventoryInfo/?format=datatables",
                 "columns": [
@@ -114,7 +112,13 @@
                     {"data": "failM"},
                     {"data": "researchM"},
                     {"data": "othersM"},
-                    {"data": "remainM"},
+                    {
+                        "data": null,
+                        render: function (data, type, row, meta) {
+                            return changeThreeDecimal_f(row.totalM - row.successM - row.failM - row.researchM
+                                - row.othersM)
+                        }
+                    },
                     {"data": "last_modify_date"},
                     {"data": "created"}
                 ]

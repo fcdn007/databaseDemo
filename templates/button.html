@@ -118,22 +118,17 @@
                 let urlUpload = {% url "upload" %};
 
                 $.ajax({
-                    async: false, url: urlUpload, processData: false,
+                    async: true, url: urlUpload, processData: false,
                     method: 'POST', data: form_data, dataType: 'json',
                     contentType: false,
-                    beforeSend: function (xhr, settings) {
-                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                        }
-                    },
                     success: function (data) {
-                        if (data['error_msg']) {
-                            //alert('文件上传和批量添加失败。' + data['error_msg']);
-                            $('#uploadError').text('文件上传和批量添加失败。' + data['error_msg']);
+                        if (data.error_msg) {
+                            alert('文件上传和批量添加失败。' + data['error_msg']);
+                            $('#uploadError').text('文件上传和批量添加失败。' + data.error_msg);
                         } else {
-                            let update_records = parseInt(data['all_records']) - parseInt(data['add_records']);
-                            alert('文件上传和批量添加成功，有效输入记录共有' + data['all_records'] +
-                                "行。\n其中往数据库中增加" + data['add_records'] + '行记录，更新了' +
+                            let update_records = parseInt(data.all_records) - parseInt(data.add_records);
+                            alert('文件上传和批量添加成功，有效输入记录共有' + data.all_records +
+                                "行。\n其中往数据库中增加" + data.add_records + '行记录，更新了' +
                                 update_records + '行记录。');
                             $("#uploadModal").find('form').trigger("reset");
                             $('#uploadModal').modal('hide');

@@ -70,6 +70,7 @@
                    style="margin: 0 20px">高级功能</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'AdvanceUpload' %}">订制批量上传</a>
                         <a class="dropdown-item" href="{% url 'AdvancedSearch' %}">高级自主查询</a>
                         <a class="dropdown-item" href="#">预订制查询</a>
                     </div>
@@ -120,12 +121,28 @@
 <script src="{% static 'js/dataTables.rowReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.colReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
-<script src="{% static 'js/jquery.cookie.min.js' %} "></script>
 <script>
-    let csrftoken = $.cookie('csrftoken');
+    $.ajaxSetup({
+        data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+    });
 
-    function csrfSafeMethod(method) {
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    function changeThreeDecimal_f(x) {
+        var f_x = parseFloat(x);
+        if (isNaN(f_x)) {
+            alert('function:changeTwoDecimal->parameter error');
+            return false;
+        }
+        var f_x = Math.round(x * 1000) / 1000;
+        var s_x = f_x.toString();
+        var pos_decimal = s_x.indexOf('.');
+        if (pos_decimal < 0) {
+            pos_decimal = s_x.length;
+            s_x += '.';
+        }
+        while (s_x.length <= pos_decimal + 3) {
+            s_x += '0';
+        }
+        return s_x;
     }
 </script>
 

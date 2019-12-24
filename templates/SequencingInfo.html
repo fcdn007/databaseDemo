@@ -18,9 +18,9 @@
         <thead>
         <tr>
             <th>索引</th>
-            <th>测序编号</th>
-            <th>pooling号</th>
-            <th>测序类型</th>
+            <th>上机文库号</th>
+            <th>捕获文库名</th>
+            <th>送测日期</th>
             <th>上机时间</th>
             <th>下机时间</th>
             <th>机器号</th>
@@ -35,51 +35,72 @@
 {% endblock %}
 
 {% block ModalForm %}
+
     <div class="form-group">
-        <label for="sequencing_id"> 测序编号</label>
-        <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
-               placeholder="请输入测序编号" required="true">
+        <label for="poolingLB_id"> 捕获文库名</label>
+        <textarea class="form-control" rows="3" id="poolingLB_id" name="poolingLB_id"></textarea>
     </div>
-    <div class="form-group">
-        <label for="poolingLB_id"> pooling号</label>
-        <select class="form-control" id="poolingLB_id" name="poolingLB_id" required="true">
-        </select>
+    <div id="postForm">
+        <div class="form-group">
+            <label for="sequencing_id"> 上机文库号</label>
+            <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
+                   placeholder="请输入上机文库号" required="true">
+        </div>
+        <div class="form-group">
+            <label for="send_date"> 送测日期</label>
+            <input type="date" class="form-control" id="send_date" name="send_date"
+                   placeholder="请输入送测日期" value="2000-01-01">
+        </div>
+        <div class="form-group">
+            <label for="start_time"> 上机时间</label>
+            <input type="date" class="form-control" id="start_time" name="start_time"
+                   placeholder="请输入上机时间" value="2000-01-01">
+        </div>
+        <div class="form-group">
+            <label for="end_time"> 下机时间</label>
+            <input type="date" class="form-control" id="end_time" name="end_time"
+                   placeholder="请输入下机时间" value="2000-01-01">
+        </div>
+        <div class="form-group">
+            <label for="machine_id"> 机器号</label>
+            <input type="text" class="form-control" id="machine_id" name="machine_id"
+                   placeholder="请输入机器号" value="无">
+        </div>
+        <div class="form-group">
+            <label for="chip_id"> 芯片号</label>
+            <input type="text" class="form-control" id="chip_id" name="chip_id"
+                   placeholder="请输入芯片号" value="无">
+        </div>
+        <div class="form-group">
+            <label for="others"> 备注</label>
+            <input type="text" class="form-control" id="others" name="others"
+                   placeholder="请输入备注" value="无">
+        </div>
     </div>
-    <div class="form-group">
-        <label for="sequencing_type"> 测序类型</label>
-        <input type="text" class="form-control" id="sequencing_type" name="sequencing_type"
-               placeholder="请输入测序类型" required="true">
-    </div>
-    <div class="form-group">
-        <label for="start_time"> 上机时间</label>
-        <input type="datetime-local" class="form-control" id="start_time" name="start_time"
-               placeholder="请输入上机时间" required="true">
-    </div>
-    <div class="form-group">
-        <label for="end_time"> 下机时间</label>
-        <input type="datetime-local" class="form-control" id="end_time" name="end_time"
-               placeholder="请输入下机时间" required="true">
-    </div>
-    <div class="form-group">
-        <label for="machine_id"> 机器号</label>
-        <input type="text" class="form-control" id="machine_id" name="machine_id"
-               placeholder="请输入机器号" required="true">
-    </div>
-    <div class="form-group">
-        <label for="chip_id"> 芯片号</label>
-        <input type="text" class="form-control" id="chip_id" name="chip_id"
-               placeholder="请输入芯片号" required="true">
-    </div>
-    <div class="form-group">
-        <label for="others"> 备注</label>
-        <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
-    </div>
+
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let capture_data = $.ajax({
+                url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
+                type: "get", async: false
+            }).responseJSON.results;
+
+            let get_poolingLB_id = function (datalist) {
+                let arry = [];
+                for (let idx in datalist) {
+                    for (let idx2 in capture_data) {
+                        if (datalist[idx] == capture_data[idx2].index) {
+                            arry.push(capture_data[idx2].poolingLB_id);
+                            break;
+                        }
+                    }
+                }
+                return arry.join("\n");
+            };
+
             let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
@@ -151,8 +172,13 @@
                         }
                     },
                     {"data": "sequencing_id"},
-                    {"data": "poolingLB_id"},
-                    {"data": "sequencing_type"},
+                    {
+                        "data": "poolingLB_id",
+                        render: function (data, type, row, meta) {
+                            return get_poolingLB_id(data)
+                        }
+                    },
+                    {"data": "send_date"},
                     {"data": "start_time"},
                     {"data": "end_time"},
                     {"data": "machine_id"},
@@ -162,8 +188,8 @@
                     {"data": "created"},
                     {
                         "data": null,
-                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
-                            '<button type="button" class="btn btn-danger">Delete</button>'
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
                     }
                 ]
             });
@@ -176,16 +202,16 @@
                 if (class_name == 'btn btn-info') {
                     // EDIT button
                     $('#sequencing_id').val(data['sequencing_id']);
-                    $('#poolingLB_id').append('<option value="' + data['poolingLB_id'] + '">' +
-                        data['poolingLB_id'] + '</option>');
-                    $('#sequencing_type').val(data['sequencing_type']);
-                    $('#start_time').val(data['start_time'].replace(/\//g, '-').replace(/\s+/, 'T'));
-                    $('#end_time').val(data['end_time'].replace(/\//g, '-').replace(/\s+/, 'T'));
+                    $('#poolingLB_id').val(get_poolingLB_id(data['poolingLB_id']));
+                    $('#send_date').val(data['send_date']);
+                    //$('#start_time').val(data['start_time'].replace(/\//g, '-').replace(/\s+/, 'T'));
+                    $('#start_time').val(data['start_time']);
+                    $('#end_time').val(data['end_time']);
                     $('#machine_id').val(data['machine_id']);
                     $('#chip_id').val(data['chip_id']);
                     $('#others').val(data['others']);
                     $('#type').val('edit');
-                    $('#modal_title').text('EDIT');
+                    $('#modal_title').text('更新');
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -209,11 +235,24 @@
                     url = url + id + '/';
                     method = 'PUT';
                 }
+                let poolingLB_ids = [];
+                let text = $('#poolingLB_id').val();
+                let arry = text.split("\n");
+                for (let idx in arry) {
+                    for (let idx2 in capture_data) {
+                        if (capture_data[idx2].poolingLB_id == arry[idx]) {
+                            poolingLB_ids.push(capture_data[idx2].index);
+                            break;
+                        }
+                    }
+                }
 
                 $.ajax({
                     url: url,
                     method: method,
-                    data: $(this).serialize(),
+                    data: $(this).serialize() + '&' + $.param({
+                        poolingLB_id: poolingLB_ids
+                    }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
                         location.reload();
@@ -240,33 +279,29 @@
 
 
             $('#new').on('click', function (e) {
-                $('#sequencing_id').val();
-                selectDialog();
-                $('#poolingLB_id').val();
-                $('#sequencing_type').val();
-                $('#start_time').val();
-                $('#end_time').val();
-                $('#machine_id').val();
-                $('#chip_id').val();
-                $('#others').val();
+                $('#sequencing_id').val("");
+                $('#poolingLB_id').val("");
+                $('#send_date').val("");
+                $('#start_time').val("");
+                $('#end_time').val("");
+                $('#machine_id').val("");
+                $('#chip_id').val("");
+                $('#others').val("");
                 $('#type').val('new');
-                $('#modal_title').text('NEW');
+                $('#modal_title').text('新增');
                 $("#myModal").modal();
             });
 
             // pooling号下拉选框
-            let selectDialog = function () {
-                let poolingLB_ids = $.ajax({
-                    url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false
-                }).responseJSON.results;
-                $.each(poolingLB_ids, function (index, value) {
-                    $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
-                });
-            };
-            $('#sequencing_id').change(function () {
-                selectDialog();
-            });
+            //$('#poolingLB_id').focus(function () {
+            //    let poolingLB_ids = $.ajax({
+            //        url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
+            //        type: "get", async: false
+            //    }).responseJSON.results;
+            //    $.each(poolingLB_ids, function (index, value) {
+            //       $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
+            //    });
+            //});
 
             $('#upload').on('click', function (e) {
                 $('#uploadOperator').val("");

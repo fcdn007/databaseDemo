@@ -21,8 +21,8 @@
             <th>样本编号</th>
             <th>DNA提取编号</th>
             <th>建库编号</th>
-            <th>pooling号</th>
-            <th>文库编号</th>
+            <th>捕获文库名</th>
+            <th>测序文库编号</th>
             <th>pooling比例</th>
             <th>取样(ng)</th>
             <th>体积(ul)</th>
@@ -37,29 +37,19 @@
 
 {% block ModalForm %}
     <div class="form-group">
-        <label for="sample_id"> 样本编号</label>
-        <input type="text" class="form-control" id="sample_id" name="sample_id"
-               placeholder="请输入样本编号" required="true">
-    </div>
-    <div class="form-group">
-        <label for="dna_id"> DNA提取编号</label>
-        <input type="text" class="form-control" id="dna_id" name="dna_id"
-               placeholder="请输入DNA提取编号" required="true">
-    </div>
-    <div class="form-group">
         <label for="singleLB_id"> 建库编号</label>
         <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
                placeholder="请输入建库编号" required="true">
     </div>
     <div class="form-group">
-        <label for="poolingLB_id"> pooling号</label>
-        <select class="form-control" id="poolingLB_id" name="poolingLB_id" required="true">
-        </select>
+        <label for="poolingLB_id"> 捕获文库名</label>
+        <input type="text" class="form-control" id="poolingLB_id" name="poolingLB_id"
+               placeholder="请输入捕获文库名" required="true">
     </div>
     <div class="form-group">
-        <label for="singleLB_Pooling_id"> 文库编号</label>
+        <label for="singleLB_Pooling_id"> 测序文库编号</label>
         <input type="text" class="form-control" id="singleLB_Pooling_id" name="singleLB_Pooling_id"
-               placeholder="请输入文库编号" required="true">
+               placeholder="请输入测序文库编号" required="true">
     </div>
     <div class="form-group">
         <label for="pooling_ratio"> pooling比例</label>
@@ -104,7 +94,9 @@
                 },
                 "scrollY": "5000px",
                 "scrollCollapse": true,
+                "scrollX": true,
                 "pagingType": "full_numbers",
+                fixedColumns: true,
                 rowReorder: true,
                 colReorder: true,
                 searching: true,
@@ -168,8 +160,8 @@
                     {"data": "created"},
                     {
                         "data": null,
-                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
-                            '<button type="button" class="btn btn-danger">Delete</button>'
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
                     }
                 ]
             });
@@ -192,7 +184,7 @@
                     $('#singleLB_Pooling_id').val(data['singleLB_Pooling_id']);
                     $('#others').val(data['others']);
                     $('#type').val('edit');
-                    $('#modal_title').text('EDIT');
+                    $('#modal_title').text('更新');
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -217,10 +209,17 @@
                     method = 'PUT';
                 }
 
+                let data0 = $.ajax({
+                    url: '/api/LibraryInfo/', dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {dna_id: $('#singleLB_id').val()}
+                }).responseJSON.results[0];
                 $.ajax({
                     url: url,
                     method: method,
-                    data: $(this).serialize(),
+                    data: $(this).serialize() + '&' + $.param({
+                        sample_id: data0.sample_id,
+                        dna_id: data0.dna_id
+                    }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
                         location.reload();
@@ -247,8 +246,6 @@
 
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val("");
-                $('#dna_id').val("");
                 $('#singleLB_id').val("");
                 $('#poolingLB_id').val("");
                 $('#pooling_ratio').val("");
@@ -257,31 +254,20 @@
                 $('#singleLB_Pooling_id').val("");
                 $('#others').val("");
                 $('#type').val('new');
-                $('#modal_title').text('NEW');
+                $('#modal_title').text('新增');
                 $("#myModal").modal();
             });
 
-            $('#sample_id').blur(function () {
-                $('#dna_id').val($('#sample_id').val() + "_1");
-                $('#singleLB_id').val($('#sample_id').val() + "_1m1");
-                $('#singleLB_Pooling_id').val($('#sample_id').val() + "_1B1");
-            });
-
-            $('#dna_id').blur(function () {
-                $('#singleLB_id').val($('#dna_id').val() + "m1");
-                $('#singleLB_Pooling_id').val($('#dna_id').val() + "B1");
-            });
-
             // pooling号下拉选框
-            $('#sample_id').change(function () {
-                let poolingLB_ids = $.ajax({
-                    url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false
-                }).responseJSON.results;
-                $.each(poolingLB_ids, function (index, value) {
-                    $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
-                });
-            });
+            //$('#poolingLB_id').focus(function () {
+            //    let poolingLB_ids = $.ajax({
+            //        url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
+            //        type: "get", async: false
+            //    }).responseJSON.results;
+            //    $.each(poolingLB_ids, function (index, value) {
+            //        $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
+            //    });
+            //});
 
             $('#upload').on('click', function (e) {
                 $('#uploadOperator').val("");

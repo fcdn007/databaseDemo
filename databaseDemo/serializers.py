@@ -14,7 +14,7 @@ class ClinicalInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClinicalInfo
         fields = ('sample_id', 'name', 'gender', 'age', 'patientId', 'category', 'stage', 'diagnose', 'diagnose_others',
-                  'sampling_date', 'centrifugation_date', 'hospital', 'department', 'plasma_num', 'adjacent_mucosa_num',
+                  'centrifugation_date', 'hospital', 'department', 'plasma_num', 'adjacent_mucosa_num',
                   'cancer_tissue_num', 'WBC_num', 'stool_num', 'send_date', 'others', 'index', 'last_modify_date',
                   'created')
 
@@ -46,7 +46,7 @@ class DNAInventoryInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = DNAInventoryInfo
         fields = ('dna_id', 'sample_id', 'totalM', 'successM', 'failM', 'researchM', 'othersM',
-                  'remainM', 'index', 'last_modify_date', 'created')
+                  'index', 'last_modify_date', 'created')
 
 
 class LibraryInfoSerializer(serializers.ModelSerializer):
@@ -55,9 +55,9 @@ class LibraryInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LibraryInfo
-        fields = ('singleLB_id', 'sample_id', 'dna_id', 'singleLB_name', 'label', 'barcodes', 'LB_date',
-                  'LB_method', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol', 'operator', 'others', 'others',
-                  'index', 'last_modify_date', 'created')
+        fields = ('singleLB_id', 'sample_id', 'dna_id', 'tube_id', 'clinical_boolen', 'singleLB_name', 'label',
+                  'barcodes', 'LB_date', 'LB_method', 'kit_batch', 'con', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol',
+                  'operator', 'others', 'index', 'last_modify_date', 'created')
 
 
 class CaptureInfoSerializer(serializers.ModelSerializer):
@@ -66,8 +66,8 @@ class CaptureInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaptureInfo
-        fields = ('poolingLB_id', 'hybrid_date', 'probes', 'hybrid_hours', 'postpcr_cycles', 'postpcr_con',
-                  'elution_vol', 'others', 'index', 'last_modify_date', 'created')
+        fields = ('poolingLB_id', 'hybrid_date', 'probes', 'hybrid_min', 'postpcr_cycles', 'postpcr_con', 'elution_vol',
+                  'operator', 'others', 'index', 'last_modify_date', 'created')
 
 
 class PoolingInfoSerializer(serializers.ModelSerializer):
@@ -81,15 +81,13 @@ class PoolingInfoSerializer(serializers.ModelSerializer):
 
 
 class SequencingInfoSerializer(serializers.ModelSerializer):
-    start_time = serializers.DateTimeField(format=settings.DATETIME_FORMAT)
-    end_time = serializers.DateTimeField(format=settings.DATETIME_FORMAT)
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
     class Meta:
         model = SequencingInfo
-        fields = ('sequencing_id', 'poolingLB_id', 'sequencing_type', 'start_time', 'end_time',
-                  'machine_id', 'chip_id', 'others', 'index', 'last_modify_date', 'created')
+        fields = ('sequencing_id', 'poolingLB_id', 'send_date', 'start_time', 'end_time', 'machine_id', 'chip_id',
+                  'others', 'index', 'last_modify_date', 'created')
 
 
 class QCInfoSerializer(serializers.ModelSerializer):

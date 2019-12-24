@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>订制批量上传</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <h4>订制批量上传</h4><br>
+        <div>
+            <p class="bg-primary text-white"> 订制捕获文库信息表</p>
+            <p>示例</p>
+            <table id="uploadFile1Col" class="table table-bordered">
+                <tr>
+                    <th>建库编号</th>
+                    <th>pooling比例</th>
+                    <th>取样</th>
+                    <th>体积</th>
+                    <th>捕获文库名</th>
+                    <th>杂交日期</th>
+                    <th>杂交探针</th>
+                    <th>杂交时间</th>
+                    <th>PostPCR循环数</th>
+                    <th>PostPCR浓度</th>
+                    <th>洗脱体积</th>
+                    <th>操作人</th>
+                    <th>上机文库号</th>
+                    <th>测序文库名</th>
+                    <th>备注</th>
+                </tr>
+            </table>
+        </div>
+        <form id="uploadForm" role="form">
+            <div class="form-group">
+                <label for="uploadUrl"> 上传文件类型</label>
+                <select class="form-control SearchModelName" id="uploadUrl" name="uploadUrl">
+                    <option value="CaptureInfoPlus">捕获文库信息表</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="uploadFile"> 上传文件</label>
+                <input type="file" class="form-control" id="uploadFile" name="uploadFile"
+                       placeholder="请上传文件" required="true">
+            </div>
+            <div class="form-group">
+                <label for="uploadOperator"> 上传者</label>
+                <input type="text" class="form-control" id="uploadOperator"
+                       name="uploadOperator" placeholder="请输入上传者" required="true">
+            </div>
+            <button type="submit" class="btn btn-success btn-block"
+                    id="uploadFile1Submit">文件上传
+            </button>
+            <p id="uploadError"></p>
+        </form>
+
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+
+            $('#uploadFile1Submit').on('click', function (e) {
+                e.preventDefault();
+                // 构建FormData对象
+                let form_data = new FormData();
+                form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
+                form_data.append('uploadUrl', $('#uploadUrl').val());
+                form_data.append('uploadOperator', $('#uploadOperator').val());
+                let urlUpload = {% url "upload" %};
+
+                $.ajax({
+                    async: false, url: urlUpload, processData: false,
+                    method: 'POST', data: form_data, dataType: 'json',
+                    contentType: false,
+                    success: function (data) {
+                        if (data['error_msg']) {
+                            //alert('文件上传和批量添加失败。' + data['error_msg']);
+                            $('#uploadError').text('文件上传和批量添加失败。' + data['error_msg']);
+                        } else {
+                            let update_records = parseInt(data['all_records']) - parseInt(data['add_records']);
+                            $('#uploadError').text('文件上传和批量添加成功，有效输入记录共有' + data['all_records'] +
+                                "行。\n其中往数据库中增加" + data['add_records'] + '行记录，更新了' +
+                                update_records + '行记录。');
+
+                        }
+                    }
+                });
+            });
+        })
+
+    </script>
+{% endblock %}

@@ -27,7 +27,6 @@
             <th>分期</th>
             <th>诊断</th>
             <th>诊断备注</th>
-            <th>采样日期</th>
             <th>离心日期</th>
             <th>医院编号</th>
             <th>科室</th>
@@ -60,8 +59,8 @@
     <div class="form-group">
         <label for="gender"> 性别</label>
         <select class="form-control" id="gender" name="gender" required="true">
-            <option value="1">男</option>
-            <option value="0">女</option>
+            <option value="男">男</option>
+            <option value="女">女</option>
         </select>
     </div>
     <div class="form-group">
@@ -93,11 +92,6 @@
         <label for="diagnose_others"> 诊断备注</label>
         <input type="text" class="form-control" id="diagnose_others" name="diagnose_others"
                placeholder="请输入诊断信息" value="无">
-    </div>
-    <div class="form-group">
-        <label for="sampling_date"> 采样日期</label>
-        <input type="date" class="form-control" id="sampling_date" name="sampling_date"
-               placeholder="请输入采样日期" required="true">
     </div>
     <div class="form-group">
         <label for="centrifugation_date"> 离心日期</label>
@@ -154,14 +148,6 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            let intToMan = function (d) {
-                if (parseInt(d) > 0) {
-                    return '男'
-                } else {
-                    return '女'
-                }
-            };
-
             let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
@@ -234,19 +220,13 @@
                     },
                     {"data": "sample_id"},
                     {"data": "name"},
-                    {
-                        "data": "gender",
-                        "render": function (data, type, row, meta) {
-                            return intToMan(data)
-                        }
-                    },
+                    {"data": "gender"},
                     {"data": "age"},
                     {"data": "patientId"},
                     {"data": "category"},
                     {"data": "stage"},
                     {"data": "diagnose"},
                     {"data": "diagnose_others"},
-                    {"data": "sampling_date"},
                     {"data": "centrifugation_date"},
                     {"data": "hospital"},
                     {"data": "department"},
@@ -261,8 +241,8 @@
                     {"data": "created"},
                     {
                         "data": null,
-                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
-                            '<button type="button" class="btn btn-danger">Delete</button>'
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
                     }
                 ]
             });
@@ -284,7 +264,6 @@
                     $('#stage').val(data['stage']);
                     $('#diagnose').val(data['diagnose']);
                     $('#diagnose_others').val(data['diagnose_others']);
-                    $('#sampling_date').val(data['sampling_date']);
                     $('#centrifugation_date').val(data['centrifugation_date']);
                     $('#hospital').val(data['hospital']);
                     $('#department').val(data['department']);
@@ -296,7 +275,7 @@
                     $('#send_date').val(data['send_date']);
                     $('#others').val(data['others']);
                     $('#type').val('edit');
-                    $('#modal_title').text('EDIT');
+                    $('#modal_title').text('更新');
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -358,7 +337,6 @@
                 $('#stage').val("");
                 $('#diagnose').val("");
                 $('#diagnose_others').val("");
-                $('#sampling_date').val("");
                 $('#centrifugation_date').val("");
                 $('#hospital').val("");
                 $('#department').val("");
@@ -370,7 +348,7 @@
                 $('#send_date').val("");
                 $('#others').val("");
                 $('#type').val('new');
-                $('#modal_title').text('NEW');
+                $('#modal_title').text('新增');
                 $("#myModal").modal();
             });
 

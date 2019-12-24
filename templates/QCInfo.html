@@ -58,9 +58,9 @@
             <th>样本编号</th>
             <th>DNA提取编号</th>
             <th>建库编号</th>
-            <th>pooling号</th>
-            <th>文库编号</th>
-            <th>测序编号</th>
+            <th>捕获文库名</th>
+            <th>测序文库名</th>
+            <th>上机文库号</th>
             <th>备注</th>
             <th>上次修改时间</th>
             <th>创建时间</th>
@@ -72,34 +72,14 @@
 
 {% block ModalForm %}
     <div class="form-group">
-        <label for="sample_id"> 样本编号</label>
-        <input type="text" class="form-control" id="sample_id" name="sample_id"
-               placeholder="请输入样本编号" required="true">
-    </div>
-    <div class="form-group">
-        <label for="dna_id"> DNA提取编号</label>
-        <input type="text" class="form-control" id="dna_id" name="dna_id"
-               placeholder="请输入DNA提取编号" required="true">
-    </div>
-    <div class="form-group">
-        <label for="singleLB_id"> 建库编号</label>
-        <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
-               placeholder="请输入建库编号" required="true">
-    </div>
-    <div class="form-group">
-        <label for="poolingLB_id"> pooling号</label>
-        <select class="form-control" id="poolingLB_id" name="poolingLB_id" required="true">
-        </select>
-    </div>
-    <div class="form-group">
         <label for="singleLB_Pooling_id"> 文库编号</label>
         <input type="text" class="form-control" id="singleLB_Pooling_id" name="singleLB_Pooling_id"
                placeholder="请输入文库编号" required="true">
     </div>
     <div class="form-group">
-        <label for="sequencing_id"> 测序编号</label>
-        <select class="form-control" id="sequencing_id" name="sequencing_id" required="true">
-        </select>
+        <label for="sequencing_id"> 上机文库号</label>
+        <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
+               placeholder="请输入上机文库号" required="true">
     </div>
     <div class="form-group">
         <label for="QC_id"> Sample</label>
@@ -434,8 +414,8 @@
                     {"data": "created"},
                     {
                         "data": null,
-                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
-                            '<button type="button" class="btn btn-danger">Delete</button>'
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
                     }
                 ]
             });
@@ -484,15 +464,11 @@
                     $('#strand_balance_f_field').val(data['strand_balance_f_field']);
                     $('#strand_balance_r_field').val(data['strand_balance_r_field']);
                     $('#gc_bin_depth_ratio').val(data['gc_bin_depth_ratio']);
-                    $('#sample_id').val(data['sample_id']);
-                    $('#dna_id').val(data['dna_id']);
-                    $('#singleLB_id').val(data['singleLB_id']);
-                    $('#poolingLB_id').append('<option value="' + data['poolingLB_id'] + '">' + data['poolingLB_id'] + '</option>');
                     $('#singleLB_Pooling_id').val(data['singleLB_Pooling_id']);
-                    $('#sequencing_id').append('<option value="' + data['sequencing_id'] + '">' + data['sequencing_id'] + '</option>');
+                    $('#sequencing_id').append(data['sequencing_id']);
                     $('#others').val(data['others']);
                     $('#type').val('edit');
-                    $('#modal_title').text('EDIT');
+                    $('#modal_title').text('更新');
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -517,10 +493,19 @@
                     method = 'PUT';
                 }
 
+                let pooling_data = $.ajax({
+                    url: '/api/PoolingInfo/', dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {singleLB_Pooling_id: $('#singleLB_Pooling_id').val()}
+                }).responseJSON.results[0];
                 $.ajax({
                     url: url,
                     method: method,
-                    data: $(this).serialize(),
+                    data: $(this).serialize() + '&' + $.param({
+                        sample_id: pooling_data.sample_id,
+                        dna_id: pooling_data.dna_id,
+                        singleLB_id: pooling_data.singleLB_id,
+                        poolingLB_id: pooling_data.poolingLB_id
+                    }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
                         location.reload();
@@ -584,57 +569,12 @@
                 $('#strand_balance_f_field').val("");
                 $('#strand_balance_r_field').val("");
                 $('#gc_bin_depth_ratio').val("");
-                $('#sample_id').val("");
-                $('#dna_id').val("");
-                $('#singleLB_id').val("");
-                $('#poolingLB_id').val("");
                 $('#singleLB_Pooling_id').val("");
                 $('#sequencing_id').val("");
                 $('#others').val("");
                 $('#type').val('new');
-                $('#modal_title').text('NEW');
+                $('#modal_title').text('新增');
                 $("#myModal").modal();
-            });
-
-            let selectdialog = function () {
-                try {
-                    // pooling号下拉选框
-                    let poolingLB_ids = $.ajax({
-                        url: '/api/PoolingInfo/', dataType: 'json',
-                        contentType: "application/json", type: "get",
-                        async: false, data: {dna_id: $('#dna_id').val()}
-                    }).responseJSON.results;
-                    $.each(poolingLB_ids, function (index, value) {
-                        $('#poolingLB_id').append('<option value="' + value.poolingLB_id + '">' + value.poolingLB_id + '</option>')
-                    });
-                    // 测序编号下拉选框
-                    let sequencing_ids = $.ajax({
-                        url: '/api/SequencingInfo/', dataType: 'json',
-                        contentType: "application/json", type: "get",
-                        async: false, data: {poolingLB_id: $('#poolingLB_id').val()}
-                    }).responseJSON.results;
-                    $.each(sequencing_ids, function (index, value) {
-                        $('#sequencing_id').append('<option value="' + value.sequencing_id + '">' + value.sequencing_id + '</option>')
-                    });
-                } catch (e) {
-                    console.log(e + ' in fretching poolingLB_id select-list; dna_id: ' + $('#dna_id').val());
-                    console.log(e + ' in fretching sequencing_id select-list; poolingLB_id: ' + $('#poolingLB_id').val());
-                }
-            };
-
-            $('#sample_id').blur(function () {
-                $('#dna_id').val($('#sample_id').val() + "_1");
-                $('#singleLB_id').val($('#sample_id').val() + "_1m1");
-                $('#singleLB_Pooling_id').val($('#sample_id').val() + "_1B1");
-                $('#QC_id').val($('#sample_id').val() + "_1B11");
-                selectdialog();
-            });
-
-            $('#dna_id').blur(function () {
-                $('#singleLB_id').val($('#dna_id').val() + "m1");
-                $('#singleLB_Pooling_id').val($('#dna_id').val() + "B1");
-                $('#QC_id').val($('#dna_id').val() + "B11");
-                selectdialog();
             });
 
             $('#upload').on('click', function (e) {

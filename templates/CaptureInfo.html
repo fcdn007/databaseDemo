@@ -18,13 +18,14 @@
         <thead>
         <tr>
             <th>索引</th>
-            <th>pooling号</th>
+            <th>捕获文库名</th>
             <th>杂交日期</th>
             <th>杂交探针</th>
             <th>杂交时间(min)</th>
             <th>PostPCR循环数</th>
             <th>PostPCR浓度(ng/ul)</th>
             <th>洗脱体积(ul)</th>
+            <th>操作人</th>
             <th>备注</th>
             <th>上次修改时间</th>
             <th>创建时间</th>
@@ -51,8 +52,8 @@
                placeholder="请输入杂交探针" required="true">
     </div>
     <div class="form-group">
-        <label for="hybrid_hours"> 杂交时间(min)</label>
-        <input type="number" class="form-control" id="hybrid_hours" name="hybrid_hours"
+        <label for="hybrid_min"> 杂交时间(min)</label>
+        <input type="number" class="form-control" id="hybrid_min" name="hybrid_min"
                placeholder="请输入杂交时间(min)" required="true">
     </div>
     <div class="form-group">
@@ -69,6 +70,11 @@
         <label for="elution_vol"> 洗脱体积(ul)</label>
         <input type="number" step="0.01" class="form-control" id="elution_vol" name="elution_vol"
                placeholder="请输入洗脱体积(ul)" required="true">
+    </div>
+    <div class="form-group">
+        <label for="operator"> 操作人</label>
+        <input type="text" class="form-control" id="operator" name="operator"
+               placeholder="请输入操作人" value="无">
     </div>
     <div class="form-group">
         <label for="others"> 备注</label>
@@ -153,17 +159,18 @@
                     {"data": "poolingLB_id"},
                     {"data": "hybrid_date"},
                     {"data": "probes"},
-                    {"data": "hybrid_hours"},
+                    {"data": "hybrid_min"},
                     {"data": "postpcr_cycles"},
                     {"data": "postpcr_con"},
                     {"data": "elution_vol"},
+                    {"data": "operator"},
                     {"data": "others"},
                     {"data": "last_modify_date"},
                     {"data": "created"},
                     {
                         "data": null,
-                        "defaultContent": '<button type="button" class="btn btn-info">Edit</button>' + '&nbsp;&nbsp' +
-                            '<button type="button" class="btn btn-danger">Delete</button>'
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
                     }
                 ]
             });
@@ -178,13 +185,14 @@
                     $('#poolingLB_id').val(data['poolingLB_id']);
                     $('#hybrid_date').val(data['hybrid_date']);
                     $('#probes').val(data['probes']);
-                    $('#hybrid_hours').val(data['hybrid_hours']);
+                    $('#hybrid_min').val(data['hybrid_min']);
                     $('#postpcr_cycles').val(data['postpcr_cycles']);
                     $('#postpcr_con').val(data['postpcr_con']);
                     $('#elution_vol').val(data['elution_vol']);
+                    $('#operator').val(data['operator']);
                     $('#others').val(data['others']);
                     $('#type').val('edit');
-                    $('#modal_title').text('EDIT');
+                    $('#modal_title').text('更新');
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -242,13 +250,14 @@
                 $('#poolingLB_id').val("");
                 $('#hybrid_date').val("");
                 $('#probes').val("");
-                $('#hybrid_hours').val("");
+                $('#hybrid_min').val("");
                 $('#postpcr_cycles').val("");
                 $('#postpcr_con').val("");
                 $('#elution_vol').val("");
+                $('#operator').val("");
                 $('#others').val("");
                 $('#type').val('new');
-                $('#modal_title').text('NEW');
+                $('#modal_title').text('新增');
                 $("#myModal").modal();
             });
 
