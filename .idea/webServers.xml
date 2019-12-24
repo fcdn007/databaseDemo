@@ -2,8 +2,8 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="099aaf68-de72-4773-a5cb-dde3a30604ec" name="E490_wsl" url="http://172.16.184.3">
-        <fileTransfer host="172.16.184.3" port="23" accessType="SFTP">
+      <webServer id="099aaf68-de72-4773-a5cb-dde3a30604ec" name="E490_wsl" url="http://172.16.184.166">
+        <fileTransfer host="172.16.184.166" port="23" accessType="SFTP">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

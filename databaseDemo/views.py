@@ -770,30 +770,8 @@ def AdvancedSearchV(request):
         print(">>>>>> request.POST >>>>>>>")
         pprint(request.POST)
         modellist = request.POST['modellist'].split(', ')
-        queryset = []
-        nrow = 0
-        for i in request.POST['queryset'].split('\n'):
-            dict_ = {}
-            for j in i.split(' AND '):
-                not_, m, f, vp, v = j.split('\t')
-                not_ = not_[1:]
-                v = v[:-1]
-                if vp in ['gt', 'gte', 'lt', 'lte']:
-                    v = float(v)
-                if m in dict_:
-                    if f in dict_[m]:
-                        dict_[m][f].append([vp, v, not_])
-                    else:
-                        dict_[m][f] = [[vp, v, not_]]
-                else:
-                    dict_[m] = {f: [[vp, v, not_]]}
-            queryset.append(dict_)
-            nrow = nrow + 1
         print(">>>>>> modellist >>>>>>>")
         pprint(modellist)
-        print(">>>>>> queryset >>>>>>>")
-        pprint(queryset)
-
         values_list1 = []
         values_list2 = []
         for model_ in models_set:
@@ -818,46 +796,146 @@ def AdvancedSearchV(request):
         pprint(values_list_filted)
         # raw_data_set存储queryset全部行的原始查询结果
         raw_data_set = []
-        for row in range(nrow):
-            filter1_dict = {}  # 数据库过滤条件
-            filter2_dict = {}  # 进一步过滤条件
-            for model_ in models_set:
-                # 记录过滤的条件
-                if model_ in queryset[row]:
-                    for field_ in queryset[row][model_]:
-                        for item in model_col['link'][model_] + model_col['normal'][model_]:
-                            if item.split('__')[-1] == field_:
-                                for list_ in queryset[row][model_][field_]:
-                                    filter1_dict_key = "%s__%s" % (item, list_[0])
-                                    filter1_dict[filter1_dict_key] = [list_[1], list_[2]]
-                                break
-            del_keys = []
-            for dict_key in filter1_dict:  # 去除并未在models.py定义的field
-                if re.match(r'remainM', dict_key):
-                    filter2_dict[dict_key] = filter1_dict[dict_key]
-                    del_keys.append(dict_key)
-            for del_key in del_keys:
-                filter1_dict.pop(del_key)
-            # 查询数据库
-            # 使用Q函数进行复杂查询
-            filter1_dict_list = []
-            for filter1_dict_key in filter1_dict:
-                value, not_ = filter1_dict[filter1_dict_key]
-                if not_ == '1':
-                    filter1_dict_list.append(~Q(**{filter1_dict_key: value}))
-                else:
-                    filter1_dict_list.append(Q(**{filter1_dict_key: value}))
 
-            print(">>>>>> filter1_dict >>>>>>>")
-            pprint(filter1_dict)
-            print(">>>>>> filter1_dict_list >>>>>>>")
-            pprint(filter1_dict_list)
-            print(">>>>>> filter2_dict >>>>>>>")
-            pprint(filter2_dict)
-            raw_data_tmp = ClinicalInfo.objects.filter(*filter1_dict_list).values_list(*values_list_filted)
+        if request.POST['queryset']:  # 有过滤条件
+            queryset = []
+            nrow = 0
+            for i in request.POST['queryset'].split('\n'):
+                dict_ = {}
+                for j in i.split(' AND '):
+                    not_, m, f, vp, v = j.split('\t')
+                    not_ = not_[1:]
+                    v = v[:-1]
+                    if vp in ['gt', 'gte', 'lt', 'lte']:
+                        v = float(v)
+                    if m in dict_:
+                        if f in dict_[m]:
+                            dict_[m][f].append([vp, v, not_])
+                        else:
+                            dict_[m][f] = [[vp, v, not_]]
+                    else:
+                        dict_[m] = {f: [[vp, v, not_]]}
+                queryset.append(dict_)
+                nrow = nrow + 1
+
+            print(">>>>>> queryset >>>>>>>")
+            pprint(queryset)
+            for row in range(nrow):
+                filter1_dict = {}  # 数据库过滤条件
+                filter2_dict = {}  # 进一步过滤条件
+                for model_ in models_set:
+                    # 记录过滤的条件
+                    if model_ in queryset[row]:
+                        for field_ in queryset[row][model_]:
+                            for item in model_col['link'][model_] + model_col['normal'][model_]:
+                                if item.split('__')[-1] == field_:
+                                    for list_ in queryset[row][model_][field_]:
+                                        filter1_dict_key = "%s__%s" % (item, list_[0])
+                                        filter1_dict[filter1_dict_key] = [list_[1], list_[2]]
+                                    break
+                del_keys = []
+                for dict_key in filter1_dict:  # 去除并未在models.py定义的field
+                    if re.match(r'remainM', dict_key):
+                        filter2_dict[dict_key] = filter1_dict[dict_key]
+                        del_keys.append(dict_key)
+                for del_key in del_keys:
+                    filter1_dict.pop(del_key)
+                # 查询数据库
+                # 使用Q函数进行复杂查询
+                filter1_dict_list = []
+                for filter1_dict_key in filter1_dict:
+                    value, not_ = filter1_dict[filter1_dict_key]
+                    if not_ == '1':
+                        filter1_dict_list.append(~Q(**{filter1_dict_key: value}))
+                    else:
+                        filter1_dict_list.append(Q(**{filter1_dict_key: value}))
+
+                print(">>>>>> filter1_dict >>>>>>>")
+                pprint(filter1_dict)
+                print(">>>>>> filter1_dict_list >>>>>>>")
+                pprint(filter1_dict_list)
+                print(">>>>>> filter2_dict >>>>>>>")
+                pprint(filter2_dict)
+                raw_data_tmp = ClinicalInfo.objects.filter(*filter1_dict_list).values_list(*values_list_filted)
+                print(">>>>>> raw_data_tmp >>>>>>>")
+                pprint(raw_data_tmp)
+                raw_data = []
+                if 'remainM' in values_list:
+                    idx_ = values_list.index('DNAInventoryInfo_ClinicalInfo__othersM')
+                    print(">>>>>> idx_: %s >>>>>>>" % idx_)
+                    for row in raw_data_tmp:
+                        print(">>>>>> row in raw_data_tmp >>>>>>>")
+                        pprint(row)
+                        remainM = None
+                        values = list(row[0:idx_ + 1]) + [remainM] + list(row[idx_ + 1:])
+                        if row[idx_ - 4] is not None:
+                            remainM = row[idx_ - 4] - row[idx_ - 3] - row[idx_ - 2] - row[idx_ - 1] - row[idx_]
+                            values = list(row[0:idx_ + 1]) + ["%.3f" % remainM] + list(row[idx_ + 1:])
+                        if len(filter2_dict) > 0:
+                            if remainM is None:
+                                continue
+                            pass_mark = 1
+                            for filter2_dict_key in filter2_dict:
+                                vp = filter2_dict_key.split('__')[-1]
+                                if vp == 'gt':
+                                    if not filter2_dict[filter2_dict_key][1] and \
+                                            remainM <= filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                    elif filter2_dict[filter2_dict_key][1] and \
+                                            remainM > filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                elif vp == 'gte':
+                                    if not filter2_dict[filter2_dict_key][1] and \
+                                            remainM < filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                    elif filter2_dict[filter2_dict_key][1] and \
+                                            remainM >= filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                elif vp == 'lt':
+                                    if not filter2_dict[filter2_dict_key][1] and \
+                                            remainM >= filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                    elif filter2_dict[filter2_dict_key][1] and \
+                                            remainM < filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                elif vp == 'lte':
+                                    if not filter2_dict[filter2_dict_key][1] and \
+                                            remainM > filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                    elif filter2_dict[filter2_dict_key][1] and \
+                                            remainM <= filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                elif re.search(r'exact', vp):
+                                    if not filter2_dict[filter2_dict_key][1] and \
+                                            remainM == filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                                    elif filter2_dict[filter2_dict_key][1] and \
+                                            remainM == filter2_dict[filter2_dict_key][0]:
+                                        pass_mark = 0
+                                        break
+                            if pass_mark:
+                                raw_data.append(values)
+                        else:
+                            raw_data.append(values)
+                else:
+                    raw_data = raw_data_tmp
+
+                for raw_data_row in raw_data:
+                    if raw_data_row not in raw_data_set:
+                        raw_data_set.append(raw_data_row)
+        else:  # 无过滤条件
+            raw_data_tmp = ClinicalInfo.objects.values_list(*values_list_filted)
             print(">>>>>> raw_data_tmp >>>>>>>")
             pprint(raw_data_tmp)
-            raw_data = []
             if 'remainM' in values_list:
                 idx_ = values_list.index('DNAInventoryInfo_ClinicalInfo__othersM')
                 print(">>>>>> idx_: %s >>>>>>>" % idx_)
@@ -869,70 +947,10 @@ def AdvancedSearchV(request):
                     if row[idx_ - 4] is not None:
                         remainM = row[idx_ - 4] - row[idx_ - 3] - row[idx_ - 2] - row[idx_ - 1] - row[idx_]
                         values = list(row[0:idx_ + 1]) + ["%.3f" % remainM] + list(row[idx_ + 1:])
-                    if len(filter2_dict) > 0:
-                        if remainM is None:
-                            continue
-                        pass_mark = 1
-                        for filter2_dict_key in filter2_dict:
-                            vp = filter2_dict_key.split('__')[-1]
-                            if vp == 'gt':
-                                if not filter2_dict[filter2_dict_key][1] and \
-                                        remainM <= filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                                elif filter2_dict[filter2_dict_key][1] and \
-                                        remainM > filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                            elif vp == 'gte':
-                                if not filter2_dict[filter2_dict_key][1] and \
-                                        remainM < filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                                elif filter2_dict[filter2_dict_key][1] and \
-                                        remainM >= filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                            elif vp == 'lt':
-                                if not filter2_dict[filter2_dict_key][1] and \
-                                        remainM >= filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                                elif filter2_dict[filter2_dict_key][1] and \
-                                        remainM < filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                            elif vp == 'lte':
-                                if not filter2_dict[filter2_dict_key][1] and \
-                                        remainM > filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                                elif filter2_dict[filter2_dict_key][1] and \
-                                        remainM <= filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                            elif re.search(r'exact', vp):
-                                if not filter2_dict[filter2_dict_key][1] and \
-                                        remainM == filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                                elif filter2_dict[filter2_dict_key][1] and \
-                                        remainM == filter2_dict[filter2_dict_key][0]:
-                                    pass_mark = 0
-                                    break
-                        if pass_mark:
-                            raw_data.append(values)
-                    else:
-                        raw_data.append(values)
+                    raw_data_set.append(values)
             else:
-                raw_data = raw_data_tmp
-
-            for raw_data_row in raw_data:
-                if raw_data_row not in raw_data_set:
-                    raw_data_set.append(raw_data_row)
-
-        print(">>>>>> raw_data >>>>>>>")
-        pprint(raw_data)
+                raw_data_set = raw_data_tmp
+        # 数据进一步处理，生成response内容
         pro_data = []
         for row in raw_data_set:
             check_l = list(set(row))
