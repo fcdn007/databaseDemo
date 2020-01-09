@@ -43,11 +43,6 @@
                 <input type="file" class="form-control" id="uploadFile" name="uploadFile"
                        placeholder="请上传文件" required="true">
             </div>
-            <div class="form-group">
-                <label for="uploadOperator"> 上传者</label>
-                <input type="text" class="form-control" id="uploadOperator"
-                       name="uploadOperator" placeholder="请输入上传者" required="true">
-            </div>
             <button type="submit" class="btn btn-success btn-block"
                     id="uploadFile1Submit">文件上传
             </button>
@@ -68,7 +63,7 @@
                 let form_data = new FormData();
                 form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
                 form_data.append('uploadUrl', $('#uploadUrl').val());
-                form_data.append('uploadOperator', $('#uploadOperator').val());
+                form_data.append('uploadOperator', "{{ user.username }}");
                 let urlUpload = {% url "upload" %};
 
                 $.ajax({

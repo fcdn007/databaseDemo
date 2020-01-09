@@ -212,7 +212,7 @@
                 let data0 = $.ajax({
                     url: '/api/LibraryInfo/', dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: $('#singleLB_id').val()}
-                }).responseJSON.results[0];
+                }).responseJSON[0];
                 $.ajax({
                     url: url,
                     method: method,

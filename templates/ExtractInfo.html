@@ -261,7 +261,7 @@
                             let data0 = $.ajax({
                                 url: url2, dataType: 'json', contentType: "application/json",
                                 type: "get", async: false, data: {index: id}
-                            }).responseJSON.results[0];
+                            }).responseJSON[0];
                             let totalM = $('#dna_con').val() * $('#dna_vol').val();
                             let data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                                 totalM: totalM, successM: data0.successM, failM: data0.failM,

@@ -203,7 +203,7 @@
                 let data0 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: data['dna_id']}
-                }).responseJSON.results[0];
+                }).responseJSON[0];
                 let data_tmp2;
                 if (method == 'POST') {
                     if ($('#usage').val() == '建库失败') {
@@ -290,7 +290,7 @@
                 let data0 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: data['dna_id']}
-                }).responseJSON.results[0];
+                }).responseJSON[0];
                 let data_tmp2;
                 if (data['usage'] == '建库失败') {
                     data_tmp2 = $.param({

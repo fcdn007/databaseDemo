@@ -141,13 +141,19 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            let getDNACon = function (dna_id) {
-                let dat = $.ajax({
+            let getDNAConDict = function () {
+                let ExtractInfo_all = $.ajax({
                     url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false, data: {dna_id: dna_id}
-                }).responseJSON.results[0];
-                return dat.dna_con;
+                    type: "get", async: false
+                }).responseJSON;
+                let res = {};
+                $.each(ExtractInfo_all, function (index, value) {
+                    res[value.dna_id] = value.dna_con;
+                });
+                return res;
             };
+
+            let DNAConDict = getDNAConDict();
 
             let table = $('#table_id').DataTable({
                 "language": {
@@ -233,7 +239,7 @@
                     {
                         "data": "dna_id",
                         render: function (data, type, row, meta) {
-                            return getDNACon(data);
+                            return DNAConDict[data];
                         }
                     },
                     {"data": "mass"},
@@ -271,7 +277,7 @@
                 id2 = $.ajax({
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {singleLB_id: singleLB_id}
-                }).responseJSON.results[0];
+                }).responseJSON[0];
                 if (class_name == 'btn btn-info') {
                     // EDIT button
                     $('#singleLB_id').val(data['singleLB_id']);
@@ -320,7 +326,7 @@
                 let data0 = $.ajax({
                     url: url3, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: $('#dna_id').val()}
-                }).responseJSON.results[0];
+                }).responseJSON[0];
                 // 增、改：更新建库表
                 $.ajax({
                     url: url, async: false,
@@ -403,7 +409,7 @@
                         let data0 = $.ajax({
                             url: url3, dataType: 'json', contentType: "application/json",
                             type: "get", async: false, data: {dna_id: dnaid}
-                        }).responseJSON.results[0];
+                        }).responseJSON[0];
                         let data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM - mass0,

@@ -496,7 +496,7 @@
                 let pooling_data = $.ajax({
                     url: '/api/PoolingInfo/', dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {singleLB_Pooling_id: $('#singleLB_Pooling_id').val()}
-                }).responseJSON.results[0];
+                }).responseJSON[0];
                 $.ajax({
                     url: url,
                     method: method,

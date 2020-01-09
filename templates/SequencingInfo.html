@@ -86,7 +86,7 @@
             let capture_data = $.ajax({
                 url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
                 type: "get", async: false
-            }).responseJSON.results;
+            }).responseJSON;
 
             let get_poolingLB_id = function (datalist) {
                 let arry = [];
