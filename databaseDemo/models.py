@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
@@ -190,7 +191,6 @@ class LibraryInfo(models.Model):
         db_column='建库方法', max_length=255, blank=True, null=True)
     kit_batch = models.CharField(
         db_column='试剂批次', max_length=255, blank=True, null=True)
-    con = models.FloatField(db_column='样本浓度', blank=True, null=True)
     mass = models.FloatField(db_column='起始量', blank=True, null=True)
     pcr_cycles = models.IntegerField(db_column='PCR循环数', blank=True, null=True)
     LB_con = models.FloatField(db_column='文库浓度', blank=True, null=True)
@@ -490,3 +490,17 @@ class UploadFile(models.Model):
     class Meta:
         db_table = '上传文件信息表'
         verbose_name = '上传文件信息表'
+
+
+class User(AbstractUser):
+    nick_name = models.CharField(max_length=255, db_column='昵称', blank=True, unique=True,
+                                 error_messages={'nick_name_unique': "该昵称已被占用。"})
+    email = models.EmailField('邮箱', unique=True, error_messages={'email_unique': "该邮箱地址已被占用。"})
+    index = models.AutoField(primary_key=True)
+
+    def __str__(self):
+        return self.nick_name
+
+    class Meta(AbstractUser.Meta):
+        db_table = '用户信息表'
+        verbose_name = '用户'

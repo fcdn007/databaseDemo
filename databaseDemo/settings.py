@@ -12,9 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-import pymysql
-
-pymysql.install_as_MySQLdb()
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,9 +24,11 @@ SECRET_KEY = '9es=5n*5&2y)8hi#a2(fw4msd%7@bhlg$=1&#ixok89-zed+d('
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+# DEBUG = False
 TEMPLATE_DEBUG = True
+# TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['*']
-
+SERVER_HOST = '127.0.0.1'
 
 # Application definition
 
@@ -42,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bootstrap4',
     'rest_framework',
+    'djcelery',
     'rest_framework_datatables',
     'databaseDemo',
 ]
@@ -54,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.middleware.cache.UpdateCacheMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'databaseDemo.urls'
@@ -87,7 +89,7 @@ DATABASES = {
         'NAME': 'databaseDemo',  # 数据库名
         'USER': 'django',  # 账号
         'PASSWORD': 'django',  # 密码
-        'HOST': '127.0.0.1',  # HOST
+        'HOST': SERVER_HOST,  # HOST
         'POST': 3306,  # 端口
     }
 }
@@ -132,8 +134,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # 静态文件目录
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "staticfiles"),
 )
 
 # 模板文件目录
@@ -178,3 +181,45 @@ LOGGING = {
         },
     },
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 1000
+            },
+        }
+    }
+}
+
+AUTH_USER_MODEL = 'databaseDemo.User'
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'databaseDemo.backends.EmailBackend',
+    'databaseDemo.backends.NicknameBackend',
+)
+# 配置session存储
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+
+LOGIN_URL = 'users/login/'
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/'
+# 发送邮件配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_TLS = False   # 是否使用TLS安全传输协议(用于在两个通信应用程序之间提供保密性和数据完整性。)
+# EMAIL_USE_SSL = True    # 是否使用SSL加密，qq企业邮箱要求使用
+EMAIL_HOST = 'smtp.163.com'  # 发送邮件的邮箱的SMTP服务器，这里用了163邮箱
+EMAIL_PORT = 25  # 发件箱的SMTP服务器端口
+EMAIL_HOST_USER = 'fcdn007@163.com'  # 发送邮件的邮箱地址
+EMAIL_HOST_PASSWORD = 'fly71bird37'  # 发送邮件的邮箱密码(这里使用的是授权码)
+DEFAULT_FROM_EMAIL = 'fcdn007@163.com'
+EMAIL_PROM = '甲基化早筛项目数据库管理系统Demo<fcdn007@163.com>'  # 收件人看到的发件人
+
+import djcelery
+
+djcelery.setup_loader()  # 去每一个应用目录下找 tasks.py 文件，到文件中去执行 celery 任务函数
+BROKER_URL = "redis://127.0.0.1:6379/2"  # 使用redis, 并指定redis的第2个数据库作为celery中间队列

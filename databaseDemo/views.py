@@ -1,304 +1,143 @@
-import re
-from pprint import pprint
-
-import pandas as pd
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
+from itsdangerous import SignatureExpired
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from rest_framework import viewsets
 
-from .forms import FileUploadModelForm
+from .data_process import *
+from .forms import FileUploadModelForm, RegisterForm
 from .serializers import *
-
-FILECOLUMN_TO_FIELD = {
-    'normal': {
-        'ClinicalInfo': {
-            '样本编号': 'sample_id',
-            '姓名': 'name',
-            '性别': 'gender',
-            '年龄': 'age',
-            '住院号': 'patientId',
-            '癌种': 'category',
-            '分期': 'stage',
-            '诊断': 'diagnose',
-            '诊断备注': 'diagnose_others',
-            '离心日期': 'centrifugation_date',
-            '医院编号': 'hospital',
-            '科室': 'department',
-            '血浆管数': 'plasma_num',
-            '癌旁组织': 'adjacent_mucosa_num',
-            '癌组织': 'cancer_tissue_num',
-            '白细胞': 'WBC_num',
-            '粪便': 'stool_num',
-            '寄送日期': 'send_date',
-            '备注': 'others',
-        },
-        'ExtractInfo': {
-            'DNA提取编号': 'dna_id',
-            '提取日期': 'extract_date',
-            '样本类型': 'sample_type',
-            '样本体积': 'sample_volume',
-            '提取方法': 'extract_method',
-            '浓度': 'dna_con',
-            '体积': 'dna_vol',
-            '备注': 'others'
-        },
-        'DNAUsageRecordInfo': {
-            '使用日期': 'LB_date',
-            '使用量': 'mass',
-            '用途': 'usage',
-            '建库编号(如有)': 'singleLB_id',
-            '备注': 'others'
-        },
-        'DNAInventoryInfo': {
-            'DNA提取总量': 'totalM',
-            '成功建库使用量': 'successM',
-            '失败建库使用量': 'failM',
-            '科研项目使用量': 'researchM',
-            '其他使用量': 'othersM'
-        },
-        'LibraryInfo': {
-            '建库编号': 'singleLB_id',
-            '管上编号': 'tube_id',
-            '是否临床': 'clinical_boolen',
-            '文库名': 'singleLB_name',
-            '样本标签': 'label',
-            'index列表': 'barcodes',
-            '建库日期': 'LB_date',
-            '建库方法': 'LB_method',
-            '试剂批次': 'kit_batch',
-            '起始量': 'mass',
-            'PCR循环数': 'pcr_cycles',
-            '文库浓度': 'LB_con',
-            '文库体积': 'LB_vol',
-            '操作人': 'operator',
-            '备注': 'others'
-        },
-        'CaptureInfo': {
-            '捕获文库名': 'poolingLB_id',
-            '杂交日期': 'hybrid_date',
-            '杂交探针': 'probes',
-            '杂交时间': 'hybrid_min',
-            'PostPCR循环数': 'postpcr_cycles',
-            'PostPCR浓度': 'postpcr_con',
-            '洗脱体积': 'elution_vol',
-            '操作人': 'operator',
-            '备注': 'others'
-        },
-        'PoolingInfo': {
-            '测序文库名': 'singleLB_Pooling_id',
-            'pooling比例': 'pooling_ratio',
-            '取样': 'mass',
-            '体积': 'volume',
-            '备注': 'others'
-        },
-        'SequencingInfo': {
-            '上机文库号': 'sequencing_id',
-            '送测日期': 'send_date',
-            '上机时间': 'start_time',
-            '下机时间': 'end_time',
-            '机器号': 'machine_id',
-            '芯片号': 'chip_id',
-            '备注': 'others'
-        },
-        'QCInfo': {
-            'Sample': 'QC_id',
-            'Data_Size(Gb)': 'data_size_gb_field',
-            'Clean_Rate(%)': 'clean_rate_field',
-            'R1_Q20': 'r1_q20',
-            'R2_Q20': 'r2_q20',
-            'R1_Q30': 'r1_q30',
-            'R2_Q30': 'r2_q30',
-            'GC_Content': 'gc_content',
-            'BS_conversion_rate(lambda_DNA)': 'bs_conversion_rate_lambda_dna_field',
-            'BS_conversion_rate(CHH)': 'bs_conversion_rate_chh_field',
-            'BS_conversion_rate(CHG)': 'bs_conversion_rate_chg_field',
-            'Uniquely_Paired_Mapping_Rate': 'uniquely_paired_mapping_rate',
-            'Mismatch_and_InDel_Rate': 'mismatch_and_indel_rate',
-            'Mode_Fragment_Length(bp)': 'mode_fragment_length_bp_field',
-            'Genome_Duplication_Rate': 'genome_duplication_rate',
-            'Genome_Depth(X)': 'genome_depth_x_field',
-            'Genome_Dedupped_Depth(X)': 'genome_dedupped_depth_x_field',
-            'Genome_Coverage': 'genome_coverage',
-            'Genome_4X_CpG_Depth(X)': 'genome_4x_cpg_depth_x_field',
-            'Genome_4X_CpG_Coverage': 'genome_4x_cpg_coverage',
-            'Genome_4X_CpG_methylation_level': 'genome_4x_cpg_methylation_level',
-            'Panel_4X_CpG_Depth(X)': 'panel_4x_cpg_depth_x_field',
-            'Panel_4X_CpG_Coverage': 'panel_4x_cpg_coverage',
-            'Panel_4X_CpG_methylation_level': 'panel_4x_cpg_methylation_level',
-            'Panel_Ontarget_Rate(region)': 'panel_ontarget_rate_region_field',
-            'Panel_Duplication_Rate(region)': 'panel_duplication_rate_region_field',
-            'Panel_Depth(site,X)': 'panel_depth_site_x_field',
-            'Panel_Dedupped_Depth(site,X)': 'panel_dedupped_depth_site_x_field',
-            'Panel_Coverage(site,1X)': 'panel_coverage_site_1x_field',
-            'Panel_Coverage(site,10X)': 'panel_coverage_site_10x_field',
-            'Panel_Coverage(site,20X)': 'panel_coverage_site_20x_field',
-            'Panel_Coverage(site,50X)': 'panel_coverage_site_50x_field',
-            'Panel_Coverage(site,100X)': 'panel_coverage_site_100x_field',
-            'Panel_Uniformity(site,>20%mean)': 'panel_uniformity_site_20_mean_field',
-            'Strand_balance(F)': 'strand_balance_f_field',
-            'Strand_balance(R)': 'strand_balance_r_field',
-            'GC_bin_depth_ratio': 'gc_bin_depth_ratio',
-            '备注': 'others'
-        },
-        'UploadFile': {
-            '上传文件': 'uploadFile',
-            '项目': 'uploadUrl',
-            '上传者': 'uploadOperator'
-        }
-    },
-    'foreign': {
-        'ExtractInfo': {
-            '样本编号': 'sample_id'
-        },
-        'DNAUsageRecordInfo': {
-            'DNA提取编号': 'dna_id'
-        },
-        'DNAInventoryInfo': {
-            'DNA提取编号': 'dna_id'
-        },
-        'LibraryInfo': {
-            'DNA提取编号': 'dna_id',
-        },
-        'PoolingInfo': {
-            '建库编号': 'singleLB_id',
-            '捕获文库名': 'poolingLB_id'
-        },
-        'SequencingInfo': {
-            '捕获文库名': 'poolingLB_id'
-        },
-        'QCInfo': {
-            '测序文库名': 'singleLB_Pooling_id',
-            '上机文库号': 'sequencing_id'
-        }
-    },
-    'foreignAdd': {
-        'DNAUsageRecordInfo': {
-            '样本编号': [ExtractInfo, 'dna_id', 'DNA提取编号', 'sample_id']
-        },
-        'DNAInventoryInfo': {
-            '样本编号': [ExtractInfo, 'dna_id', 'DNA提取编号', 'sample_id']
-        },
-        'LibraryInfo': {
-            '样本编号': [ExtractInfo, 'dna_id', 'DNA提取编号', 'sample_id']
-        },
-        'PoolingInfo': {
-            '样本编号': [LibraryInfo, 'singleLB_id', '建库编号', 'sample_id'],
-            'DNA提取编号': [LibraryInfo, 'singleLB_id', '建库编号', 'dna_id']
-        },
-        'QCInfo': {
-            '样本编号': [PoolingInfo, 'singleLB_Pooling_id', '测序文库名', 'sample_id'],
-            'DNA提取编号': [PoolingInfo, 'singleLB_Pooling_id', '测序文库名', 'dna_id'],
-            '建库编号': [PoolingInfo, 'singleLB_Pooling_id', '测序文库名', 'singleLB_id'],
-            '捕获文库名': [PoolingInfo, 'singleLB_Pooling_id', '测序文库名', 'poolingLB_id']
-        }
-    }
-}
-
-FOREIGNKEY_TO_MODEL = {
-    'sample_id': ClinicalInfo,
-    'dna_id': ExtractInfo,
-    'singleLB_id': LibraryInfo,
-    'poolingLB_id': CaptureInfo,
-    'singleLB_Pooling_id': PoolingInfo,
-    'sequencing_id': SequencingInfo
-}
+from .tasks import send_register_active_email
 
 
+@never_cache
 def index(request):
     return render(request, 'base.html')
-    # return HttpResponse(
-    #     "Hello! Welcome to databaseDemo for methylation-sequencing project."
-    # )
+
+
+def get_queryset_base(model_, query_params_):
+    query_params = {}
+    tmp_dict = query_params_.dict()
+    # print(">>>>>> model_ >>>>>")
+    # pprint(model_)
+    # print(">>>>>> query_params_ >>>>>")
+    # pprint(query_params_)
+    if 'format' in tmp_dict and tmp_dict['format'] == 'datatables':
+        return model_.objects.all()
+    for key_ in tmp_dict:
+        if key_ != 'format':
+            query_params[key_] = tmp_dict[key_]
+    if len(query_params.keys()) > 0:
+        queryset = model_.objects.filter(**query_params)
+        return queryset
+    else:
+        queryset = model_.objects.all()
+        return queryset
 
 
 class ClinicalInfoViewSet(viewsets.ModelViewSet):
     queryset = ClinicalInfo.objects.all()
-    # print("queryset.index:")
-    # pprint(ClinicalInfo.objects.values_list('index', flat=True).order_by('index'))
     serializer_class = ClinicalInfoSerializer
+
+    def get_queryset(self):
+        return get_queryset_base(ClinicalInfo, self.request.query_params)
 
 
 class ExtractInfoViewSet(viewsets.ModelViewSet):
     queryset = ExtractInfo.objects.all()
     serializer_class = ExtractInfoSerializer
 
+    def get_queryset(self):
+        return get_queryset_base(ExtractInfo, self.request.query_params)
+
 
 class DNAUsageRecordInfoViewSet(viewsets.ModelViewSet):
     queryset = DNAUsageRecordInfo.objects.all()
     serializer_class = DNAUsageRecordInfoSerializer
+
+    def get_queryset(self):
+        return get_queryset_base(DNAUsageRecordInfo, self.request.query_params)
 
 
 class DNAInventoryInfoViewSet(viewsets.ModelViewSet):
     queryset = DNAInventoryInfo.objects.all()
     serializer_class = DNAInventoryInfoSerializer
 
+    def get_queryset(self):
+        return get_queryset_base(DNAInventoryInfo, self.request.query_params)
+
 
 class LibraryInfoViewSet(viewsets.ModelViewSet):
     queryset = LibraryInfo.objects.all()
     serializer_class = LibraryInfoSerializer
 
+    def get_queryset(self):
+        return get_queryset_base(LibraryInfo, self.request.query_params)
 
 class CaptureInfoViewSet(viewsets.ModelViewSet):
     queryset = CaptureInfo.objects.all()
     serializer_class = CaptureInfoSerializer
 
+    def get_queryset(self):
+        return get_queryset_base(CaptureInfo, self.request.query_params)
 
 class PoolingInfoViewSet(viewsets.ModelViewSet):
     queryset = PoolingInfo.objects.all()
     serializer_class = PoolingInfoSerializer
 
+    def get_queryset(self):
+        return get_queryset_base(PoolingInfo, self.request.query_params)
 
 class SequencingInfoViewSet(viewsets.ModelViewSet):
     queryset = SequencingInfo.objects.all()
     serializer_class = SequencingInfoSerializer
+
+    def get_queryset(self):
+        return get_queryset_base(SequencingInfo, self.request.query_params)
 
 
 class QCInfoViewSet(viewsets.ModelViewSet):
     queryset = QCInfo.objects.all()
     serializer_class = QCInfoSerializer
 
-
-def ClinicalInfoV(request):
-    return render(request, 'ClinicalInfo.html')
-
-
-def DNAInventoryInfoV(request):
-    return render(request, 'DNAInventoryInfo.html')
+    def get_queryset(self):
+        return get_queryset_base(QCInfo, self.request.query_params)
 
 
-def ExtractInfoV(request):
-    return render(request, 'ExtractInfo.html')
+class UserInfoViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserInfoSerializer
+
+    def get_queryset(self):
+        return get_queryset_base(User, self.request.query_params)
 
 
-def DNAUsageRecordInfoV(request):
-    return render(request, 'DNAUsageRecordInfo.html')
-
-
-def DNAInventoryInfoV(request):
-    return render(request, 'DNAInventoryInfo.html')
-
-
-def LibraryInfoV(request):
-    return render(request, 'LibraryInfo.html')
-
-
-def CaptureInfoV(request):
-    return render(request, 'CaptureInfo.html')
-
-
-def PoolingInfoV(request):
-    return render(request, 'PoolingInfo.html')
-
-
-def SequencingInfoV(request):
-    return render(request, 'SequencingInfo.html')
-
-
-def QCInfoV(request):
-    return render(request, 'QCInfo.html')
+@login_required
+def Main_model(request, re_model):
+    if re_model == 'Clinical':
+        return render(request, 'ClinicalInfo.html')
+    elif re_model == 'Extract':
+        return render(request, 'ExtractInfo.html')
+    elif re_model == 'DNAUsageRecord':
+        return render(request, 'DNAUsageRecordInfo.html')
+    elif re_model == 'DNAInventory':
+        return render(request, 'DNAInventoryInfo.html')
+    elif re_model == 'Library':
+        return render(request, 'LibraryInfo.html')
+    elif re_model == 'Capture':
+        return render(request, 'CaptureInfo.html')
+    elif re_model == 'Pooling':
+        return render(request, 'PoolingInfo.html')
+    elif re_model == 'Sequencing':
+        return render(request, 'SequencingInfo.html')
+    elif re_model == 'QC':
+        return render(request, 'QCInfo.html')
+    elif re_model == 'User':
+        return render(request, 'UserInfo.html')
 
 
 @csrf_exempt
@@ -327,348 +166,7 @@ def uploadV(request):
     return JsonResponse({'error_msg': '只接受POST请求。'})
 
 
-def na_process(data_, drop_list, str_list, num_list, date_list):
-    data = data_.copy(deep=True)
-    for col in drop_list:
-        for row in range(len(data[col])):
-            if pd.isnull(data[col][row]):
-                data.drop(row, inplace=True)
-    for id in str_list:
-        data[id] = ['无' if pd.isnull(x) else x for x in data[id]]
-    for id in num_list:
-        data[id] = [0 if pd.isnull(x) else x for x in data[id]]
-    for id in date_list:
-        list_ = []
-        for id2 in range(len(data[id])):
-            m = re.match(r'^(\d{4})(\d{2})(\d{2})$', str(data[id][id2]))
-            if pd.isnull(data[id][id2]):
-                list_.append('2000-01-01')
-            elif m:
-                list_.append("%s-%s-%s" % (m.group(1), m.group(2), m.group(3)))
-            else:
-                list_.append(data[id][id2])
-        data[id] = list_
-    return data
-
-
-def save_records(line):
-    # 读取文件，进行数据清洗
-    records = read_file(line.uploadUrl, line.uploadFile.path)
-    total = records.shape[0]
-    cols = records.columns
-    addlist = []
-    for row in range(records.shape[0]):
-        context = {}
-        created = False
-        if line.uploadUrl in FILECOLUMN_TO_FIELD['normal']:
-            # 数据预处理
-            for col in cols:
-                if col in FILECOLUMN_TO_FIELD['normal'][line.uploadUrl]:
-                    context[FILECOLUMN_TO_FIELD['normal'][line.uploadUrl][col]] = records[col][row]
-                else:
-                    model_key = FILECOLUMN_TO_FIELD['foreign'][line.uploadUrl][col]
-                    # 获取foreignKey对应的object
-                    print('line.uploadUrl: %s; model_key: %s' % (line.uploadUrl, model_key))
-                    if line.uploadUrl == 'SequencingInfo' and model_key == 'poolingLB_id':
-                        pass
-                    else:
-                        obj_ = FOREIGNKEY_TO_MODEL[model_key].objects.get(**{model_key: records[col][row]})
-                        context[model_key] = obj_
-            if line.uploadUrl in FILECOLUMN_TO_FIELD['foreignAdd']:
-                # 对于输入文件中缺少的外键k1，
-                # 先找到输入文件中存在的外键k2，
-                # 再通过k2对应的model2找到k1对应的值value1
-                # 再通过k1对应的model1找到相应对象
-                for col in FILECOLUMN_TO_FIELD['foreignAdd'][line.uploadUrl]:
-                    l_ = FILECOLUMN_TO_FIELD['foreignAdd'][line.uploadUrl][col]
-                    value = model_to_dict(l_[0].objects.get(**{l_[1]: records[l_[2]][row]}))[l_[3]]
-                    obj_ = FOREIGNKEY_TO_MODEL[l_[3]].objects.get(**{l_[3]: value})
-                    context[l_[3]] = obj_
-
-            # 模型增/改
-            if line.uploadUrl == 'ClinicalInfo':
-                # 修改临床信息表
-                _, created = ClinicalInfo.objects.update_or_create(
-                    sample_id=records[u'样本编号'][row], defaults={**context})
-
-            elif line.uploadUrl == 'ExtractInfo':
-                # 修改提取表
-                _, created = ExtractInfo.objects.update_or_create(
-                    dna_id=records[u'DNA提取编号'][row], defaults={**context})
-                # 修改库存表
-                mass_ = float(records[u'浓度'][row]) * float(records[u'体积'][row])
-                key_dna_id = ExtractInfo.objects.get(dna_id=records[u'DNA提取编号'][row])
-                try:  # PUT，改
-                    inventory = DNAInventoryInfo.objects.get(dna_id=key_dna_id)
-                    inventory.totalM = mass_
-                    inventory.save()
-                except DNAInventoryInfo.DoesNotExist:  # POST，增
-                    context2 = {
-                        'sample_id': context['sample_id'], 'dna_id': key_dna_id,
-                        'totalM': mass_, 'successM': 0, 'failM': 0,
-                        'researchM': 0, 'othersM': 0
-                    }
-                    inventory = DNAInventoryInfo(**context2)
-                    inventory.save()
-
-            elif line.uploadUrl == 'DNAUsageRecordInfo':
-                # 修改库存表
-                inventory = DNAInventoryInfo.objects.get(dna_id=context['dna_id'])
-                try:  # PUT，改
-                    usageRecord = DNAUsageRecordInfo.objects.get(
-                        dna_id=context['dna_id'],
-                        LB_date=records[u'使用日期'][row],
-                        usage=records[u'用途'][row]
-                    )
-                    mass_ = float(records[u'使用量'][row]) - usageRecord.mass
-                except DNAUsageRecordInfo.DoesNotExist:  # POST，增
-                    mass_ = float(records[u'使用量'][row])
-                if records[u'用途'][row] == '建库失败':
-                    inventory.failM = inventory.failM + mass_
-                elif records[u'用途'][row] == '科研项目':
-                    inventory.researchM = inventory.researchM + mass_
-                elif records[u'用途'][row] == '其他':
-                    inventory.othersM = inventory.othersM + mass_
-                inventory.save()
-                # 修改使用记录表
-                _, created = DNAUsageRecordInfo.objects.update_or_create(
-                    dna_id=context['dna_id'],
-                    LB_date=records[u'使用日期'][row],
-                    usage=records[u'用途'][row],
-                    defaults={**context})
-
-            elif line.uploadUrl == 'LibraryInfo':
-                _, created = LibraryInfo.objects.update_or_create(
-                    singleLB_id=records[u'建库编号'][row], defaults={**context})
-                # 修改使用记录表
-                try:  # PUT，改
-                    usageRecord = DNAUsageRecordInfo.objects.get(
-                        dna_id=context['dna_id'],
-                        LB_date=records[u'建库日期'][row],
-                        usage='建库成功'
-                    )
-                    sub_ = float(records[u'起始量'][row]) - usageRecord.mass
-                    usageRecord.mass = usageRecord.mass + sub_
-                    usageRecord.save()
-                    mass_inventory = sub_
-                except DNAUsageRecordInfo.DoesNotExist:  # POST，增
-                    context2 = {
-                        'sample_id': context['sample_id'], 'dna_id': context['dna_id'],
-                        'LB_date': records[u'建库日期'][row], 'mass': records[u'起始量'][row],
-                        'usage': '建库成功', 'singleLB_id': records[u'建库编号'][row],
-                        'others': records[u'备注'][row]
-                    }
-                    usageRecord = DNAUsageRecordInfo(**context2)
-                    usageRecord.save()
-                    mass_inventory = float(records[u'起始量'][row])
-                # 修改库存表
-                inventory = DNAInventoryInfo.objects.get(dna_id=context['dna_id'])
-                inventory.successM = inventory.successM + mass_inventory
-                inventory.save()
-
-            elif line.uploadUrl == 'CaptureInfo':
-                _, created = CaptureInfo.objects.update_or_create(
-                    poolingLB_id=records[u'捕获文库名'][row], defaults={**context})
-
-            elif line.uploadUrl == 'PoolingInfo':
-                _, created = PoolingInfo.objects.update_or_create(
-                    singleLB_Pooling_id=records[u'测序文库名'][row], defaults={**context})
-
-            elif line.uploadUrl == 'SequencingInfo':
-                captures = []
-                print('>>>>>>>>>> notice >>>>>>>')
-                pprint(context)
-                for c in records[u'捕获文库名'][row]:
-                    try:
-                        captures.append(CaptureInfo.objects.get(poolingLB_id=c))
-                    except CaptureInfo.DoesNotExist:
-                        pass
-                try:
-                    print('>>>>>>>>>> notice >>>>>>> update')
-                    sequencing = SequencingInfo.objects.get(sequencing_id=records[u'上机文库号'][row])
-                    sequencing.__dict__.update(**context)
-                    sequencing.poolingLB_id.add(*captures)
-                except SequencingInfo.DoesNotExist:
-                    print('>>>>>>>>>> notice >>>>>>> create')
-                    created = True
-                    sequencing = SequencingInfo(**context)
-                    sequencing.save()
-                    sequencing.poolingLB_id.add(*captures)
-
-            elif line.uploadUrl == 'QCInfo':
-                _, created = QCInfo.objects.update_or_create(
-                    QC_id=records[u'Sample'][row], defaults={**context})
-
-            if created:
-                addlist.append(row)
-        else:
-            if line.uploadUrl == 'CaptureInfoPlus':
-                for m in ['CaptureInfo', 'PoolingInfo']:
-                    # 数据预处理
-                    context = {}
-                    for col in cols:
-                        if col in FILECOLUMN_TO_FIELD['normal'][m]:
-                            total = total + 1
-                            context[FILECOLUMN_TO_FIELD['normal'][m][col]] = records[col][row]
-                        else:
-                            if m not in FILECOLUMN_TO_FIELD['foreign'] or col not in FILECOLUMN_TO_FIELD['foreign'][m]:
-                                continue
-                            model_key = FILECOLUMN_TO_FIELD['foreign'][m][col]
-                            # 获取foreignKey对应的object
-                            print(">>>>>>>>>>>>>> notice >>>>>>>>>>>")
-                            pprint({model_key: records[col][row]})
-                            obj_ = FOREIGNKEY_TO_MODEL[model_key].objects.get(**{model_key: records[col][row]})
-                            context[model_key] = obj_
-                    if m in FILECOLUMN_TO_FIELD['foreignAdd']:
-                        for col in FILECOLUMN_TO_FIELD['foreignAdd'][m]:
-                            l_ = FILECOLUMN_TO_FIELD['foreignAdd'][m][col]
-                            value = model_to_dict(l_[0].objects.get(**{l_[1]: records[l_[2]][row]}))[l_[3]]
-                            obj_ = FOREIGNKEY_TO_MODEL[l_[3]].objects.get(**{l_[3]: value})
-                            context[l_[3]] = obj_
-                    # 模型增/改
-                    print(">>>>>>>>>>>>> notice >>>>>>>>>>>")
-                    pprint(context)
-                    if m == 'CaptureInfo':
-                        print(">>>>>>>>>>>>> notice >>>>>>>>>>>", records[u'捕获文库名'][row])
-                        _, created = CaptureInfo.objects.update_or_create(
-                            poolingLB_id=records[u'捕获文库名'][row], defaults={**context})
-                    else:
-                        print(">>>>>>>>>>>>> notice >>>>>>>>>>>", records[u'测序文库名'][row])
-                        _, created = PoolingInfo.objects.update_or_create(
-                            singleLB_Pooling_id=records[u'测序文库名'][row], defaults={**context})
-
-                    if created:
-                        addlist.append(row)
-    print("total: %s, len(addlist): %s" % (total, len(addlist)))
-    return [total, len(addlist)]
-
-
-def read_file(url, inf):
-    # 读取文件，按文件类型调用不同函数打开
-    df = []
-    ext = inf.split('.')[-1].lower()
-    if ext == "txt":
-        df = pd.read_table(inf, sep="\t", header=0, encoding='utf-8')
-    elif ext == "csv":
-        df = pd.read_csv(inf, header=0, encoding='utf-8')
-    elif ext == "xlsx":
-        df = pd.read_excel(inf, header=0, encoding='utf-8')
-    # 根据url，进行数据清洗
-    data = []
-    if url == 'ClinicalInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['ClinicalInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'样本编号'],
-                          [u'姓名', u'性别', u'住院号', u'癌种', u'分期', u'诊断', u'诊断备注', u'医院编号',
-                           u'科室', u'备注'],
-                          [u'年龄', u'血浆管数', u'癌旁组织', u'癌组织', u'白细胞', '粪便'],
-                          [u'离心日期', u'寄送日期'])
-    elif url == 'ExtractInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['ExtractInfo'].keys()) + \
-               list(FILECOLUMN_TO_FIELD['foreign']['ExtractInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'DNA提取编号', u'样本编号'],
-                          [u'样本类型', u'提取方法', u'备注'],
-                          [u'样本体积', u'浓度', u'体积'],
-                          [u'提取日期'])
-    elif url == 'DNAUsageRecordInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['DNAUsageRecordInfo'].keys()) + \
-               list(FILECOLUMN_TO_FIELD['foreign']['DNAUsageRecordInfo'].keys())
-        filter1 = [u'建库失败', u'科研项目', u'其他']
-        data = df[df[u'用途'].isin(filter1)][cols].copy(deep=True)
-        data = na_process(data,
-                          [u'DNA提取编号'],
-                          [u'用途', u'建库编号(如有)', u'备注'],
-                          [u'使用量'],
-                          [u'使用日期'])
-    elif url == 'LibraryInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['LibraryInfo'].keys()) + \
-               list(FILECOLUMN_TO_FIELD['foreign']['LibraryInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'DNA提取编号', u'建库编号'],
-                          [u'管上编号', u'是否临床', u'文库名', u'样本标签', u'index列表',
-                           u'建库方法', u'试剂批次', u'操作人', u'备注'],
-                          [u'起始量', u'PCR循环数', u'文库浓度', u'文库体积'],
-                          [u'建库日期'])
-    elif url == 'CaptureInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['CaptureInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'捕获文库名'],
-                          [u'杂交探针', u'操作人', u'备注'],
-                          [u'杂交时间', u'PostPCR循环数', u'PostPCR浓度', u'洗脱体积'],
-                          [u'杂交日期'])
-    elif url == 'PoolingInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['PoolingInfo'].keys()) + \
-               list(FILECOLUMN_TO_FIELD['foreign']['PoolingInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'建库编号', u'捕获文库名', u'测序文库名'],
-                          [u'备注'],
-                          [u'pooling比例', u'取样', u'体积'],
-                          [])
-    elif url == 'SequencingInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['SequencingInfo'].keys()) + \
-               list(FILECOLUMN_TO_FIELD['foreign']['SequencingInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data[u'捕获文库名'] = [x.split(',') for x in data[u'捕获文库名']]
-        data = na_process(data,
-                          [u'捕获文库名', u'上机文库号'],
-                          [u'机器号', u'芯片号', u'备注'],
-                          [],
-                          [u'送测日期', u'上机时间', u'下机时间'])
-    elif url == 'QCInfo':
-        cols = list(FILECOLUMN_TO_FIELD['normal']['QCInfo'].keys()) + \
-               list(FILECOLUMN_TO_FIELD['foreign']['QCInfo'].keys())
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'测序文库名', u'上机文库号', u'Sample'],
-                          [u'备注'],
-                          [u'Data_Size(Gb)', u'Clean_Rate(%)', u'R1_Q20', u'R2_Q20', u'R1_Q30', u'R2_Q30',
-                           u'GC_Content', u'BS_conversion_rate(lambda_DNA)', u'BS_conversion_rate(CHH)',
-                           u'BS_conversion_rate(CHG)', u'Uniquely_Paired_Mapping_Rate', u'Mismatch_and_InDel_Rate',
-                           u'Mode_Fragment_Length(bp)', u'Genome_Duplication_Rate', u'Genome_Depth(X)',
-                           u'Genome_Dedupped_Depth(X)', u'Genome_Coverage', u'Genome_4X_CpG_Depth(X)',
-                           u'Genome_4X_CpG_Coverage', u'Genome_4X_CpG_methylation_level', u'Panel_4X_CpG_Depth(X)',
-                           u'Panel_4X_CpG_Coverage', u'Panel_4X_CpG_methylation_level', u'Panel_Ontarget_Rate(region)',
-                           u'Panel_Duplication_Rate(region)', u'Panel_Depth(site,X)', u'Panel_Dedupped_Depth(site,X)',
-                           u'Panel_Coverage(site,1X)', u'Panel_Coverage(site,10X)', u'Panel_Coverage(site,20X)',
-                           u'Panel_Coverage(site,50X)', u'Panel_Coverage(site,100X)',
-                           u'Panel_Uniformity(site,>20%mean)', u'Strand_balance(F)', u'Strand_balance(R)',
-                           u'GC_bin_depth_ratio'],
-                          [])
-    elif url == 'CaptureInfoPlus':
-        cols = list(set(list(FILECOLUMN_TO_FIELD['normal']['CaptureInfo'].keys()) + \
-                        list(FILECOLUMN_TO_FIELD['normal']['PoolingInfo'].keys()) + \
-                        list(FILECOLUMN_TO_FIELD['foreign']['PoolingInfo'].keys())))
-        data = df[cols].copy(deep=True)
-        data = na_process(data,
-                          [u'建库编号', u'捕获文库名', u'测序文库名'],
-                          [u'杂交探针', u'操作人', u'备注'],
-                          [u'杂交时间', u'PostPCR循环数', u'PostPCR浓度', u'洗脱体积', u'pooling比例', u'取样', u'体积'],
-                          [u'杂交日期'])
-    # print("return data:\n>>>>>>>")
-    # pprint(data)
-    # print("<<<<<<<<<")
-    return data
-
-
-KEY1_TO_MODEL = {
-    'ClinicalInfo': ClinicalInfo,
-    'ExtractInfo': ExtractInfo,
-    'DNAUsageRecordInfo': DNAUsageRecordInfo,
-    'DNAInventoryInfo': DNAInventoryInfo,
-    'LibraryInfo': LibraryInfo,
-    'CaptureInfo': CaptureInfo,
-    'PoolingInfo': PoolingInfo,
-    'SequencingInfo': SequencingInfo,
-    'QCInfo': QCInfo
-}
-
-
+@login_required
 def AdvancedSearchV(request):
     ## 字典，用于构建request查询数据库，值与model的field一致
     model_col = {
@@ -691,10 +189,9 @@ def AdvancedSearchV(request):
                             'LibraryInfo_ClinicalInfo__singleLB_name', 'LibraryInfo_ClinicalInfo__label',
                             'LibraryInfo_ClinicalInfo__barcodes', 'LibraryInfo_ClinicalInfo__LB_date',
                             'LibraryInfo_ClinicalInfo__LB_method', 'LibraryInfo_ClinicalInfo__kit_batch',
-                            'LibraryInfo_ClinicalInfo__con', 'LibraryInfo_ClinicalInfo__mass',
-                            'LibraryInfo_ClinicalInfo__pcr_cycles', 'LibraryInfo_ClinicalInfo__LB_con',
-                            'LibraryInfo_ClinicalInfo__LB_vol', 'LibraryInfo_ClinicalInfo__operator',
-                            'LibraryInfo_ClinicalInfo__others'],
+                            'LibraryInfo_ClinicalInfo__mass', 'LibraryInfo_ClinicalInfo__pcr_cycles',
+                            'LibraryInfo_ClinicalInfo__LB_con', 'LibraryInfo_ClinicalInfo__LB_vol',
+                            'LibraryInfo_ClinicalInfo__operator', 'LibraryInfo_ClinicalInfo__others'],
             'CaptureInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id__hybrid_date',
                             'PoolingInfo_ClinicalInfo__poolingLB_id__probes',
                             'PoolingInfo_ClinicalInfo__poolingLB_id__hybrid_min',
@@ -765,13 +262,13 @@ def AdvancedSearchV(request):
     models_set = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo', 'CaptureInfo',
                   'PoolingInfo', 'SequencingInfo', 'QCInfo']
     if request.method == 'POST':
-        print(">>>>>> request >>>>>>>")
-        pprint(request)
-        print(">>>>>> request.POST >>>>>>>")
-        pprint(request.POST)
+        # print(">>>>>> request >>>>>>>")
+        # pprint(request)
+        # print(">>>>>> request.POST >>>>>>>")
+        # pprint(request.POST)
         modellist = request.POST['modellist'].split(', ')
-        print(">>>>>> modellist >>>>>>>")
-        pprint(modellist)
+        # print(">>>>>> modellist >>>>>>>")
+        # pprint(modellist)
         values_list1 = []
         values_list2 = []
         for model_ in models_set:
@@ -786,14 +283,14 @@ def AdvancedSearchV(request):
             idx_ = values_list_filted.index('remainM')
             values_list_filted = values_list_filted[0:idx_] + values_list_filted[idx_ + 1:]
 
-        print(">>>>>> values_list1 >>>>>>>")
-        pprint(values_list1)
-        print(">>>>>> values_list2 >>>>>>>")
-        pprint(values_list2)
-        print(">>>>>> values_list >>>>>>>")
-        pprint(values_list)
-        print(">>>>>> values_list_filted >>>>>>>")
-        pprint(values_list_filted)
+        # print(">>>>>> values_list1 >>>>>>>")
+        # pprint(values_list1)
+        # print(">>>>>> values_list2 >>>>>>>")
+        # pprint(values_list2)
+        # print(">>>>>> values_list >>>>>>>")
+        # pprint(values_list)
+        # print(">>>>>> values_list_filted >>>>>>>")
+        # pprint(values_list_filted)
         # raw_data_set存储queryset全部行的原始查询结果
         raw_data_set = []
 
@@ -818,8 +315,8 @@ def AdvancedSearchV(request):
                 queryset.append(dict_)
                 nrow = nrow + 1
 
-            print(">>>>>> queryset >>>>>>>")
-            pprint(queryset)
+            # print(">>>>>> queryset >>>>>>>")
+            # pprint(queryset)
             for row in range(nrow):
                 filter1_dict = {}  # 数据库过滤条件
                 filter2_dict = {}  # 进一步过滤条件
@@ -850,22 +347,22 @@ def AdvancedSearchV(request):
                     else:
                         filter1_dict_list.append(Q(**{filter1_dict_key: value}))
 
-                print(">>>>>> filter1_dict >>>>>>>")
-                pprint(filter1_dict)
-                print(">>>>>> filter1_dict_list >>>>>>>")
-                pprint(filter1_dict_list)
-                print(">>>>>> filter2_dict >>>>>>>")
-                pprint(filter2_dict)
+                # print(">>>>>> filter1_dict >>>>>>>")
+                # pprint(filter1_dict)
+                # print(">>>>>> filter1_dict_list >>>>>>>")
+                # pprint(filter1_dict_list)
+                # print(">>>>>> filter2_dict >>>>>>>")
+                # pprint(filter2_dict)
                 raw_data_tmp = ClinicalInfo.objects.filter(*filter1_dict_list).values_list(*values_list_filted)
-                print(">>>>>> raw_data_tmp >>>>>>>")
-                pprint(raw_data_tmp)
+                # print(">>>>>> raw_data_tmp >>>>>>>")
+                # pprint(raw_data_tmp)
                 raw_data = []
                 if 'remainM' in values_list:
                     idx_ = values_list.index('DNAInventoryInfo_ClinicalInfo__othersM')
-                    print(">>>>>> idx_: %s >>>>>>>" % idx_)
+                    # print(">>>>>> idx_: %s >>>>>>>" % idx_)
                     for row in raw_data_tmp:
-                        print(">>>>>> row in raw_data_tmp >>>>>>>")
-                        pprint(row)
+                        # print(">>>>>> row in raw_data_tmp >>>>>>>")
+                        # pprint(row)
                         remainM = None
                         values = list(row[0:idx_ + 1]) + [remainM] + list(row[idx_ + 1:])
                         if row[idx_ - 4] is not None:
@@ -930,18 +427,17 @@ def AdvancedSearchV(request):
                     raw_data = raw_data_tmp
 
                 for raw_data_row in raw_data:
-                    if raw_data_row not in raw_data_set:
-                        raw_data_set.append(raw_data_row)
+                    raw_data_set.append(raw_data_row)
         else:  # 无过滤条件
             raw_data_tmp = ClinicalInfo.objects.values_list(*values_list_filted)
-            print(">>>>>> raw_data_tmp >>>>>>>")
-            pprint(raw_data_tmp)
+            # print(">>>>>> raw_data_tmp >>>>>>>")
+            # pprint(raw_data_tmp)
             if 'remainM' in values_list:
                 idx_ = values_list.index('DNAInventoryInfo_ClinicalInfo__othersM')
-                print(">>>>>> idx_: %s >>>>>>>" % idx_)
+                # print(">>>>>> idx_: %s >>>>>>>" % idx_)
                 for row in raw_data_tmp:
-                    print(">>>>>> row in raw_data_tmp >>>>>>>")
-                    pprint(row)
+                    # print(">>>>>> row in raw_data_tmp >>>>>>>")
+                    # pprint(row)
                     remainM = None
                     values = list(row[0:idx_ + 1]) + [remainM] + list(row[idx_ + 1:])
                     if row[idx_ - 4] is not None:
@@ -964,8 +460,8 @@ def AdvancedSearchV(request):
                 else:
                     dat["link%s" % col] = row[col]
             pro_data.append(dat)
-        print(">>>>>> pro_data >>>>>>>")
-        pprint(pro_data)
+        # print(">>>>>> pro_data >>>>>>>")
+        # pprint(pro_data)
         # print(">>>>>> request.GET >>>>>>>")
         # pprint(request.POST)
         result = {
@@ -991,5 +487,95 @@ def uniqueV(request):
     return JsonResponse(data)
 
 
+@login_required
 def AdvanceUploadV(request):
     return render(request, 'AdvancedUpload.html')
+
+
+@never_cache
+def RegisterV(request):
+    redirect_to = request.POST.get('next', request.GET.get('next', ''))
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        nick_name = request.POST.get('nick_name')
+        email = request.POST.get('email')
+        if username == '':
+            return JsonResponse({'error_msg': '用户名为空，请重新输入。'})
+        elif User.objects.filter(username=username):
+            return JsonResponse({'error_msg': '用户名已存在，请重新输入。'})
+        elif User.objects.filter(nick_name=nick_name):
+            return JsonResponse({'error_msg': '昵称已存在，请重新输入。'})
+        elif User.objects.filter(email=email):
+            return JsonResponse({'error_msg': '邮箱地址已存在，请重新输入。'})
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            user = User.objects.get(username=username)
+            user.is_active = 0
+            user.save()
+
+            # 发送激活链接，包含激活链接：(http://%s:8000/user/active/5) % SERVER_HOST
+            # 激活链接中需要包含用户的身份信息，并要把身份信息进行加密
+            # 激活链接格式: /user/active/用户身份加密后的信息 /user/active/token
+
+            # 加密用户的身份信息，生成激活token
+            serializer = Serializer(settings.SECRET_KEY, 3600)
+            info = {'confirm': user.index}
+            token = serializer.dumps(info)  # bytes
+            token = token.decode('utf8')  # 解码, str
+            # 找其他人帮助我们发送邮件 celery:异步执行任务
+            # print(">>>>>>>>>>>>>> user.email: %s >>>>>>>>>>>" % user.email)
+            # print(">>>>>>>>>>>>>> user.username: %s >>>>>>>>>>>" % user.username)
+            # print(">>>>>>>>>>>>>> token: %s >>>>>>>>>>>" % token)
+            send_register_active_email(user.email, user.username, token)
+
+            if redirect_to:
+                return JsonResponse({'success_msg': '注册成功！请查收激活邮件，激活账号后登录。', 'next': redirect_to})
+            else:
+                return JsonResponse({'success_msg': '注册成功！请查收激活邮件，激活账号后登录。', 'next': '/'})
+    else:
+        return render(request, 'register.html')
+
+
+@never_cache
+def ActiveV(request, token):
+    # 进行用户激活
+    # 进行解密，获取要激活的用户信息
+    serializer = Serializer(settings.SECRET_KEY, 3600)
+    try:
+        info = serializer.loads(token)
+        # 获取待激活用户的id
+        user_index = info['confirm']
+        # 根据id获取用户信息
+        user = User.objects.get(index=user_index)
+        user.is_active = 1
+        user.save()
+        # 跳转到登录页面
+        return render(request, 'active.html', {'success_msg': '账号已激活'})
+    except SignatureExpired as e:
+        # 激活链接已过期
+        return render(request, 'active.html', {'error_msg': '激活链接已过期'})
+
+
+@never_cache
+def Active_resendV(request):
+    if request.method == 'POST':
+        key_ = request.POST.get('name')
+        value_ = request.POST.get('value')
+        try:
+            user = User.objects.get(**{key_: value_})
+            # 加密用户的身份信息，生成激活token
+            serializer = Serializer(settings.SECRET_KEY, 3600)
+            info = {'confirm': user.index}
+            token = serializer.dumps(info)  # bytes
+            token = token.decode('utf8')  # 解码, str
+            # 找其他人帮助我们发送邮件 celery:异步执行任务
+            # print(">>>>>>>>>>>>>> user.email: %s >>>>>>>>>>>" % user.email)
+            # print(">>>>>>>>>>>>>> user.username: %s >>>>>>>>>>>" % user.username)
+            # print(">>>>>>>>>>>>>> token: %s >>>>>>>>>>>" % token)
+            send_register_active_email(user.email, user.username, token)
+            return JsonResponse({'success_msg': '激活邮件发送成功！请注意查收，激活账号后登录。'})
+        except User.DoesNotExist:
+            return JsonResponse({'error_msg': '用户不存在，请重新输入。'})
+    else:
+        return render(request, 'active_resend.html')

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>激活确认</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <h4>激活确认</h4>
+        {% if success_msg %}
+            <p>
+                你的账号已成功激活。现在你可以进行登录。
+            </p>
+            <a href="{% url 'login' %}">返回登录页面</a>
+        {% elif error_msg %}
+            <p>
+                你的激活链接已过期。请重新注册。
+            </p>
+            <a href="{% url 'activate_resend' %}">返回"重新发送激活邮件"页面</a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            {% if success_msg %}
+                setTimeout(
+                    function () {
+                        window.location.href = "{% url 'login' %}"
+                    }, 3000
+                );
+            {% elif error_msg %}
+                setTimeout(
+                    function () {
+                        window.location.href = "{% url 'activate_resend' %}"
+                    }, 3000
+                );
+            {% endif %}
+        })
+    </script>
+{% endblock %}

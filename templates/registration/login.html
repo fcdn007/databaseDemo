@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>用户登录</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <h4>用户登录</h4>
+        <form class="form" action="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+                {% if field.help_text %}
+                    <p class="help text-small text-muted">{{ field.help_text|safe }}</p>
+                {% endif %}
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">登录</button>
+            <input type="hidden" name="next" value="{{ next }}"/>
+        </form>
+        <div class="p-2"><span>没有账号？<a href="{% url 'register' %}">立即注册</a></span></div>
+        <div class="d-flex justify-content-start top-gap text-small">
+            <div class="p-2"><span><a href="{% url 'password_reset' %}">忘记密码？</a></span></div>
+            <div class="p-2"><span><a href="{% url 'active_resend' %}">重新发送激活邮件</a></span></div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+{% endblock %}

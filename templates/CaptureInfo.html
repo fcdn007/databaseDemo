@@ -226,7 +226,6 @@
                         location.reload();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
             });
@@ -240,7 +239,7 @@
                         location.reload()
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR)
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
             });

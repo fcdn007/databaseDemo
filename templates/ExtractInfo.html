@@ -249,12 +249,9 @@
                                 headers: {'X-HTTP-Method-Override': 'PATCH'},
                                 success: function () {
                                     alert('POST /api/DNAInventoryInfo/ success ');
-                                    console.log('POST /api/DNAInventoryInfo/ success ');
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     alert('POST /api/DNAInventoryInfo/ error: ' + jqXHR + ';' + textStatus + ';' +
-                                        errorThrown);
-                                    console.log('POST /api/DNAInventoryInfo/ error: ' + jqXHR + ';' + textStatus + ';' +
                                         errorThrown);
                                 }
                             });
@@ -282,7 +279,6 @@
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
                                     alert('PUT error: ' + jqXHR + ';' + textStatus + ';' + errorThrown);
-                                    console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                                 }
                             });
                         }
@@ -304,7 +300,7 @@
                         location.reload()
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR)
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
             });

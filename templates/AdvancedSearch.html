@@ -67,7 +67,7 @@
                 <div class="form-group">
                     <label for="SearchNot1" class="bg-primary text-white badge badge-primary"></label>
                     <select class="form-control SearchNot" id="SearchNot1" name="SearchNot1" required="true">
-                        <option value="0" selected></option>
+                        <option value="0" selected="selected"></option>
                         <option value="1">非</option>
                     </select>
                 </div>&nbsp;&nbsp
@@ -76,7 +76,6 @@
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchModelName" id="SearchModelName1" name="SearchModelName1"
                             required="true">
-
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
@@ -84,7 +83,6 @@
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchFieldName" id="SearchFieldName1" name="SearchFieldName1"
                             required="true">
-
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
@@ -92,7 +90,7 @@
                     </label>&nbsp
                     <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre1"
                             name="SearchFieldValuePre1" required="true">
-                        <option value="exact" selected>等于(大小写严格匹配)</option>
+                        <option value="exact" selected="selected">等于(大小写严格匹配)</option>
                         <option value="iexact">等于(忽略大小写)</option>
                         <option value="contains">包含(大小写严格匹配)</option>
                         <option value="icontains">包含(忽略大小写)</option>
@@ -110,7 +108,7 @@
                 <div class="form-group">
                     <label for="SearchNot2" class="bg-primary text-white badge badge-primary"></label>
                     <select class="form-control SearchNot" id="SearchNot2" name="SearchNot2">
-                        <option value="0" selected></option>
+                        <option value="0" selected="selected"></option>
                         <option value="1">非</option>
                     </select>
                 </div>&nbsp;&nbsp
@@ -118,14 +116,12 @@
                     <label for="SearchModelName2" class="bg-primary text-white badge badge-primary"><h6>查询字表</h6>
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchModelName" id="SearchModelName2" name="SearchModelName2">
-
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
                     <label for="SearchFieldName2" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6>
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchFieldName" id="SearchFieldName2" name="SearchFieldName2">
-
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
@@ -133,7 +129,7 @@
                     </label>&nbsp
                     <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre2"
                             name="SearchFieldValuePre2" required="true">
-                        <option value="exact" selected>等于(大小写严格匹配)</option>
+                        <option value="exact" selected="selected">等于(大小写严格匹配)</option>
                         <option value="iexact">等于(忽略大小写)</option>
                         <option value="contains">包含(大小写严格匹配)</option>
                         <option value="icontains">包含(忽略大小写)</option>
@@ -151,7 +147,7 @@
                 <div class="form-group">
                     <label for="SearchNot3" class="bg-primary text-white badge badge-primary"></label>
                     <select class="form-control SearchNot" id="SearchNot3" name="SearchNot3">
-                        <option value="0" selected></option>
+                        <option value="0" selected="selected"></option>
                         <option value="1">非</option>
                     </select>
                 </div>&nbsp;&nbsp
@@ -166,7 +162,6 @@
                     <label for="SearchFieldName2" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6>
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchFieldName" id="SearchFieldName3" name="SearchFieldName3">
-
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
@@ -174,7 +169,7 @@
                     </label>&nbsp
                     <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre3"
                             name="SearchFieldValuePre3" required="true">
-                        <option value="exact" selected>等于(大小写严格匹配)</option>
+                        <option value="exact" selected="selected">等于(大小写严格匹配)</option>
                         <option value="iexact">等于(忽略大小写)</option>
                         <option value="contains">包含(大小写严格匹配)</option>
                         <option value="icontains">包含(忽略大小写)</option>
@@ -192,11 +187,10 @@
                 <button id='textareaAdd' class="btn btn-success">添加到查询文本框</button>&nbsp;&nbsp
                 <button id='conditionAdd' class="btn btn-success">添加过滤条件</button>
             </div>
-
-
         </form>
         <br>
         <form id="searchForm3" role="form" class="border-top border-info">
+            {% csrf_token %}
             <div class="form-group">
                 <p class="bg-primary text-white">
                     &nbsp;&nbsp <label class="bg-primary text-white" for="SearchText"> 查询文本集合</label></p>
@@ -263,8 +257,8 @@
                     'DNAInventoryInfo': ['DNA提取总量(ng)', '成功建库使用量(ng)', '失败建库使用量(ng)',
                         '科研项目使用量(ng)', '其他使用量(ng)', '剩余量(ng)'],
                     'LibraryInfo': ['管上编号', '是否临床', '文库名', '样本标签', 'index列表', '建库日期', '建库方法',
-                        '试剂批次', '建库-样本浓度', '建库-起始量', '建库-PCR循环数', '建库-文库浓度', '建库-文库体积',
-                        '建库-操作人', '建库信息-备注'],
+                        '试剂批次', '建库-起始量', '建库-PCR循环数', '建库-文库浓度', '建库-文库体积', '建库-操作人',
+                        '建库信息-备注'],
                     'CaptureInfo': ['杂交日期', '杂交探针', '捕获文库-杂交时间(min)', '捕获文库-PostPCR循环数',
                         '捕获文库-PostPCR浓度(ng/ul)', '捕获文库-洗脱体积(ul)', '捕获文库-操作人', '捕获文库-备注'],
                     'PoolingInfo': ['pooling比例', 'pooling取样(ng)', 'pooling体积(ul)', 'pooling信息-备注'],
@@ -304,7 +298,7 @@
                     'DNAUsageRecordInfo': ['LB_date', 'mass', 'usage', 'singleLB_id', 'others'],
                     'DNAInventoryInfo': ['totalM', 'successM', 'failM', 'researchM', 'othersM', 'remainM'],
                     'LibraryInfo': ['tube_id', 'clinical_boolen', 'singleLB_name', 'label', 'barcodes', 'LB_date',
-                        'LB_method', 'kit_batch', 'con', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol', 'operator',
+                        'LB_method', 'kit_batch', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol', 'operator',
                         'others'],
                     'CaptureInfo': ['hybrid_date', 'probes', 'hybrid_min', 'postpcr_cycles', 'postpcr_con',
                         'elution_vol', 'operator', 'others'],
@@ -397,20 +391,15 @@
                     let name = $('#SearchFieldName' + i).val(); //获取查询字段
                     let valuePre = $('#SearchFieldValuePre' + i).val(); //获取查询字段值
                     let value = $('#SearchFieldValue' + i).val(); //获取查询字段值
-                    console.log('i: ' + i + '; not: ' + not + '; model: ' + model + '; name: ' + name + '; valuePre: '
-                        + valuePre + '; value: ' + value);
                     if (!model && !name && !value) {
-                        console.log('do nothing');
                         // do nothing
                     } else {
-                        console.log('pre text:' + text);
                         if (!text) {
                             text = '(' + not + "\t" + model + "\t" + name + "\t" + valuePre + "\t" + value + ')';
                         } else {
                             text += ' AND (' + not + "\t" + model + "\t" + name + "\t" + valuePre + "\t" +
                                 value + ')';
                         }
-                        console.log('after text:' + text);
                     }
                 }
 
@@ -444,9 +433,7 @@
             // 实现"查询"按钮的功能
             $('#textareaSubmit').click(function (e) {
                 e.preventDefault();
-                console.log('#textareaSubmit begin');
                 $("#resetTable").empty(); //再次click后，先将datatable删除
-                console.log('#textareaSubmit stop1');
                 // 获取想要查询的表
                 let models = [];
                 $("input[name='searchModels']:checked").each(function (i) {
@@ -454,68 +441,40 @@
                 });
                 // 根据查询模型生成table列标题，前面列固定为连接字段数组(['样本编号', 'DNA提取编号', '建库编号',
                 // 'pooling号', '文库编号', '测序编号'])中的元素，后面为各表自定义字段
-                console.log('#textareaSubmit stop2');
-                console.log(models);
                 let tableLinkCol = []; // 记录有效的连接字段数组元素
                 let tableNormalCol = []; // 记录各表自定义字段
                 let returnCols = []; // 构建request返回数据对应的col数组
                 let htmlStr = ""; // 储存生成的html代码
                 htmlStr = '<table id="table_id" class="display"><thead><tr id="tableColName">';
-                console.log('#textareaSubmit stop3');
                 let forlist = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo',
                     'LibraryInfo', 'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo'];
                 for (let i in forlist) {
-                    console.log(forlist[i]);
                     if (models.indexOf(forlist[i]) > -1) {
-                        console.log('models.indexOf(forlist[i])>-1');
                         for (let j in modelLabel['normal'][forlist[i]]) {
-                            console.log(modelLabel['normal'][forlist[i]][j]);
                             tableNormalCol.push(modelLabel['normal'][forlist[i]][j]);
                         }
                         for (let j in modelLabel['link'][forlist[i]]) {
                             if (tableLinkCol.indexOf(modelLabel['link'][forlist[i]][j]) == -1) {
                                 tableLinkCol.push(modelLabel['link'][forlist[i]][j]);
-                                console.log(modelLabel['link'][forlist[i]][j]);
                             }
                         }
                     }
                 }
-                console.log('#textareaSubmit stop4');
                 for (let i = 0; i < tableLinkCol.length; i++) {
                     htmlStr += '<th>' + tableLinkCol[i] + '</th>';
                     returnCols.push({"data": "link" + i});
-                    console.log('returnCols add: ' + "link" + i);
                 }
-                console.log('#textareaSubmit stop5');
                 for (let i = 0; i < tableNormalCol.length; i++) {
                     htmlStr += '<th>' + tableNormalCol[i] + '</th>';
                     returnCols.push({"data": "normal" + i});
-                    console.log('returnCols add: ' + "normal" + i);
                 }
-                console.log('#textareaSubmit stop6');
-                console.log(returnCols.length);
                 htmlStr += '</tr></thead></table>';
                 $("#resetTable").append(htmlStr); //插入html代码
-                console.log('#textareaSubmit stop7');
-                console.log(htmlStr);
                 // 构建data，用于get
                 let requestData = {
                     modellist: models.join(', '),
                     queryset: $("#SearchText").val()
                 };
-                console.log('#textareaSubmit stop8');
-                console.log('requestData: ' + requestData);
-                console.log("{% url 'AdvancedSearch' %}");
-                //let returnD = $.ajax({
-                //    url: "{% url 'AdvancedSearch' %}", headers: {'X-HTTP-Method-Override': 'PATCH'},
-                //    async: false, type:'post', data: requestData, dataType:'json',
-                //    beforeSend: function (xhr, settings) {
-                //        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                //            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                //        }
-                //    }
-                //});
-                //console.log(returnD);
                 // 使用ajax跟后端进行交互，获取数据后生成datatables
                 let table = $('#table_id').DataTable({
                     "language": {
@@ -589,7 +548,6 @@
                     },
                     "columns": returnCols
                 });
-                console.log('#textareaSubmit stop9');
             });
         })
 

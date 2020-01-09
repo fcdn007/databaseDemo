@@ -38,10 +38,10 @@
                 <a class="nav-link dropdown-toggle" id="navbardrop" data-toggle="dropdown"
                    style="margin: 0 20px">样本管理</a>
                 <div class="dropdown-menu">
-                    <a class="dropdown-item" href="{% url 'ClinicalInfo' %}">样本临床信息</a>
-                    <a class="dropdown-item" href="{% url 'ExtractInfo' %}">样本DNA提取信息</a>
-                    <a class="dropdown-item" href="{% url 'DNAUsageRecordInfo' %}">样本DNA使用记录</a>
-                    <a class="dropdown-item" href="{% url 'DNAInventoryInfo' %}">样本DNA库存</a>
+                    <a class="dropdown-item" href="{% url 'Main_model' re_model='Clinical' %}">样本临床信息</a>
+                    <a class="dropdown-item" href="{% url 'Main_model' re_model='Extract' %}">样本DNA提取信息</a>
+                    <a class="dropdown-item" href="{% url 'Main_model' re_model='DNAUsageRecord' %}">样本DNA使用记录</a>
+                    <a class="dropdown-item" href="{% url 'Main_model' re_model='DNAInventory' %}">样本DNA库存</a>
                 </div>
             </li>
             <li class="nav-item dropdown">
@@ -49,9 +49,9 @@
                    style="margin: 0 20px">文库管理</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="{% url 'LibraryInfo' %}">样本建库信息</a>
-                        <a class="dropdown-item" href="{% url 'CaptureInfo' %}">捕获文库信息</a>
-                        <a class="dropdown-item" href="{% url 'PoolingInfo' %}">Pooling映射</a>
+                        <a class="dropdown-item" href="{% url 'Main_model' re_model='Library' %}">样本建库信息</a>
+                        <a class="dropdown-item" href="{% url 'Main_model' re_model='Capture' %}">捕获文库信息</a>
+                        <a class="dropdown-item" href="{% url 'Main_model' re_model='Pooling' %}">Pooling映射</a>
                     </div>
                 </div>
             </li>
@@ -60,8 +60,8 @@
                    style="margin: 0 20px">测序管理</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="{% url 'SequencingInfo' %}">测序上机信息</a>
-                        <a class="dropdown-item" href="{% url 'QCInfo' %}">样本测序质控信息</a>
+                        <a class="dropdown-item" href="{% url 'Main_model' re_model='Sequencing' %}">测序上机信息</a>
+                        <a class="dropdown-item" href="{% url 'Main_model' re_model='QC' %}">样本测序质控信息</a>
                     </div>
                 </div>
             </li>
@@ -81,8 +81,9 @@
                    style="margin: 0 20px">用户管理</a>
                 <div class="nav-link navbar-collapse" id="collapsibleNavbar1">
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">登陆/注册</a>
-                        <a class="dropdown-item" href="#">用户信息</a>
+                        <a class="dropdown-item" href="{% url 'index' %}">登录/注册</a>
+                        <a class="dropdown-item" href="{% url 'Main_model' re_model='User' %}">用户信息</a>
+                        <a class="dropdown-item" href="{% url 'logout' %}">退出</a>
                     </div>
                 </div>
             </li>
@@ -91,7 +92,24 @@
     </nav>
 
     {% block content %}
-
+        <div class="jumbotron">
+            <h1>甲基化早筛项目数据库管理系统Demo</h1>
+            {% if user.is_authenticated %}
+                <p>你已登录，欢迎你：<a href="{% url 'Main_model' re_model='User' %}">{{ user.username }}</a></p>
+                <button class="btn btn-default"><a href="{% url 'logout' %}?next={{ request.path }}">注销登录</a>
+                </button>
+                <button class="btn btn-default"><a href="{% url 'password_change' %}?next={{ request.path }}">修改密码</a>
+                </button>
+            {% else %}
+                <p>你还没有登录，请
+                    <button class="btn btn-default"><a href="{% url 'login' %}?next={{ request.path }}">登录</a>
+                    </button>
+                    或者
+                    <button class="btn btn-default"><a href="{% url 'register' %}?next={{ request.path }}">注册</a>
+                    </button>
+                </p>
+            {% endif %}
+        </div>
     {% endblock %}
 
     {% block button %}
@@ -123,7 +141,7 @@
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
 <script>
     $.ajaxSetup({
-        data: {'csrfmiddlewaretoken': '{{ csrf_token }}'},
+        headers: {"X-CSRFToken": '{{csrf_token}}'}
     });
 
     function changeThreeDecimal_f(x) {

@@ -1,6 +1,7 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 
-from .models import UploadFile
+from .models import UploadFile, User
 
 
 class FileUploadModelForm(forms.ModelForm):
@@ -21,3 +22,9 @@ class FileUploadModelForm(forms.ModelForm):
             raise forms.ValidationError("只允许上传以下格式文件：txt, csv and xlsx。")
         # return cleaned data is very important.
         return super().clean()
+
+
+class RegisterForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username", "nick_name", "email")

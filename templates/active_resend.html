@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}
+    <title>重新发送激活邮件</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <h4>重新发送激活邮件</h4>
+        <form>
+            {% csrf_token %}
+
+            <select id="name" required="true">
+                <option value="username" selected="selected">用户名</option>
+                <option value="nick_name">昵称</option>
+                <option value="email">邮箱地址</option>
+            </select>
+            <input type="text" id="value" placeholder="请输入" required="true">
+
+        </form>
+        <button type="submit" id="resendSubmit" class="btn btn-primary btn-block">提交</button>
+        <p id="resendError"></p>
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            $('#resendSubmit').click(function (e) {
+                e.preventDefault();
+                let data_tmp = {
+                    'name': $("#name").val(),
+                    'value': $("#value").val(),
+                };
+                $.ajax({
+                    url: {% url 'active_resend' %},
+                    data: data_tmp,
+                    method: 'POST',
+                    async: false,
+                    success: function (data) {
+                        if (data['error_msg']) {
+                            $('#resendError').text('重新发送激活邮件失败。原因：' + data['error_msg']);
+                        } else {
+                            $('#resendError').text(data['success_msg']);
+                            setTimeout(
+                                function () {
+                                    window.location.href = "{% url 'login' %}"
+                                }, 3000
+                            );
+                        }
+                    },
+                    dataType: 'json'
+                });
+            });
+        })
+
+    </script>
+{% endblock %}

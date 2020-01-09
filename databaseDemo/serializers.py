@@ -56,7 +56,7 @@ class LibraryInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = LibraryInfo
         fields = ('singleLB_id', 'sample_id', 'dna_id', 'tube_id', 'clinical_boolen', 'singleLB_name', 'label',
-                  'barcodes', 'LB_date', 'LB_method', 'kit_batch', 'con', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol',
+                  'barcodes', 'LB_date', 'LB_method', 'kit_batch', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol',
                   'operator', 'others', 'index', 'last_modify_date', 'created')
 
 
@@ -109,3 +109,9 @@ class QCInfoSerializer(serializers.ModelSerializer):
                   'panel_uniformity_site_20_mean_field', 'strand_balance_f_field', 'strand_balance_r_field',
                   'gc_bin_depth_ratio', 'sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id',
                   'sequencing_id', 'others', 'index', 'last_modify_date', 'created')
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("username", "nick_name", "email", "password")

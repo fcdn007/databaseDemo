@@ -59,7 +59,7 @@
     <div class="form-group">
         <label for="gender"> 性别</label>
         <select class="form-control" id="gender" name="gender" required="true">
-            <option value="男">男</option>
+            <option value="男" selected="selected">男</option>
             <option value="女">女</option>
         </select>
     </div>
@@ -322,7 +322,7 @@
                         location.reload()
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR)
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
             });
