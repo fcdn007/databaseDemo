@@ -62,7 +62,18 @@
                 dom: 'lB<"clear">frtip',
                 buttons: [
                     {
-                        text: '显示列', extend: 'colvis',
+                        extend: 'colvisGroup',
+                        text: '显示前5列',
+                        show: [0, 1, 2, 3, 4, 5],
+                        hide: [6, 7, 8, 9, 10]
+                    },
+                    {
+                        extend: 'colvisGroup',
+                        text: '显示全部列',
+                        show: ':hidden',
+                    },
+                    {
+                        text: '指定显示列', extend: 'colvis',
                         postfixButtons: ['colvisRestore'],
                         columnText: function (dt, idx, title) {
                             return (idx + 1) + ': ' + title;
@@ -123,6 +134,7 @@
                     {"data": "created"}
                 ]
             });
+            table.button(0).trigger();
 
         })
 

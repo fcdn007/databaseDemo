@@ -9,16 +9,74 @@
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
 
         <h4>用户信息</h4>
-        <ul>
-            <li><span>用户名：</span>{{ user.username }}</li>
-            <li><span>昵称：</span>{{ user.nick_name }}</li>
-            <li><span>邮箱地址：</span>{{ user.email }}</li>
-        </ul>
-
-
+        <form id="infoForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username"> 用户名</label>
+                <input type="text" class="form-control" id="username" name="username">
+            </div>
+            <div class="form-group">
+                <label for="nick_name"> 昵称</label>
+                <input type="text" class="form-control" id="nick_name" name="nick_name">
+            </div>
+            <div class="form-group">
+                <label for="email"> 邮箱地址</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+            <button type="button" class="btn btn-primary"
+                    id="reset">重置
+            </button>&nbsp;&nbsp;
+            <button type="submit" class="btn btn-info"
+                    id="editSubmit">递交修改
+            </button>
+        </form>
+        <p id="editError"></p>
     </div>
 {% endblock %}
 
 
 {% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            let user = $.ajax({
+                url: '/api/UserInfo/', dataType: 'json', contentType: "application/json",
+                type: "get", async: false, data: {username: "{{ user.username }}"}
+            }).responseJSON[0];
+
+            let resetFunc = function () {
+                $.each(['username', 'nick_name', 'email'], function (index_, value_) {
+                    $('#' + value_).val(user[value_]);
+                });
+            };
+
+            resetFunc();
+
+            $('#reset').click(function (e) {
+                e.preventDefault();
+                resetFunc();
+            });
+
+            $('#registerSubmit').click(function (e) {
+                e.preventDefault();
+                user['username'] = $('#username').val();
+                user['nick_name'] = $('#nick_name').val();
+                user['email'] = $('#email').val();
+                let data_tmp = $.param(user);
+                $.ajax({
+                    url: '/api/UserInfo/' + {{ user.index }} +'/',
+                    data: data_tmp,
+                    method: 'PUT',
+                    headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown);
+                        $('#editError').text('修改失败');
+                    }
+                });
+            });
+        })
+
+    </script>
 {% endblock %}

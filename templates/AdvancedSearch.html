@@ -7,10 +7,10 @@
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
-        <h4>高级查询</h4>
+        <h4>高级查询</h4><br>
         <form id="searchForm1" role="form">
             <div class="form-group">
-                <p class="bg-primary text-white">
+                <p class="bg-primary text-white mb-1">
                     &nbsp;&nbsp<label for="searchModels"> 查询表</label>
                 </p>
                 <div>
@@ -58,19 +58,28 @@
                                    value="QCInfo" name="searchModels"> 样本测序质控信息
                         </label>
                     </div>
-                    <br>
                 </div>
             </div>
+            <button type="button" class="btn btn-success" id="tableSet1">选取样本管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-success" id="tableSet2">选取文库管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-success" id="tableSet3">选取测序管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-success" id="tableSet4">选取所有表</button>
         </form>
+        <br>
+
         <form id="searchForm2" role="form">
+            <div class="form-inline mb-1">
+                <button id='textareaAdd' class="btn btn-success">添加到查询文本框</button>&nbsp;&nbsp
+                <button id='conditionAdd' class="btn btn-success">添加过滤条件</button>
+            </div>
             <div class="form-inline search_condition" id="condition1">
-                <div class="form-group">
-                    <label for="SearchNot1" class="bg-primary text-white badge badge-primary"></label>
-                    <select class="form-control SearchNot" id="SearchNot1" name="SearchNot1" required="true">
-                        <option value="0" selected="selected"></option>
-                        <option value="1">非</option>
-                    </select>
-                </div>&nbsp;&nbsp
+                <span class="text-info">过滤子条件1</span>&nbsp;&nbsp;<div class="form-group">
+                <label for="SearchNot1" class="bg-primary text-white badge badge-primary"></label>
+                <select class="form-control SearchNot" id="SearchNot1" name="SearchNot1" required="true">
+                    <option value="0" selected="selected"></option>
+                    <option value="1">非</option>
+                </select>
+            </div>&nbsp;&nbsp
                 <div class="form-group">
                     <label for="SearchModelName1" class="bg-primary text-white badge badge-primary"><h6>查询字表</h6>
                     </label>&nbsp;&nbsp
@@ -104,95 +113,12 @@
                            placeholder="请输入查询字段值">
                 </div>
             </div>
-            <div class="form-inline search_condition" id="condition2">
-                <div class="form-group">
-                    <label for="SearchNot2" class="bg-primary text-white badge badge-primary"></label>
-                    <select class="form-control SearchNot" id="SearchNot2" name="SearchNot2">
-                        <option value="0" selected="selected"></option>
-                        <option value="1">非</option>
-                    </select>
-                </div>&nbsp;&nbsp
-                <div class="form-group">
-                    <label for="SearchModelName2" class="bg-primary text-white badge badge-primary"><h6>查询字表</h6>
-                    </label>&nbsp;&nbsp
-                    <select class="form-control SearchModelName" id="SearchModelName2" name="SearchModelName2">
-                    </select>
-                </div>&nbsp;&nbsp
-                <div class="form-group">
-                    <label for="SearchFieldName2" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6>
-                    </label>&nbsp;&nbsp
-                    <select class="form-control SearchFieldName" id="SearchFieldName2" name="SearchFieldName2">
-                    </select>
-                </div>&nbsp;&nbsp
-                <div class="form-group">
-                    <label for="SearchFieldValue2" class="bg-primary text-white badge badge-primary"><h6>查询字段值</h6>
-                    </label>&nbsp
-                    <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre2"
-                            name="SearchFieldValuePre2" required="true">
-                        <option value="exact" selected="selected">等于(大小写严格匹配)</option>
-                        <option value="iexact">等于(忽略大小写)</option>
-                        <option value="contains">包含(大小写严格匹配)</option>
-                        <option value="icontains">包含(忽略大小写)</option>
-                        <option value="gt">大于</option>
-                        <option value="gte">大于等于</option>
-                        <option value="lt">小于</option>
-                        <option value="lte">小于等于</option>
-                    </select>&nbsp
-                    <input type="text" class="form-control SearchFieldValue" id="SearchFieldValue2"
-                           name="SearchFieldValue2"
-                           placeholder="请输入查询字段值">
-                </div>
-            </div>
-            <div class="form-inline search_condition" id="condition3">
-                <div class="form-group">
-                    <label for="SearchNot3" class="bg-primary text-white badge badge-primary"></label>
-                    <select class="form-control SearchNot" id="SearchNot3" name="SearchNot3">
-                        <option value="0" selected="selected"></option>
-                        <option value="1">非</option>
-                    </select>
-                </div>&nbsp;&nbsp
-                <div class="form-group">
-                    <label for="SearchModelName3" class="bg-primary text-white badge badge-primary"><h6>查询字表</h6>
-                    </label>&nbsp;&nbsp
-                    <select class="form-control SearchModelName" id="SearchModelName3" name="SearchModelName3">
-
-                    </select>
-                </div>&nbsp;&nbsp
-                <div class="form-group">
-                    <label for="SearchFieldName2" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6>
-                    </label>&nbsp;&nbsp
-                    <select class="form-control SearchFieldName" id="SearchFieldName3" name="SearchFieldName3">
-                    </select>
-                </div>&nbsp;&nbsp
-                <div class="form-group">
-                    <label for="SearchFieldValue3" class="bg-primary text-white badge badge-primary"><h6>查询字段值</h6>
-                    </label>&nbsp
-                    <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre3"
-                            name="SearchFieldValuePre3" required="true">
-                        <option value="exact" selected="selected">等于(大小写严格匹配)</option>
-                        <option value="iexact">等于(忽略大小写)</option>
-                        <option value="contains">包含(大小写严格匹配)</option>
-                        <option value="icontains">包含(忽略大小写)</option>
-                        <option value="gt">大于</option>
-                        <option value="gte">大于等于</option>
-                        <option value="lt">小于</option>
-                        <option value="lte">小于等于</option>
-                    </select>&nbsp
-                    <input type="text" class="form-control SearchFieldValue" id="SearchFieldValue3"
-                           name="SearchFieldValue3"
-                           placeholder="请输入查询字段值">
-                </div>
-            </div>
-            <div class="form-inline">
-                <button id='textareaAdd' class="btn btn-success">添加到查询文本框</button>&nbsp;&nbsp
-                <button id='conditionAdd' class="btn btn-success">添加过滤条件</button>
-            </div>
         </form>
         <br>
         <form id="searchForm3" role="form" class="border-top border-info">
             {% csrf_token %}
             <div class="form-group">
-                <p class="bg-primary text-white">
+                <p class="bg-primary text-white mb-1">
                     &nbsp;&nbsp <label class="bg-primary text-white" for="SearchText"> 查询文本集合</label></p>
                 <textarea class="form-control" rows="3" id="SearchText" name="SearchText"></textarea>
             </div>
@@ -216,8 +142,108 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            $('#condition2').hide();
-            $('#condition3').hide();
+            for (let i = 2; i <= 10; i++) {
+                let str = '<div class="form-inline search_condition" id="condition' + i + '">';
+                str += '<span class="text-info">过滤子条件' + i + '</span>&nbsp;&nbsp;<div class="form-group">' +
+                    '<label for="SearchNot' + i + '" class="bg-primary text-white badge ' + 'badge-primary"></label>' +
+                    '<select class="form-control ' + 'SearchNot" id="SearchNot' + i + '" ' + 'name="SearchNot' + i
+                    + '"><option value="0" ' + 'selected="selected"></option><option value="1">非' +
+                    '</option></select></div>&nbsp;&nbsp;';
+                str += '<div class="form-group"><label for="SearchModelName' + i + '" class="bg-primary text-white ' +
+                    'badge badge-primary"><h6>查询字表</h6></label>&nbsp;&nbsp<select class="form-control ' +
+                    'SearchModelName" id="SearchModelName' + i + '" name="SearchModelName' + i + '"></select>' +
+                    '</div>&nbsp;&nbsp;';
+                str += '<div class="form-group"><label for="SearchFieldName' + i + '" class="bg-primary text-white ' +
+                    'badge badge-primary"><h6>查询字段</h6></label>&nbsp;&nbsp<select class="form-control ' +
+                    'SearchFieldName" id="SearchFieldName' + i + '" name="SearchFieldName' + i + '"></select>' +
+                    '</div>&nbsp;&nbsp;';
+                str += '<div class="form-group"><label for="SearchFieldValue' + i + '" class="bg-primary text-white ' +
+                    'badge badge-primary"><h6>查询字段值</h6></label>&nbsp<select class="form-control ' +
+                    'SearchFieldValuePre" id="SearchFieldValuePre' + i + '" name="SearchFieldValuePre' + i +
+                    '" required="true"><option value="exact" selected="selected">等于(大小写严格匹配)</option>' +
+                    '<option value="iexact">等于(忽略大小写)</option><option value="contains">包含(大小写严格匹配)' +
+                    '</option><option value="icontains">包含(忽略大小写)</option><option value="gt">大于</option>' +
+                    '<option value="gte">大于等于</option><option value="lt">小于</option><option value="lte">小于等于' +
+                    '</option></select>&nbsp;';
+                str += '<input type="text" class="form-control SearchFieldValue" id="SearchFieldValue' + i + '" ' +
+                    'name="SearchFieldValue' + i + '" placeholder="请输入查询字段值"></div></div>';
+                $('#searchForm2').append(str);
+                $('#condition' + i).hide();
+            }
+            // 选取样本管理表集合 按钮功能
+            $('#tableSet1').click(function (e) {
+                    e.preventDefault();
+                    $(this).button('toggle');
+                    $(this).blur();
+                    $.each(['ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo'], function (index_, value_) {
+                        let str_ = '#search' + value_;
+                        if ($(str_).prop("checked")) {
+                            $(str_).prop("checked", false);
+                        } else {
+                            $(str_).prop("checked", true);
+                        }
+                    });
+                    let str_ = '#searchClinicalInfo';
+                    if ($('#searchDNAInventoryInfo').prop("checked")) {
+                        $(str_).prop("checked", true);
+                    } else {
+                        $(str_).prop("checked", false);
+                    }
+                }
+            );
+            // 选取文库管理表集合 按钮功能
+            $('#tableSet2').click(function (e) {
+                    e.preventDefault();
+                    $(this).button('toggle');
+                    $(this).blur();
+                    $.each(['LibraryInfo', 'CaptureInfo', 'PoolingInfo'], function (index_, value_) {
+                        let str_ = '#search' + value_;
+                        if ($(str_).prop("checked")) {
+                            $(str_).prop("checked", false);
+                        } else {
+                            $(str_).prop("checked", true);
+                        }
+                    });
+                }
+            );
+            // 选取测序管理表集合 按钮功能
+            $('#tableSet3').click(function (e) {
+                    e.preventDefault();
+                    $(this).button('toggle');
+                    $(this).blur();
+                    $.each(['SequencingInfo', 'QCInfo'], function (index_, value_) {
+                        let str_ = '#search' + value_;
+                        if ($(str_).prop("checked")) {
+                            $(str_).prop("checked", false);
+                        } else {
+                            $(str_).prop("checked", true);
+                        }
+                    });
+                }
+            );
+            // 选取所有表集合 按钮功能
+            $('#tableSet4').click(function (e) {
+                    e.preventDefault();
+                    $(this).button('toggle');
+                    $(this).blur();
+                    $.each(['ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo',
+                        'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo'
+                    ], function (index_, value_) {
+                        let str_ = '#search' + value_;
+                        if ($(str_).prop("checked")) {
+                            $(str_).prop("checked", false);
+                        } else {
+                            $(str_).prop("checked", true);
+                        }
+                    });
+                    let str_ = '#searchClinicalInfo';
+                    if ($('#searchQCInfo').prop("checked")) {
+                        $(str_).prop("checked", true);
+                    } else {
+                        $(str_).prop("checked", false);
+                    }
+                }
+            );
             // 查询字表下拉选框
             let models2label = {
                 ClinicalInfo: '样本临床信息',
@@ -369,14 +395,12 @@
             //});
 
             // 实现"添加过滤条件"按钮的功能
-            let conditionAdd = 0;
+            let conditionAdd = 1;
             $('#conditionAdd').click(function (e) {
                 e.preventDefault();
                 conditionAdd += 1;
-                if (conditionAdd === 1) {
-                    $('#condition2').show();
-                } else if (conditionAdd === 2) {
-                    $('#condition3').show();
+                $('#condition' + conditionAdd).show();
+                if (conditionAdd === 10) {
                     $('#conditionAdd').attr("disabled", true);
                 }
             });
@@ -417,10 +441,10 @@
                 $('.search_condition .SearchFieldName').empty();
                 $('.search_condition .SearchFieldValuePre').val('exact');
                 $('.search_condition .SearchFieldValue').val("");
-                $('#condition2').hide();
-                $('#condition3').hide();
                 // 复位"添加过滤条件"按钮
-                conditionAdd = 0;
+                for (; conditionAdd > 1; conditionAdd--) {
+                    $('#condition' + conditionAdd).hide();
+                }
                 $('#conditionAdd').attr("disabled", false);
             });
 

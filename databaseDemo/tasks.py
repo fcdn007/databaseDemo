@@ -17,7 +17,7 @@ def send_register_active_email(to_email, username, token):
     receiver = [to_email]
     html_message = '<h1>%s, 欢迎您成为甲基化早筛项目数据库管理系统Demo注册成员</h1>请点击下面链接激活您的账户<br/>' \
                    '<a href="http://%s:8000/active/%s">http://%s:8000/active/%s</a>' % \
-                   (SERVER_HOST, SERVER_HOST, username, token, token)
+                   (username, SERVER_HOST, token, SERVER_HOST, token)
 
     send_mail(subject, message, sender, receiver, html_message=html_message)
     return True

@@ -18,7 +18,6 @@ from .tasks import send_register_active_email
 def index(request):
     return render(request, 'base.html')
 
-
 def get_queryset_base(model_, query_params_):
     query_params = {}
     tmp_dict = query_params_.dict()
@@ -37,7 +36,6 @@ def get_queryset_base(model_, query_params_):
     else:
         queryset = model_.objects.all()
         return queryset
-
 
 class ClinicalInfoViewSet(viewsets.ModelViewSet):
     queryset = ClinicalInfo.objects.all()
@@ -63,13 +61,13 @@ class DNAUsageRecordInfoViewSet(viewsets.ModelViewSet):
         return get_queryset_base(DNAUsageRecordInfo, self.request.query_params)
 
 
+
 class DNAInventoryInfoViewSet(viewsets.ModelViewSet):
     queryset = DNAInventoryInfo.objects.all()
     serializer_class = DNAInventoryInfoSerializer
 
     def get_queryset(self):
         return get_queryset_base(DNAInventoryInfo, self.request.query_params)
-
 
 class LibraryInfoViewSet(viewsets.ModelViewSet):
     queryset = LibraryInfo.objects.all()
@@ -99,14 +97,12 @@ class SequencingInfoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return get_queryset_base(SequencingInfo, self.request.query_params)
 
-
 class QCInfoViewSet(viewsets.ModelViewSet):
     queryset = QCInfo.objects.all()
     serializer_class = QCInfoSerializer
 
     def get_queryset(self):
         return get_queryset_base(QCInfo, self.request.query_params)
-
 
 class UserInfoViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -486,7 +482,6 @@ def uniqueV(request):
         data['values'] = []
     return JsonResponse(data)
 
-
 @login_required
 def AdvanceUploadV(request):
     return render(request, 'AdvancedUpload.html')
@@ -528,11 +523,14 @@ def RegisterV(request):
             # print(">>>>>>>>>>>>>> user.username: %s >>>>>>>>>>>" % user.username)
             # print(">>>>>>>>>>>>>> token: %s >>>>>>>>>>>" % token)
             send_register_active_email(user.email, user.username, token)
-
             if redirect_to:
                 return JsonResponse({'success_msg': '注册成功！请查收激活邮件，激活账号后登录。', 'next': redirect_to})
             else:
                 return JsonResponse({'success_msg': '注册成功！请查收激活邮件，激活账号后登录。', 'next': '/'})
+        else:
+            # print(">>>>>>>>>>>>>>>> form.errors: %s >>>>>>>>>>>>>>>>>" % form.errors)
+            # print(">>>>>>>>>>>>>>>> type(form.errors): %s >>>>>>>>>>>>>>>>>" % type(form.errors))
+            return JsonResponse({'form_errors': "%s" % form.errors})
     else:
         return render(request, 'register.html')
 
@@ -555,6 +553,9 @@ def ActiveV(request, token):
     except SignatureExpired as e:
         # 激活链接已过期
         return render(request, 'active.html', {'error_msg': '激活链接已过期'})
+    except:
+        # 激活链接已过期
+        return render(request, 'active.html', {'error_msg': '激活链接无效，'})
 
 
 @never_cache

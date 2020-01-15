@@ -98,7 +98,18 @@
                 dom: 'lB<"clear">frtip',
                 buttons: [
                     {
-                        text: '显示列', extend: 'colvis',
+                        extend: 'colvisGroup',
+                        text: '显示前5列',
+                        show: [0, 1, 2, 3, 4, 5, 10],
+                        hide: [6, 7, 8, 9]
+                    },
+                    {
+                        extend: 'colvisGroup',
+                        text: '显示全部列',
+                        show: ':hidden',
+                    },
+                    {
+                        text: '指定显示列', extend: 'colvis',
                         postfixButtons: ['colvisRestore'],
                         columnText: function (dt, idx, title) {
                             return (idx + 1) + ': ' + title;
@@ -129,7 +140,7 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                "serverSide": true,
+                //"serverSide": true,
                 "processing": true,
                 "ajax": "/api/DNAUsageRecordInfo/?format=datatables",
                 "columns": [
@@ -157,6 +168,7 @@
                     }
                 ]
             });
+            table.button(0).trigger();
 
             let url = '/api/DNAUsageRecordInfo/';
             let url2 = '/api/DNAInventoryInfo/';

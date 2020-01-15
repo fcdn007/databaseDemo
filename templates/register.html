@@ -47,7 +47,8 @@
             <input type="hidden" name="next" value="{{ next }}"/>
         </form>
         <p id="registerError"></p>
-
+        <div id="formError">
+        </div>
     </div>
 {% endblock %}
 
@@ -55,6 +56,12 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            $('#password1').change(function () {
+                if ($('#password2').val() === $('#password1').val()) {
+                    $('#password2Error').text('');
+                }
+            });
+
             $('#password2').change(function () {
                 if ($('#password2').val() !== $('#password1').val()) {
                     $('#password2Error').text('前后密码不一致，请重新输入正确密码。');
@@ -74,6 +81,8 @@
             });
 
             $('#registerSubmit').click(function (e) {
+                $('#registerError').text('');
+                $('#formError').empty();
                 e.preventDefault();
                 let data_tmp = $('input').serialize();
                 $.ajax({
@@ -81,9 +90,13 @@
                     data: data_tmp,
                     method: 'POST',
                     async: false,
+                    dataType: 'json',
                     success: function (data) {
                         if (data['error_msg']) {
                             $('#registerError').text('注册失败。原因：' + data['error_msg']);
+                        } else if (data['form_errors']) {
+                            $('#registerError').text('注册失败。原因：');
+                            $('#formError').append(data['form_errors']);
                         } else {
                             $('#registerError').text(data['success_msg']);
                             setTimeout(
@@ -92,8 +105,7 @@
                                 }, 3000
                             );
                         }
-                    },
-                    dataType: 'json'
+                    }
                 });
             });
 

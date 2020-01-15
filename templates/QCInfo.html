@@ -323,7 +323,23 @@
                 dom: 'lB<"clear">frtip',
                 buttons: [
                     {
-                        text: '显示列', extend: 'colvis',
+                        extend: 'colvisGroup',
+                        text: '显示前5列',
+                        show: [0, 1, 2, 3, 4, 5, 47],
+                        hide: [
+                            6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                            17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+                            27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+                            37, 38, 39, 40, 41, 42, 43, 44, 45, 46
+                        ]
+                    },
+                    {
+                        extend: 'colvisGroup',
+                        text: '显示全部列',
+                        show: ':hidden',
+                    },
+                    {
+                        text: '指定显示列', extend: 'colvis',
                         postfixButtons: ['colvisRestore'],
                         columnText: function (dt, idx, title) {
                             return (idx + 1) + ': ' + title;
@@ -354,7 +370,7 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                "serverSide": true,
+                //"serverSide": true,
                 "processing": true,
                 "ajax": "/api/QCInfo/?format=datatables",
                 "columns": [
@@ -419,6 +435,7 @@
                     }
                 ]
             });
+            table.button(0).trigger();
 
             let id = 0;
             $('#table_id tbody').on('click', 'button', function () {

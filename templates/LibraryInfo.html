@@ -70,10 +70,10 @@
     <div class="form-group">
         <label for="LB_method"> 建库方法</label>
         <select class="form-control" id="LB_method" name="LB_method" required="true">
-            <option value="Mseq-1.0">Mseq-1.0</option>
-            <option value="Mseq-2.0">Mseq-2.0</option>
-            <option value="Mseq-2.1">Mseq-2.1</option>
-            <option value="Mseq-2.2" selected="selected">Mseq-2.2</option>
+            <option value="2.2" selected="selected">2.2</option>
+            <option value="2.1">2.1</option>
+            <option value="2.0">2.0</option>
+            <option value="1.0">1.0</option>
         </select>
     </div>
     <div class="form-group">
@@ -104,8 +104,8 @@
     <div class="form-group">
         <label for="label"> 样本标签</label>
         <select type="text" class="form-control" id="label" name="label" required="true">
-            <option value="T">T</option>
             <option value="P" selected="selected">P</option>
+            <option value="T">T</option>
             <option value="Frg_gDNA">Frg_gDNA</option>
         </select>
     </div>
@@ -182,7 +182,18 @@
                 dom: 'lB<"clear">frtip',
                 buttons: [
                     {
-                        text: '显示列', extend: 'colvis',
+                        extend: 'colvisGroup',
+                        text: '显示前5列',
+                        show: [0, 1, 2, 3, 4, 5, 21],
+                        hide: [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+                    },
+                    {
+                        extend: 'colvisGroup',
+                        text: '显示全部列',
+                        show: ':hidden',
+                    },
+                    {
+                        text: '指定显示列', extend: 'colvis',
                         postfixButtons: ['colvisRestore'],
                         columnText: function (dt, idx, title) {
                             return (idx + 1) + ': ' + title;
@@ -213,7 +224,7 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                "serverSide": true,
+                //"serverSide": true,
                 "processing": true,
                 "ajax": "/api/LibraryInfo/?format=datatables",
                 "columns": [
@@ -257,6 +268,7 @@
                     }
                 ]
             });
+            table.button(0).trigger();
 
             let id = 0;
             let singleLB_id;
@@ -442,17 +454,17 @@
                 $('#dna_id').val("");
                 $('#LB_date').val("");
                 $('#mass').val("");
-                $('#LB_method').val("");
+                $('#LB_method option:first').prop("selected", 'selected');
                 $('#pcr_cycles').val("");
                 $('#LB_con').val("");
                 $('#LB_vol').val("");
                 $('#operator').val("");
                 $('#singleLB_name').val("");
-                $('#label').val("");
+                $('#label option:first').prop("selected", 'selected');
                 $('#barcodes').val("");
                 $('#others').val("");
                 $('#tube_id').val("");
-                $('#clinical_boolen').val("");
+                $('#clinical_boolen option:first').prop("selected", 'selected');
                 $('#kit_batch').val("");
                 $('#type').val('new');
                 $('#modal_title').text('新增');
