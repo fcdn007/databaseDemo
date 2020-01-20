@@ -1,5 +1,7 @@
+import datetime
 import re
 
+import numpy as np
 import pandas as pd
 from django.forms.models import model_to_dict
 
@@ -540,3 +542,68 @@ KEY1_TO_MODEL = {
     'SequencingInfo': SequencingInfo,
     'QCInfo': QCInfo
 }
+
+
+def list2array(l, names):
+    array = []
+    for i in l:
+        array.append(list(i))
+    return pd.DataFrame(array, columns=names)
+
+
+def filter_conditionFunc(df, f, vp, v, not_):
+    filter = [True] * len(df)
+    if isinstance(df[f][0], str):
+        if vp == 'exact':
+            filter = df[f] == v
+        elif vp == 'iexact':
+            filter = [True if re.match(v, str(i), flags=re.IGNORECASE) else False for i in list(df[f])]
+        elif vp == 'contains':
+            filter = [True if re.search(v, str(i)) else False for i in list(df[f])]
+        elif vp == 'icontains':
+            filter = [True if re.search(v, str(i), flags=re.IGNORECASE) else False for i in list(df[f])]
+        else:
+            filter = [True] * len(df)
+    elif isinstance(df[f][0], datetime.date):
+        d = datetime.date(1000, 1, 1)
+        m1 = re.search(r'(\d{4}).(\d{1,2}).(\d{1,2})', v)
+        m2 = re.search(r'(\d{1,2}).(\d{1,2}).(\d{4})', v)
+        if re.match(r'\d{8}', v):
+            d = datetime.date(int(v[:4]), int(v[4:6]), int(v[6:8]))
+        elif m1:
+            d = datetime.date(int(m1.group(1)), int(m1.group(2)), int(m1.group(3)))
+        elif m2:
+            d = datetime.date(int(m2.group(3)), int(m2.group(2)), int(m2.group(1)))
+        if vp == 'gt':
+            filter = df[f] > d
+        elif vp == 'gte':
+            filter = df[f] >= d
+        elif vp == 'lt':
+            filter = df[f] < d
+        elif vp == 'lte':
+            filter = df[f] <= d
+        elif vp == 'exact':
+            filter = df[f] == d
+        else:
+            filter = [True] * len(df)
+    elif isinstance(df[f][0], np.floating) or isinstance(df[f][0], np.integer):
+        v = float(v)
+        if vp == 'gt':
+            filter = df[f] > v
+        elif vp == 'gte':
+            filter = df[f] >= v
+        elif vp == 'lt':
+            filter = df[f] < v
+        elif vp == 'lte':
+            filter = df[f] <= v
+        elif vp == 'exact':
+            filter = df[f] == v
+        else:
+            filter = [True] * len(df)
+    else:
+        pass
+    if not_ == 1:
+        filter = [False if x else True for x in filter]
+    # print(">>>>>>>>>>>>> filter >>>>>>>>>>>")
+    # pprint(filter)
+    return pd.Series(data=filter)

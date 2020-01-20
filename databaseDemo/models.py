@@ -129,7 +129,6 @@ class DNAInventoryInfo(models.Model):
         db_column='样本编号',
         blank=True,
         null=True)
-
     dna_id = models.ForeignKey(
         "ExtractInfo",
         on_delete=models.CASCADE,
@@ -137,7 +136,8 @@ class DNAInventoryInfo(models.Model):
         to_field="dna_id",
         db_column='DNA提取编号',
         blank=True,
-        null=True)
+        null=True,
+        unique=True)
     totalM = models.FloatField(db_column='DNA提取总量', blank=True, null=True)
     successM = models.FloatField(db_column='成功建库使用量', blank=True, null=True)
     failM = models.FloatField(db_column='失败建库使用量', blank=True, null=True)

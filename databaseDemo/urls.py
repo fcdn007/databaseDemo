@@ -46,6 +46,7 @@ urlpatterns = [
     re_path(r'^active/(?P<token>.*)/$', views.ActiveV, name='active'),
     path('users/', include('django.contrib.auth.urls')),
     path('active_resend/', views.Active_resendV, name='active_resend'),
+    path('User_info/', views.UserInfoV, name='user_info'),
     # for rest_framework
     path('api/', include(router.urls)),
     # for rest_framework auth

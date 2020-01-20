@@ -171,34 +171,40 @@
                 $('#condition' + i).hide();
             }
             // 选取样本管理表集合 按钮功能
+            let click1 = 0;
             $('#tableSet1').click(function (e) {
                     e.preventDefault();
+                if (click1 === 0) {
+                    click1 = 1;
+                } else {
+                    click1 = 0;
+                }
                     $(this).button('toggle');
                     $(this).blur();
                     $.each(['ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo'], function (index_, value_) {
                         let str_ = '#search' + value_;
-                        if ($(str_).prop("checked")) {
+                        if (click1 === 0) {
                             $(str_).prop("checked", false);
                         } else {
                             $(str_).prop("checked", true);
                         }
                     });
-                    let str_ = '#searchClinicalInfo';
-                    if ($('#searchDNAInventoryInfo').prop("checked")) {
-                        $(str_).prop("checked", true);
-                    } else {
-                        $(str_).prop("checked", false);
-                    }
                 }
             );
             // 选取文库管理表集合 按钮功能
+            let click2 = 0;
             $('#tableSet2').click(function (e) {
                     e.preventDefault();
+                if (click2 === 0) {
+                    click2 = 1;
+                } else {
+                    click2 = 0;
+                }
                     $(this).button('toggle');
                     $(this).blur();
                     $.each(['LibraryInfo', 'CaptureInfo', 'PoolingInfo'], function (index_, value_) {
                         let str_ = '#search' + value_;
-                        if ($(str_).prop("checked")) {
+                        if (click2 === 0) {
                             $(str_).prop("checked", false);
                         } else {
                             $(str_).prop("checked", true);
@@ -207,13 +213,19 @@
                 }
             );
             // 选取测序管理表集合 按钮功能
+            let click3 = 0;
             $('#tableSet3').click(function (e) {
                     e.preventDefault();
+                if (click3 === 0) {
+                    click3 = 1;
+                } else {
+                    click3 = 0;
+                }
                     $(this).button('toggle');
                     $(this).blur();
                     $.each(['SequencingInfo', 'QCInfo'], function (index_, value_) {
                         let str_ = '#search' + value_;
-                        if ($(str_).prop("checked")) {
+                        if (click3 === 0) {
                             $(str_).prop("checked", false);
                         } else {
                             $(str_).prop("checked", true);
@@ -222,26 +234,26 @@
                 }
             );
             // 选取所有表集合 按钮功能
+            let click4 = 0;
             $('#tableSet4').click(function (e) {
                     e.preventDefault();
+                if (click4 === 0) {
+                    click4 = 1;
+                } else {
+                    click4 = 0;
+                }
                     $(this).button('toggle');
                     $(this).blur();
                     $.each(['ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo',
                         'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo'
                     ], function (index_, value_) {
                         let str_ = '#search' + value_;
-                        if ($(str_).prop("checked")) {
+                        if (click4 === 0) {
                             $(str_).prop("checked", false);
                         } else {
                             $(str_).prop("checked", true);
                         }
                     });
-                    let str_ = '#searchClinicalInfo';
-                    if ($('#searchQCInfo').prop("checked")) {
-                        $(str_).prop("checked", true);
-                    } else {
-                        $(str_).prop("checked", false);
-                    }
                 }
             );
             // 查询字表下拉选框
@@ -484,10 +496,14 @@
                         }
                     }
                 }
-                for (let i = 0; i < tableLinkCol.length; i++) {
-                    htmlStr += '<th>' + tableLinkCol[i] + '</th>';
-                    returnCols.push({"data": "link" + i});
-                }
+                let link_n = 0;
+                $.each(['样本编号', 'DNA提取编号', '建库编号', '捕获文库名', '测序文库名', '上机文库号'], function (index_, value_) {
+                    if (tableLinkCol.indexOf(value_) !== -1) {
+                        htmlStr += '<th>' + value_ + '</th>';
+                        returnCols.push({"data": "link" + link_n});
+                        link_n++;
+                    }
+                });
                 for (let i = 0; i < tableNormalCol.length; i++) {
                     htmlStr += '<th>' + tableNormalCol[i] + '</th>';
                     returnCols.push({"data": "normal" + i});

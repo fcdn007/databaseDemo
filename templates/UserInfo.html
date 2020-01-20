@@ -13,15 +13,15 @@
             {% csrf_token %}
             <div class="form-group">
                 <label for="username"> 用户名</label>
-                <input type="text" class="form-control" id="username" name="username">
+                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}">
             </div>
             <div class="form-group">
                 <label for="nick_name"> 昵称</label>
-                <input type="text" class="form-control" id="nick_name" name="nick_name">
+                <input type="text" class="form-control" id="nick_name" name="nick_name" value="{{ user.nick_name }}">
             </div>
             <div class="form-group">
                 <label for="email"> 邮箱地址</label>
-                <input type="email" class="form-control" id="email" name="email">
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
             </div>
             <button type="button" class="btn btn-primary"
                     id="reset">重置
@@ -38,25 +38,27 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            let user = $.ajax({
+            let users = $.ajax({
                 url: '/api/UserInfo/', dataType: 'json', contentType: "application/json",
-                type: "get", async: false, data: {username: "{{ user.username }}"}
-            }).responseJSON[0];
-
-            let resetFunc = function () {
-                $.each(['username', 'nick_name', 'email'], function (index_, value_) {
-                    $('#' + value_).val(user[value_]);
-                });
-            };
-
-            resetFunc();
+                type: "get", async: false
+            }).responseJSON;
+            let user = {};
+            for (let i = 0; i <= users.length; i++) {
+                if (users[i].username === "{{ user.username }}") {
+                    user = users[i];
+                    break;
+                }
+            }
+            console.log('username: ' + '{{ user.username }}');
+            console.log('nick_name: ' + '{{ user.nick_name }}');
+            console.log('email: ' + '{{ user.email }}');
 
             $('#reset').click(function (e) {
                 e.preventDefault();
-                resetFunc();
+                location.reload();
             });
 
-            $('#registerSubmit').click(function (e) {
+            $('#editSubmit').click(function (e) {
                 e.preventDefault();
                 user['username'] = $('#username').val();
                 user['nick_name'] = $('#nick_name').val();

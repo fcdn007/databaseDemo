@@ -1,5 +1,4 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
@@ -37,6 +36,7 @@ def get_queryset_base(model_, query_params_):
         queryset = model_.objects.all()
         return queryset
 
+
 class ClinicalInfoViewSet(viewsets.ModelViewSet):
     queryset = ClinicalInfo.objects.all()
     serializer_class = ClinicalInfoSerializer
@@ -61,7 +61,6 @@ class DNAUsageRecordInfoViewSet(viewsets.ModelViewSet):
         return get_queryset_base(DNAUsageRecordInfo, self.request.query_params)
 
 
-
 class DNAInventoryInfoViewSet(viewsets.ModelViewSet):
     queryset = DNAInventoryInfo.objects.all()
     serializer_class = DNAInventoryInfoSerializer
@@ -69,12 +68,14 @@ class DNAInventoryInfoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return get_queryset_base(DNAInventoryInfo, self.request.query_params)
 
+
 class LibraryInfoViewSet(viewsets.ModelViewSet):
     queryset = LibraryInfo.objects.all()
     serializer_class = LibraryInfoSerializer
 
     def get_queryset(self):
         return get_queryset_base(LibraryInfo, self.request.query_params)
+
 
 class CaptureInfoViewSet(viewsets.ModelViewSet):
     queryset = CaptureInfo.objects.all()
@@ -97,12 +98,14 @@ class SequencingInfoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return get_queryset_base(SequencingInfo, self.request.query_params)
 
+
 class QCInfoViewSet(viewsets.ModelViewSet):
     queryset = QCInfo.objects.all()
     serializer_class = QCInfoSerializer
 
     def get_queryset(self):
         return get_queryset_base(QCInfo, self.request.query_params)
+
 
 class UserInfoViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -132,8 +135,11 @@ def Main_model(request, re_model):
         return render(request, 'SequencingInfo.html')
     elif re_model == 'QC':
         return render(request, 'QCInfo.html')
-    elif re_model == 'User':
-        return render(request, 'UserInfo.html')
+
+
+@never_cache
+def UserInfoV(request):
+    return render(request, 'UserInfo.html')
 
 
 @csrf_exempt
@@ -162,315 +168,6 @@ def uploadV(request):
     return JsonResponse({'error_msg': '只接受POST请求。'})
 
 
-@login_required
-def AdvancedSearchV(request):
-    ## 字典，用于构建request查询数据库，值与model的field一致
-    model_col = {
-        'normal': {
-            'ClinicalInfo': ['name', 'gender', 'age', 'patientId', 'category', 'stage', 'diagnose', 'diagnose_others',
-                             'centrifugation_date', 'hospital', 'department', 'plasma_num', 'adjacent_mucosa_num',
-                             'cancer_tissue_num', 'WBC_num', 'stool_num', 'send_date', 'others'],
-            'ExtractInfo': ['ExtractInfo_ClinicalInfo__extract_date', 'ExtractInfo_ClinicalInfo__sample_type',
-                            'ExtractInfo_ClinicalInfo__sample_volume', 'ExtractInfo_ClinicalInfo__extract_method',
-                            'ExtractInfo_ClinicalInfo__dna_con', 'ExtractInfo_ClinicalInfo__dna_vol',
-                            'ExtractInfo_ClinicalInfo__others'],
-            'DNAUsageRecordInfo': ['DNAUsageRecordInfo_ClinicalInfo__LB_date', 'DNAUsageRecordInfo_ClinicalInfo__mass',
-                                   'DNAUsageRecordInfo_ClinicalInfo__usage',
-                                   'DNAUsageRecordInfo_ClinicalInfo__singleLB_id',
-                                   'DNAUsageRecordInfo_ClinicalInfo__others'],
-            'DNAInventoryInfo': ['DNAInventoryInfo_ClinicalInfo__totalM', 'DNAInventoryInfo_ClinicalInfo__successM',
-                                 'DNAInventoryInfo_ClinicalInfo__failM', 'DNAInventoryInfo_ClinicalInfo__researchM',
-                                 'DNAInventoryInfo_ClinicalInfo__othersM', 'remainM'],
-            'LibraryInfo': ['LibraryInfo_ClinicalInfo__tube_id', 'LibraryInfo_ClinicalInfo__clinical_boolen',
-                            'LibraryInfo_ClinicalInfo__singleLB_name', 'LibraryInfo_ClinicalInfo__label',
-                            'LibraryInfo_ClinicalInfo__barcodes', 'LibraryInfo_ClinicalInfo__LB_date',
-                            'LibraryInfo_ClinicalInfo__LB_method', 'LibraryInfo_ClinicalInfo__kit_batch',
-                            'LibraryInfo_ClinicalInfo__mass', 'LibraryInfo_ClinicalInfo__pcr_cycles',
-                            'LibraryInfo_ClinicalInfo__LB_con', 'LibraryInfo_ClinicalInfo__LB_vol',
-                            'LibraryInfo_ClinicalInfo__operator', 'LibraryInfo_ClinicalInfo__others'],
-            'CaptureInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id__hybrid_date',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__probes',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__hybrid_min',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__postpcr_cycles',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__postpcr_con',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__elution_vol',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__operator',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id__others'],
-            'PoolingInfo': ['PoolingInfo_ClinicalInfo__pooling_ratio', 'PoolingInfo_ClinicalInfo__mass',
-                            'PoolingInfo_ClinicalInfo__volume', 'PoolingInfo_ClinicalInfo__others'],
-            'SequencingInfo': [
-                'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__send_date',
-                'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__start_time',
-                'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__end_time',
-                'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__machine_id',
-                'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__chip_id',
-                'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__others'],
-            'QCInfo': ['QCInfo_ClinicalInfo__QC_id', 'QCInfo_ClinicalInfo__data_size_gb_field',
-                       'QCInfo_ClinicalInfo__clean_rate_field', 'QCInfo_ClinicalInfo__r1_q20',
-                       'QCInfo_ClinicalInfo__r2_q20', 'QCInfo_ClinicalInfo__r1_q30',
-                       'QCInfo_ClinicalInfo__r2_q30', 'QCInfo_ClinicalInfo__gc_content',
-                       'QCInfo_ClinicalInfo__bs_conversion_rate_lambda_dna_field',
-                       'QCInfo_ClinicalInfo__bs_conversion_rate_chh_field',
-                       'QCInfo_ClinicalInfo__bs_conversion_rate_chg_field',
-                       'QCInfo_ClinicalInfo__uniquely_paired_mapping_rate',
-                       'QCInfo_ClinicalInfo__mismatch_and_indel_rate',
-                       'QCInfo_ClinicalInfo__mode_fragment_length_bp_field',
-                       'QCInfo_ClinicalInfo__genome_duplication_rate', 'QCInfo_ClinicalInfo__genome_depth_x_field',
-                       'QCInfo_ClinicalInfo__genome_dedupped_depth_x_field', 'QCInfo_ClinicalInfo__genome_coverage',
-                       'QCInfo_ClinicalInfo__genome_4x_cpg_depth_x_field',
-                       'QCInfo_ClinicalInfo__genome_4x_cpg_coverage',
-                       'QCInfo_ClinicalInfo__genome_4x_cpg_methylation_level',
-                       'QCInfo_ClinicalInfo__panel_4x_cpg_depth_x_field',
-                       'QCInfo_ClinicalInfo__panel_4x_cpg_coverage',
-                       'QCInfo_ClinicalInfo__panel_4x_cpg_methylation_level',
-                       'QCInfo_ClinicalInfo__panel_ontarget_rate_region_field',
-                       'QCInfo_ClinicalInfo__panel_duplication_rate_region_field',
-                       'QCInfo_ClinicalInfo__panel_depth_site_x_field',
-                       'QCInfo_ClinicalInfo__panel_dedupped_depth_site_x_field',
-                       'QCInfo_ClinicalInfo__panel_coverage_site_1x_field',
-                       'QCInfo_ClinicalInfo__panel_coverage_site_10x_field',
-                       'QCInfo_ClinicalInfo__panel_coverage_site_20x_field',
-                       'QCInfo_ClinicalInfo__panel_coverage_site_50x_field',
-                       'QCInfo_ClinicalInfo__panel_coverage_site_100x_field',
-                       'QCInfo_ClinicalInfo__panel_uniformity_site_20_mean_field',
-                       'QCInfo_ClinicalInfo__strand_balance_f_field', 'QCInfo_ClinicalInfo__strand_balance_r_field',
-                       'QCInfo_ClinicalInfo__gc_bin_depth_ratio', 'QCInfo_ClinicalInfo__others']
-        },
-        'link': {
-            'ClinicalInfo': ['sample_id'],
-            'ExtractInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id'],
-            'DNAUsageRecordInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id'],
-            'DNAInventoryInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id'],
-            'LibraryInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id',
-                            'LibraryInfo_ClinicalInfo__singleLB_id'],
-            'CaptureInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id__poolingLB_id'],
-            'PoolingInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id',
-                            'LibraryInfo_ClinicalInfo__singleLB_id',
-                            'PoolingInfo_ClinicalInfo__poolingLB_id',
-                            'PoolingInfo_ClinicalInfo__singleLB_Pooling_id'],
-            'SequencingInfo': ['PoolingInfo_ClinicalInfo__poolingLB_id',
-                               'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__sequencing_id'],
-            'QCInfo': ['sample_id', 'ExtractInfo_ClinicalInfo__dna_id', 'LibraryInfo_ClinicalInfo__singleLB_id',
-                       'PoolingInfo_ClinicalInfo__poolingLB_id', 'PoolingInfo_ClinicalInfo__singleLB_Pooling_id',
-                       'PoolingInfo_ClinicalInfo__poolingLB_id__SequencingInfo_CaptureInfo__sequencing_id']
-        }
-    }
-    models_set = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo', 'CaptureInfo',
-                  'PoolingInfo', 'SequencingInfo', 'QCInfo']
-    if request.method == 'POST':
-        # print(">>>>>> request >>>>>>>")
-        # pprint(request)
-        # print(">>>>>> request.POST >>>>>>>")
-        # pprint(request.POST)
-        modellist = request.POST['modellist'].split(', ')
-        # print(">>>>>> modellist >>>>>>>")
-        # pprint(modellist)
-        values_list1 = []
-        values_list2 = []
-        for model_ in models_set:
-            if model_ in modellist:
-                for item in model_col['link'][model_]:
-                    if item not in values_list1:
-                        values_list1.append(item)
-                values_list2 = values_list2 + model_col['normal'][model_]
-        values_list = values_list1 + values_list2  # 输出到网页的字段
-        values_list_filted = values_list  # 数据库输出字段
-        if 'remainM' in values_list_filted:  # 去除并未在models.py定义的field
-            idx_ = values_list_filted.index('remainM')
-            values_list_filted = values_list_filted[0:idx_] + values_list_filted[idx_ + 1:]
-
-        # print(">>>>>> values_list1 >>>>>>>")
-        # pprint(values_list1)
-        # print(">>>>>> values_list2 >>>>>>>")
-        # pprint(values_list2)
-        # print(">>>>>> values_list >>>>>>>")
-        # pprint(values_list)
-        # print(">>>>>> values_list_filted >>>>>>>")
-        # pprint(values_list_filted)
-        # raw_data_set存储queryset全部行的原始查询结果
-        raw_data_set = []
-
-        if request.POST['queryset']:  # 有过滤条件
-            queryset = []
-            nrow = 0
-            for i in request.POST['queryset'].split('\n'):
-                dict_ = {}
-                for j in i.split(' AND '):
-                    not_, m, f, vp, v = j.split('\t')
-                    not_ = not_[1:]
-                    v = v[:-1]
-                    if vp in ['gt', 'gte', 'lt', 'lte']:
-                        v = float(v)
-                    if m in dict_:
-                        if f in dict_[m]:
-                            dict_[m][f].append([vp, v, not_])
-                        else:
-                            dict_[m][f] = [[vp, v, not_]]
-                    else:
-                        dict_[m] = {f: [[vp, v, not_]]}
-                queryset.append(dict_)
-                nrow = nrow + 1
-
-            # print(">>>>>> queryset >>>>>>>")
-            # pprint(queryset)
-            for row in range(nrow):
-                filter1_dict = {}  # 数据库过滤条件
-                filter2_dict = {}  # 进一步过滤条件
-                for model_ in models_set:
-                    # 记录过滤的条件
-                    if model_ in queryset[row]:
-                        for field_ in queryset[row][model_]:
-                            for item in model_col['link'][model_] + model_col['normal'][model_]:
-                                if item.split('__')[-1] == field_:
-                                    for list_ in queryset[row][model_][field_]:
-                                        filter1_dict_key = "%s__%s" % (item, list_[0])
-                                        filter1_dict[filter1_dict_key] = [list_[1], list_[2]]
-                                    break
-                del_keys = []
-                for dict_key in filter1_dict:  # 去除并未在models.py定义的field
-                    if re.match(r'remainM', dict_key):
-                        filter2_dict[dict_key] = filter1_dict[dict_key]
-                        del_keys.append(dict_key)
-                for del_key in del_keys:
-                    filter1_dict.pop(del_key)
-                # 查询数据库
-                # 使用Q函数进行复杂查询
-                filter1_dict_list = []
-                for filter1_dict_key in filter1_dict:
-                    value, not_ = filter1_dict[filter1_dict_key]
-                    if not_ == '1':
-                        filter1_dict_list.append(~Q(**{filter1_dict_key: value}))
-                    else:
-                        filter1_dict_list.append(Q(**{filter1_dict_key: value}))
-
-                # print(">>>>>> filter1_dict >>>>>>>")
-                # pprint(filter1_dict)
-                # print(">>>>>> filter1_dict_list >>>>>>>")
-                # pprint(filter1_dict_list)
-                # print(">>>>>> filter2_dict >>>>>>>")
-                # pprint(filter2_dict)
-                raw_data_tmp = ClinicalInfo.objects.filter(*filter1_dict_list).values_list(*values_list_filted)
-                # print(">>>>>> raw_data_tmp >>>>>>>")
-                # pprint(raw_data_tmp)
-                raw_data = []
-                if 'remainM' in values_list:
-                    idx_ = values_list.index('DNAInventoryInfo_ClinicalInfo__othersM')
-                    # print(">>>>>> idx_: %s >>>>>>>" % idx_)
-                    for row in raw_data_tmp:
-                        # print(">>>>>> row in raw_data_tmp >>>>>>>")
-                        # pprint(row)
-                        remainM = None
-                        values = list(row[0:idx_ + 1]) + [remainM] + list(row[idx_ + 1:])
-                        if row[idx_ - 4] is not None:
-                            remainM = row[idx_ - 4] - row[idx_ - 3] - row[idx_ - 2] - row[idx_ - 1] - row[idx_]
-                            values = list(row[0:idx_ + 1]) + ["%.3f" % remainM] + list(row[idx_ + 1:])
-                        if len(filter2_dict) > 0:
-                            if remainM is None:
-                                continue
-                            pass_mark = 1
-                            for filter2_dict_key in filter2_dict:
-                                vp = filter2_dict_key.split('__')[-1]
-                                if vp == 'gt':
-                                    if not filter2_dict[filter2_dict_key][1] and \
-                                            remainM <= filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                    elif filter2_dict[filter2_dict_key][1] and \
-                                            remainM > filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                elif vp == 'gte':
-                                    if not filter2_dict[filter2_dict_key][1] and \
-                                            remainM < filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                    elif filter2_dict[filter2_dict_key][1] and \
-                                            remainM >= filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                elif vp == 'lt':
-                                    if not filter2_dict[filter2_dict_key][1] and \
-                                            remainM >= filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                    elif filter2_dict[filter2_dict_key][1] and \
-                                            remainM < filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                elif vp == 'lte':
-                                    if not filter2_dict[filter2_dict_key][1] and \
-                                            remainM > filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                    elif filter2_dict[filter2_dict_key][1] and \
-                                            remainM <= filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                elif re.search(r'exact', vp):
-                                    if not filter2_dict[filter2_dict_key][1] and \
-                                            remainM == filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                                    elif filter2_dict[filter2_dict_key][1] and \
-                                            remainM == filter2_dict[filter2_dict_key][0]:
-                                        pass_mark = 0
-                                        break
-                            if pass_mark:
-                                raw_data.append(values)
-                        else:
-                            raw_data.append(values)
-                else:
-                    raw_data = raw_data_tmp
-
-                for raw_data_row in raw_data:
-                    raw_data_set.append(raw_data_row)
-        else:  # 无过滤条件
-            raw_data_tmp = ClinicalInfo.objects.values_list(*values_list_filted)
-            # print(">>>>>> raw_data_tmp >>>>>>>")
-            # pprint(raw_data_tmp)
-            if 'remainM' in values_list:
-                idx_ = values_list.index('DNAInventoryInfo_ClinicalInfo__othersM')
-                # print(">>>>>> idx_: %s >>>>>>>" % idx_)
-                for row in raw_data_tmp:
-                    # print(">>>>>> row in raw_data_tmp >>>>>>>")
-                    # pprint(row)
-                    remainM = None
-                    values = list(row[0:idx_ + 1]) + [remainM] + list(row[idx_ + 1:])
-                    if row[idx_ - 4] is not None:
-                        remainM = row[idx_ - 4] - row[idx_ - 3] - row[idx_ - 2] - row[idx_ - 1] - row[idx_]
-                        values = list(row[0:idx_ + 1]) + ["%.3f" % remainM] + list(row[idx_ + 1:])
-                    raw_data_set.append(values)
-            else:
-                raw_data_set = raw_data_tmp
-        # 数据进一步处理，生成response内容
-        pro_data = []
-        for row in raw_data_set:
-            check_l = list(set(row))
-            if len(check_l) == 1 and None in check_l:
-                continue
-            dat = {}
-            for col in range(len(row)):
-                if col >= len(values_list1):
-                    value = row[col]
-                    dat["normal%s" % (col - len(values_list1))] = value
-                else:
-                    dat["link%s" % col] = row[col]
-            pro_data.append(dat)
-        # print(">>>>>> pro_data >>>>>>>")
-        # pprint(pro_data)
-        # print(">>>>>> request.GET >>>>>>>")
-        # pprint(request.POST)
-        result = {
-            'draw': 1,
-            'recordsTotal': len(pro_data),
-            'recordsFiltered': len(pro_data),
-            'data': pro_data
-        }
-        return JsonResponse(result)
-    else:
-        return render(request, 'AdvancedSearch.html')
-
-
 def uniqueV(request):
     data = {}
     try:
@@ -487,7 +184,6 @@ def AdvanceUploadV(request):
     return render(request, 'AdvancedUpload.html')
 
 
-@never_cache
 def RegisterV(request):
     redirect_to = request.POST.get('next', request.GET.get('next', ''))
     if request.method == 'POST':
@@ -535,7 +231,6 @@ def RegisterV(request):
         return render(request, 'register.html')
 
 
-@never_cache
 def ActiveV(request, token):
     # 进行用户激活
     # 进行解密，获取要激活的用户信息
@@ -558,7 +253,6 @@ def ActiveV(request, token):
         return render(request, 'active.html', {'error_msg': '激活链接无效，'})
 
 
-@never_cache
 def Active_resendV(request):
     if request.method == 'POST':
         key_ = request.POST.get('name')
@@ -580,3 +274,197 @@ def Active_resendV(request):
             return JsonResponse({'error_msg': '用户不存在，请重新输入。'})
     else:
         return render(request, 'active_resend.html')
+
+
+@login_required
+@csrf_exempt
+def AdvancedSearchV(request):
+    special_fields = ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
+    model_links = {
+        'ClinicalInfo': ['sample_id'],
+        'ExtractInfo': ['sample_id', 'dna_id'],
+        'DNAUsageRecordInfo': ['sample_id', 'dna_id'],
+        'DNAInventoryInfo': ['sample_id', 'dna_id'],
+        'LibraryInfo': ['sample_id', 'dna_id', 'singleLB_id'],
+        'CaptureInfo': ['poolingLB_id'],
+        'PoolingInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'],
+        'SequencingInfo': ['poolingLB_id', 'sequencing_id'],
+        'QCInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
+    }
+    models_set = [ClinicalInfo, ExtractInfo, DNAUsageRecordInfo, DNAInventoryInfo, LibraryInfo, CaptureInfo,
+                  PoolingInfo, SequencingInfo, QCInfo]
+    merge_df = []
+    for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
+        if m == 0:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = fields[6:25]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['sample_id'] else 'ClinicalInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            merge_df = res_df
+        elif m == 1:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = fields[5:14]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['sample_id', 'dna_id'] else 'ExtractInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            columns_raw = list(merge_df.columns)
+            merge_df = pd.merge(merge_df, res_df, how='left', on='sample_id')
+            merge_df = merge_df[['sample_id', 'dna_id'] + columns_raw[1:] + fields_filt_rename[2:]]
+        elif m == 2:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = [fields[0]] + fields[2:7]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['dna_id'] else 'DNAUsageRecordInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
+        elif m == 3:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = fields[1:7]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            res_raw_shift = []
+            for l_ in res_raw:
+                res_raw_shift.append(list(l_) + [round(l_[1] - l_[2] - l_[3] - l_[4] - l_[5], 3)])
+            fields_filt_rename = [x if x in ['dna_id'] else 'DNAInventoryInfo_' + x for x in fields_filt + ['remainM']]
+            res_df = list2array(res_raw_shift, fields_filt_rename)
+            merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
+        elif m == 4:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = [fields[2]] + fields[5:19]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['dna_id', 'singleLB_id'] else 'LibraryInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            columns_raw = list(merge_df.columns)
+            merge_df = pd.merge(merge_df, res_df, how='left', left_on='DNAUsageRecordInfo_singleLB_id',
+                                right_on='singleLB_id')
+            merge_df['singleLB_id'] = merge_df['DNAUsageRecordInfo_singleLB_id']
+            merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id'] + columns_raw[2:] + fields_filt_rename[1:]]
+        elif m == 6:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = fields[3:10]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] else
+                                  'PoolingInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            columns_raw = list(merge_df.columns)
+            merge_df = pd.merge(merge_df, res_df, how='left', on='singleLB_id')
+            merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] +
+                                columns_raw[3:] + fields_filt_rename[2:5] + [fields_filt_rename[6]]]
+        elif m == 5:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = fields[3:13]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['poolingLB_id'] else 'CaptureInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            columns_raw = list(merge_df.columns)
+            idx_ = columns_raw.index('PoolingInfo_pooling_ratio')
+            merge_df = pd.merge(merge_df, res_df, how='left', on='poolingLB_id')
+            merge_df = merge_df[columns_raw[:idx_] + fields_filt_rename[1:] + columns_raw[idx_:]]
+        elif m == 7:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = [fields[11]] + fields[1:8]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            res_raw_shift = []
+            for l_ in res_raw:
+                if isinstance(l_[0], int):
+                    res_raw_shift.append(list(l_))
+                else:
+                    for idx in l_[0]:
+                        res_raw_shift.append([idx] + list(l_[1:]))
+            fields_filt_rename = [x if x in ['sequencing_id'] else 'SequencingInfo_' + x for x in fields_filt]
+            res_df = list2array(res_raw_shift, fields_filt_rename)
+            columns_raw = list(merge_df.columns)
+            idx_ = columns_raw.index('CaptureInfo_index')
+            merge_df = pd.merge(merge_df, res_df, how='left', left_on='CaptureInfo_index',
+                                right_on='SequencingInfo_poolingLB_id')
+            merge_df = merge_df[special_fields + columns_raw[5:idx_] + columns_raw[idx_ + 1:] + fields_filt_rename[2:]]
+        elif m == 8:
+            fields = [field.name for field in models_set[m]._meta.get_fields()]
+            fields_filt = fields[:44]
+            res_raw = list(models_set[m].objects.values_list(*fields_filt))
+            fields_filt_rename = [x if x in ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id',
+                                             'singleLB_Pooling_id', 'sequencing_id'] else 'QCInfo_' +
+                                                                                          x for x in fields_filt]
+            res_df = list2array(res_raw, fields_filt_rename)
+            merge_df = pd.merge(merge_df, res_df, how='left', on=special_fields)
+    merge_df_columns = list(merge_df.columns)
+    filed_idx = [6, 24, 31, 36, 42, 56, 64, 68, 74, 112]
+    models_set = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo', 'CaptureInfo',
+                  'PoolingInfo', 'SequencingInfo', 'QCInfo']
+    # print(">>>>>>>>>>>>>> merge_df_columns >>>>>>>>")
+    # pprint(merge_df_columns)
+
+    if request.method == 'POST':
+        modellist = request.POST['modellist'].split(', ')
+        # print(">>>>>>>>>>>>>> modellist >>>>>>>>")
+        # pprint(modellist)
+        links_dict = {}
+        res_columns_normal = []
+        for m in range(len(models_set)):
+            if models_set[m] in modellist:
+                res_columns_normal = res_columns_normal + merge_df_columns[filed_idx[m]:filed_idx[m + 1]]
+                for link in model_links[models_set[m]]:
+                    links_dict[link] = 1
+        res_columns_link = []
+        for link in special_fields:
+            if link in links_dict:
+                res_columns_link.append(link)
+        res_raw = merge_df[res_columns_link + res_columns_normal]
+        # print(">>>>>>>>>>>> res_raw.column >>>>>>>>>>>>")
+        # pprint(res_raw.columns)
+        res_filt = res_raw
+        if request.POST['queryset']:  # 有过滤条件
+            filter_total = ""
+            for i in request.POST['queryset'].split('\n'):
+                filter_line = pd.Series(data=[True] * len(merge_df))
+                for j in i.split(' AND '):
+                    not_, m, f, vp, v = j.split('\t')
+                    not_ = not_[1:]
+                    v = v[:-1]
+                    # print(">>>>>>>>>> not_, m, f, vp, v >>>>>>>>")
+                    # print("%s, %s, %s, %s, %s" % (not_, m, f, vp, v))
+                    filter_condition = filter_conditionFunc(res_raw, f, vp, v, not_) if f in special_fields else \
+                        filter_conditionFunc(res_raw, m + '_' + f, vp, v, not_)
+                    filter_line = filter_line & filter_condition
+                filter_total = filter_line if filter_total == "" else filter_total | filter_line
+            res_filt = res_raw[filter_total]
+        # make res_pro
+        # print(">>>>>>>>>>>>>> res_filt >>>>>>>>")
+        # pprint(res_filt)
+        res_pro = []
+        for nrow in range(len(res_filt)):
+            dat = {}
+            link_n = 0
+            for link in special_fields:
+                if link in links_dict:
+                    value_ = list(res_filt[link])[nrow]
+                    if pd.isna(value_):
+                        value_ = " "
+                    dat["link%s" % link_n] = value_
+                    link_n = link_n + 1
+            normal_n = 0
+            for col in res_columns_normal:
+                value_ = list(res_filt[col])[nrow]
+                if pd.isna(value_):
+                    value_ = " "
+                elif isinstance(value_, np.floating):
+                    value_ = "%.3f" % value_
+                elif isinstance(value_, np.integer):
+                    value_ = "%d" % value_
+                elif isinstance(value_, str):
+                    value_ = "%s" % value_
+
+                dat["normal%s" % normal_n] = value_
+                normal_n = normal_n + 1
+            res_pro.append(dat)
+        result = {
+            'draw': 1,
+            'recordsTotal': len(res_raw),
+            'recordsFiltered': len(res_pro),
+            'data': res_pro
+        }
+        # print(">>>>>>>>>>>>>> result >>>>>>>>")
+        # pprint(result)
+        return JsonResponse(result)
+    else:
+        return render(request, 'AdvancedSearch.html')
