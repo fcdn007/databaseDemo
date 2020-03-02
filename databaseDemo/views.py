@@ -245,7 +245,7 @@ def ActiveV(request, token):
         user.save()
         # 跳转到登录页面
         return render(request, 'active.html', {'success_msg': '账号已激活'})
-    except SignatureExpired as e:
+    except SignatureExpired:
         # 激活链接已过期
         return render(request, 'active.html', {'error_msg': '激活链接已过期'})
     except:
@@ -259,17 +259,20 @@ def Active_resendV(request):
         value_ = request.POST.get('value')
         try:
             user = User.objects.get(**{key_: value_})
-            # 加密用户的身份信息，生成激活token
-            serializer = Serializer(settings.SECRET_KEY, 3600)
-            info = {'confirm': user.index}
-            token = serializer.dumps(info)  # bytes
-            token = token.decode('utf8')  # 解码, str
-            # 找其他人帮助我们发送邮件 celery:异步执行任务
-            # print(">>>>>>>>>>>>>> user.email: %s >>>>>>>>>>>" % user.email)
-            # print(">>>>>>>>>>>>>> user.username: %s >>>>>>>>>>>" % user.username)
-            # print(">>>>>>>>>>>>>> token: %s >>>>>>>>>>>" % token)
-            send_register_active_email(user.email, user.username, token)
-            return JsonResponse({'success_msg': '激活邮件发送成功！请注意查收，激活账号后登录。'})
+            if user.is_active:
+                return JsonResponse({'error_msg': '用户已激活，请返回登录页面进行登录。'})
+            else:
+                # 加密用户的身份信息，生成激活token
+                serializer = Serializer(settings.SECRET_KEY, 3600)
+                info = {'confirm': user.index}
+                token = serializer.dumps(info)  # bytes
+                token = token.decode('utf8')  # 解码, str
+                # 找其他人帮助我们发送邮件 celery:异步执行任务
+                # print(">>>>>>>>>>>>>> user.email: %s >>>>>>>>>>>" % user.email)
+                # print(">>>>>>>>>>>>>> user.username: %s >>>>>>>>>>>" % user.username)
+                # print(">>>>>>>>>>>>>> token: %s >>>>>>>>>>>" % token)
+                send_register_active_email(user.email, user.username, token)
+                return JsonResponse({'success_msg': '激活邮件发送成功！请注意查收，激活账号后登录。'})
         except User.DoesNotExist:
             return JsonResponse({'error_msg': '用户不存在，请重新输入。'})
     else:

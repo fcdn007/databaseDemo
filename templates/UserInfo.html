@@ -38,17 +38,10 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
-            let users = $.ajax({
+            let user = $.ajax({
                 url: '/api/UserInfo/', dataType: 'json', contentType: "application/json",
-                type: "get", async: false
-            }).responseJSON;
-            let user = {};
-            for (let i = 0; i <= users.length; i++) {
-                if (users[i].username === "{{ user.username }}") {
-                    user = users[i];
-                    break;
-                }
-            }
+                type: "get", async: false, data: {'username': "{{ user.username }}"}
+            }).responseJSON[0];
             console.log('username: ' + '{{ user.username }}');
             console.log('nick_name: ' + '{{ user.nick_name }}');
             console.log('email: ' + '{{ user.email }}');

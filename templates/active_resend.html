@@ -20,6 +20,7 @@
 
         </form>
         <button type="submit" id="resendSubmit" class="btn btn-primary btn-block">提交</button>
+        <button type="submit" id="returnBase" class="btn btn-primary btn-block">返回登录页面</button>
         <p id="resendError"></p>
     </div>
 {% endblock %}
@@ -53,6 +54,12 @@
                     },
                     dataType: 'json'
                 });
+            });
+
+
+            $('#returnBase').click(function (e) {
+                e.preventDefault();
+                window.location.href = "{% url 'login' %}";
             });
         })
 
