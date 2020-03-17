@@ -23,6 +23,11 @@
                 <label for="email"> 邮箱地址</label>
                 <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
             </div>
+            <div class="form-group">
+                <label for="bulk_delete_privilege"> 批量删除权限（如需修改，请联系管理员）</label>
+                <input readonly="readonly" type="text" class="form-control" id="bulk_delete_privilege"
+                       name="bulk_delete_privilege" value="{{ user.bulk_delete_privilege }}">
+            </div>
             <button type="button" class="btn btn-primary"
                     id="reset">重置
             </button>&nbsp;&nbsp;
@@ -30,6 +35,7 @@
                     id="editSubmit">递交修改
             </button>
         </form>
+
         <p id="editError"></p>
     </div>
 {% endblock %}

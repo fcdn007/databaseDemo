@@ -33,45 +33,67 @@
     </table>
 {% endblock %}
 
+{% block ModalFormHeader %}
+    <p id="ModalFormHeader" class="text-warning front-weight-bold"></p>
+{% endblock %}
+
 {% block ModalForm %}
     <div class="form-group">
-        <label for="dna_id"> DNA提取编号</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+            <label for="dna_id"> DNA提取编号</label></span>
         <input type="text" class="form-control" id="dna_id" name="dna_id"
-               placeholder="请输入DNA提取编号" required="true">
+               placeholder="请输入DNA提取编号，必填" required="true">
     </div>
     <div class="form-group">
         <label for="LB_date"> 使用日期</label>
         <input type="date" class="form-control" id="LB_date" name="LB_date"
-               placeholder="请输入使用日期" required="true">
+               placeholder="请输入使用日期，默认：2000-01-01" required="true">
     </div>
     <div class="form-group">
         <label for="mass"> 使用量(ng)</label>
         <input type="number" step="0.01" class="form-control" id="mass" name="mass"
-               placeholder="请输入使用量(ng)，默认0" value="0">
+               placeholder="请输入使用量(ng)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="usage"> 用途</label>
         <select class="form-control" id="usage" name="usage" required="true">
-            <option value="建库失败">建库失败</option>
+            <option value="建库失败" selected="selected">建库失败</option>
             <option value="科研项目">科研项目</option>
             <option value="其他">其他</option>
         </select>
     </div>
     <div class="form-group">
-        <label for="singleLB_id"> 建库编号(如有)</label>
-        <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
-               placeholder="请输入建库编号(如有)" value="无">
-    </div>
-    <div class="form-group">
         <label for="others"> 备注</label>
         <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
+               placeholder="请输入备注，默认：无" value="无">
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#dna_id').val(data['dna_id']);
+                    $('#LB_date').val(data['LB_date']);
+                    $('#mass').val(data['mass']);
+                    $('#usage').val(data['usage']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#dna_id').val("");
+                    $('#LB_date').val("2000-01-01");
+                    $('#mass').val("");
+                    $('#usage option:first').prop("selected", 'selected');
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
 
             let table = $('#table_id').DataTable({
                 "language": {
@@ -163,6 +185,11 @@
                     {"data": "created"},
                     {
                         "data": null,
+                        render: function (data, type, row, meta) {
+                            if (row.usage === '建库成功') {
+                                return ""
+                            }
+                        },
                         "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
                             '<button type="button" class="btn btn-danger">删除</button>'
                     }
@@ -179,14 +206,8 @@
                 if (data['usage'] != '建库成功') {
                     if (class_name == 'btn btn-info') {
                         // EDIT button
-                        $('#dna_id').val(data['dna_id']);
-                        $('#LB_date').val(data['LB_date']);
-                        $('#mass').val(data['mass']);
-                        $('#usage').val(data['usage']);
-                        $('#singleLB_id').val(data['singleLB_id']);
-                        $('#others').val(data['others']);
-                        $('#type').val('edit');
-                        $('#modal_title').text('更新');
+                        MyModelInit('更新', data);
+                        $('#ModalFormHeader').text("");
                         $("#myModal").modal();
                     } else {
                         // DELETE button
@@ -201,21 +222,30 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
+
+                // 递交前检查，一般是检测model的外键是否存在
+                let data0 = $.ajax({
+                    url: url2, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {dna_id: $('#dna_id').val()}
+                }).responseJSON[0];
+                if (data0 === undefined) {
+                    $('#myModalError').text('错误！！！DNA提取编号不存在，请填写正确的DNA提取编号。');
+                    return
+                }
+
                 let type = $('#type').val();
                 let method = '';
+                let url_ajax = url;
                 if (type == 'new') {
                     // new
                     method = 'POST';
                 } else {
                     // edit
-                    url = url + data['index'] + '/';
+                    url_ajax = url + data['index'] + '/';
                     method = 'PUT';
                 }
 
-                let data0 = $.ajax({
-                    url: url2, dataType: 'json', contentType: "application/json",
-                    type: "get", async: false, data: {dna_id: data['dna_id']}
-                }).responseJSON[0];
+                // 记录库存表条目变化
                 let data_tmp2;
                 if (method == 'POST') {
                     if ($('#usage').val() == '建库失败') {
@@ -269,14 +299,14 @@
 
                 // 增、改：更新使用记录表
                 $.ajax({
-                    url: url, async: false,
+                    url: url_ajax, async: false,
                     method: method,
                     data: $(this).serialize() + '&' + $.param({
-                        sample_id: data0.sample_id
+                        sample_id: data0.sample_id, singleLB_id: '无'
                     }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        // 增、改：更新库存表
+                        // 改：更新库存表
                         $.ajax({
                             url: url2 + data0.index + '/',
                             method: 'PUT',
@@ -288,9 +318,21 @@
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
                         });
-                        location.reload();
+
+                        if (type == 'new') {
+                            $('#myModalError').text('添加成功！！！DNA提取编号：' + $('#dna_id').val());
+                        } else {
+                            $('#myModalError').text('更新成功！！！DNA提取编号：' + $('#dna_id').val());
+                        }
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
@@ -356,14 +398,8 @@
 
 
             $('#new').on('click', function (e) {
-                $('#dna_id').val("");
-                $('#LB_date').val("");
-                $('#mass').val("");
-                $('#usage').val("");
-                $('#singleLB_id').val("");
-                $('#others').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
+                $('#ModalFormHeader').text('只能添加 非“建库成功” 的记录，如需添加 “建库成功” 记录，请到样本建库信息页面');
                 $("#myModal").modal();
             });
 
@@ -379,6 +415,21 @@
                 $('#bulkDelUrl').val('DNAUsageRecordInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/DNAUsageRecordInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+
         })
 
     </script>

@@ -37,55 +37,88 @@
 
 {% block ModalForm %}
     <div class="form-group">
-        <label for="poolingLB_id"> pooling号</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+            <label for="poolingLB_id"> 捕获文库名</label></span>
         <input type="text" class="form-control" id="poolingLB_id" name="poolingLB_id"
-               placeholder="请输入pooling号" required="true">
+               placeholder="请输入捕获文库名" required="true">
     </div>
     <div class="form-group">
         <label for="hybrid_date"> 杂交日期</label>
         <input type="date" class="form-control" id="hybrid_date" name="hybrid_date"
-               placeholder="请输入杂交日期" required="true">
+               placeholder="请输入杂交日期，默认：2000-01-01" value="2000-01-01">
     </div>
     <div class="form-group">
         <label for="probes"> 杂交探针</label>
         <input type="text" class="form-control" id="probes" name="probes"
-               placeholder="请输入杂交探针" required="true">
+               placeholder="请输入杂交探针，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="hybrid_min"> 杂交时间(min)</label>
         <input type="number" class="form-control" id="hybrid_min" name="hybrid_min"
-               placeholder="请输入杂交时间(min)" required="true">
+               placeholder="请输入杂交时间(min)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="postpcr_cycles"> PostPCR循环数</label>
         <input type="number" class="form-control" id="postpcr_cycles" name="postpcr_cycles"
-               placeholder="请输入PostPCR循环数" required="true">
+               placeholder="请输入PostPCR循环数，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="postpcr_con"> PostPCR浓度(ng/ul)</label>
         <input type="number" step="0.01" class="form-control" id="postpcr_con" name="postpcr_con"
-               placeholder="请输入PostPCR浓度(ng/ul)" required="true">
+               placeholder="请输入PostPCR浓度(ng/ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="elution_vol"> 洗脱体积(ul)</label>
         <input type="number" step="0.01" class="form-control" id="elution_vol" name="elution_vol"
-               placeholder="请输入洗脱体积(ul)" required="true">
+               placeholder="请输入洗脱体积(ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="operator"> 操作人</label>
         <input type="text" class="form-control" id="operator" name="operator"
-               placeholder="请输入操作人" value="无">
+               placeholder="请输入操作人，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="others"> 备注</label>
         <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
+               placeholder="请输入备注，默认：无" value="无">
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let url = '/api/CaptureInfo/';
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#poolingLB_id').val(data['poolingLB_id']);
+                    $('#hybrid_date').val(data['hybrid_date']);
+                    $('#probes').val(data['probes']);
+                    $('#hybrid_min').val(data['hybrid_min']);
+                    $('#postpcr_cycles').val(data['postpcr_cycles']);
+                    $('#postpcr_con').val(data['postpcr_con']);
+                    $('#elution_vol').val(data['elution_vol']);
+                    $('#operator').val(data['operator']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#poolingLB_id').val("");
+                    $('#hybrid_date').val("2000-01-01");
+                    $('#probes').val("");
+                    $('#hybrid_min').val("");
+                    $('#postpcr_cycles').val("");
+                    $('#postpcr_con').val("");
+                    $('#elution_vol').val("");
+                    $('#operator').val("");
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
+
             let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
@@ -194,17 +227,7 @@
                 id = data['index'];
                 if (class_name == 'btn btn-info') {
                     // EDIT button
-                    $('#poolingLB_id').val(data['poolingLB_id']);
-                    $('#hybrid_date').val(data['hybrid_date']);
-                    $('#probes').val(data['probes']);
-                    $('#hybrid_min').val(data['hybrid_min']);
-                    $('#postpcr_cycles').val(data['postpcr_cycles']);
-                    $('#postpcr_con').val(data['postpcr_con']);
-                    $('#elution_vol').val(data['elution_vol']);
-                    $('#operator').val(data['operator']);
-                    $('#others').val(data['others']);
-                    $('#type').val('edit');
-                    $('#modal_title').text('更新');
+                    MyModelInit('更新', data);
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -217,27 +240,51 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
+
+                // 递交前检查，一般是检测model的外键是否存在
+
                 let type = $('#type').val();
                 let method = '';
-                let url = '/api/CaptureInfo/';
+                let url_ajax = url;
                 if (type == 'new') {
                     // new
                     method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data1 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {poolingLB_id: $('#poolingLB_id').val()}
+                    }).responseJSON[0];
+                    if (data1 !== undefined) {
+                        $('#myModalError').text('错误！！！捕获文库名已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
                 } else {
                     // edit
-                    url = url + id + '/';
+                    url_ajax = url + id + '/';
                     method = 'PUT';
                 }
 
                 $.ajax({
-                    url: url,
+                    url: url_ajax,
                     method: method,
                     data: $(this).serialize(),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        location.reload();
+                        if (type == 'new') {
+                            $('#myModalError').text('添加成功！！！捕获文库名：' + $('#poolingLB_id').val());
+                        } else {
+                            $('#myModalError').text('更新成功！！！捕获文库名：' + $('#poolingLB_id').val());
+                        }
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
             });
@@ -245,7 +292,7 @@
 
             $('#confirm').on('click', '#delete', function (e) {
                 $.ajax({
-                    url: '/api/CaptureInfo/' + id + '/',
+                    url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
                         location.reload()
@@ -258,17 +305,7 @@
 
 
             $('#new').on('click', function (e) {
-                $('#poolingLB_id').val("");
-                $('#hybrid_date').val("");
-                $('#probes').val("");
-                $('#hybrid_min').val("");
-                $('#postpcr_cycles').val("");
-                $('#postpcr_con').val("");
-                $('#elution_vol').val("");
-                $('#operator').val("");
-                $('#others').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
                 $("#myModal").modal();
             });
 
@@ -284,6 +321,21 @@
                 $('#bulkDelUrl').val('CaptureInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/CaptureInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+
         })
 
     </script>

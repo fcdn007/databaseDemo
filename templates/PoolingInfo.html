@@ -37,45 +37,79 @@
 
 {% block ModalForm %}
     <div class="form-group">
-        <label for="singleLB_id"> 建库编号</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+        <label for="singleLB_id"> 建库编号</label></span>
         <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
-               placeholder="请输入建库编号" required="true">
+               placeholder="请输入建库编号，必填" required="true">
     </div>
     <div class="form-group">
-        <label for="poolingLB_id"> 捕获文库名</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+            <label for="poolingLB_id"> 捕获文库名</label></span>
         <input type="text" class="form-control" id="poolingLB_id" name="poolingLB_id"
-               placeholder="请输入捕获文库名" required="true">
+               placeholder="请输入捕获文库名，必填" required="true">
     </div>
     <div class="form-group">
-        <label for="singleLB_Pooling_id"> 测序文库编号</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+            <label for="singleLB_Pooling_id"> 测序文库编号</label></span>
         <input type="text" class="form-control" id="singleLB_Pooling_id" name="singleLB_Pooling_id"
-               placeholder="请输入测序文库编号" required="true">
+               placeholder="请输入测序文库编号，必填" required="true">
     </div>
     <div class="form-group">
         <label for="pooling_ratio"> pooling比例</label>
         <input type="number" step="0.01" class="form-control" id="pooling_ratio" name="pooling_ratio"
-               placeholder="请输入pooling比例" required="true">
+               placeholder="请输入pooling比例，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="mass"> 取样(ng)</label>
         <input type="number" step="0.01" class="form-control" id="mass" name="mass"
-               placeholder="请输入取样(ng)，默认0" value="0">
+               placeholder="请输入取样(ng)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="volume"> 体积(ul)</label>
         <input type="number" step="0.01" class="form-control" id="volume" name="volume"
-               placeholder="请输入体积(ul)" required="true">
+               placeholder="请输入体积(ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="others"> 备注</label>
         <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
+               placeholder="请输入备注，默认：无" value="无">
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let url = '/api/PoolingInfo/';
+            let url2 = '/api/LibraryInfo/';
+            let url3 = '/api/CaptureInfo/';
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#sample_id').val(data['sample_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#singleLB_id').val(data['singleLB_id']);
+                    $('#poolingLB_id').val(data['poolingLB_id']);
+                    $('#pooling_ratio').val(data['pooling_ratio']);
+                    $('#mass').val(data['mass']);
+                    $('#volume').val(data['volume']);
+                    $('#singleLB_Pooling_id').val(data['singleLB_Pooling_id']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#singleLB_id').val("");
+                    $('#poolingLB_id').val("");
+                    $('#pooling_ratio').val("");
+                    $('#mass').val("");
+                    $('#volume').val("");
+                    $('#singleLB_Pooling_id').val("");
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
 
             let table = $('#table_id').DataTable({
                 "language": {
@@ -186,17 +220,7 @@
                 //alert(id);
                 if (class_name == 'btn btn-info') {
                     // EDIT button
-                    $('#sample_id').val(data['sample_id']);
-                    $('#dna_id').val(data['dna_id']);
-                    $('#singleLB_id').val(data['singleLB_id']);
-                    $('#poolingLB_id').val(data['poolingLB_id']);
-                    $('#pooling_ratio').val(data['pooling_ratio']);
-                    $('#mass').val(data['mass']);
-                    $('#volume').val(data['volume']);
-                    $('#singleLB_Pooling_id').val(data['singleLB_Pooling_id']);
-                    $('#others').val(data['others']);
-                    $('#type').val('edit');
-                    $('#modal_title').text('更新');
+                    MyModelInit('更新', data);
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -209,24 +233,49 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
+
+
+                // 递交前检查，一般是检测model的外键是否存在
+                let data0 = $.ajax({
+                    url: url2, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {singleLB_id: $('#singleLB_id').val()}
+                }).responseJSON[0];
+                let data1 = $.ajax({
+                    url: url3, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {singleLB_id: $('#singleLB_id').val()}
+                }).responseJSON[0];
+                if (data0 === undefined) {
+                    $('#myModalError').text('错误！！！建库编号不存在，请填写正确的建库编号。');
+                    return
+                } else if (data1 === undefined) {
+                    $('#myModalError').text('错误！！！捕获文库名不存在，请填写正确的捕获文库名。');
+                    return
+                }
+
                 let type = $('#type').val();
                 let method = '';
-                let url = '/api/PoolingInfo/';
+                let url_ajax = url;
                 if (type == 'new') {
                     // new
                     method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data2 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {singleLB_Pooling_id: $('#singleLB_Pooling_id').val()}
+                    }).responseJSON[0];
+                    if (data2 !== undefined) {
+                        $('#myModalError').text('错误！！！测序文库编号已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
                 } else {
                     // edit
-                    url = url + id + '/';
+                    url_ajax = url + id + '/';
                     method = 'PUT';
                 }
 
-                let data0 = $.ajax({
-                    url: '/api/LibraryInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false, data: {dna_id: $('#singleLB_id').val()}
-                }).responseJSON[0];
+
                 $.ajax({
-                    url: url,
+                    url: url_ajax,
                     method: method,
                     data: $(this).serialize() + '&' + $.param({
                         sample_id: data0.sample_id,
@@ -234,9 +283,20 @@
                     }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        location.reload();
+                        if (type == 'new') {
+                            $('#myModalError').text('添加成功！！！测序文库编号：' + $('#singleLB_Pooling_id').val());
+                        } else {
+                            $('#myModalError').text('更新成功！！！测序文库编号：' + $('#singleLB_Pooling_id').val());
+                        }
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
@@ -245,7 +305,7 @@
 
             $('#confirm').on('click', '#delete', function (e) {
                 $.ajax({
-                    url: '/api/PoolingInfo/' + id + '/',
+                    url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
                         location.reload()
@@ -258,15 +318,7 @@
 
 
             $('#new').on('click', function (e) {
-                $('#singleLB_id').val("");
-                $('#poolingLB_id').val("");
-                $('#pooling_ratio').val("");
-                $('#mass').val("");
-                $('#volume').val("");
-                $('#singleLB_Pooling_id').val("");
-                $('#others').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
                 $("#myModal").modal();
             });
 
@@ -293,6 +345,21 @@
                 $('#bulkDelUrl').val('PoolingInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/PoolingInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+            
         })
 
     </script>

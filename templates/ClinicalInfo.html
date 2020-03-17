@@ -27,7 +27,7 @@
             <th>分期</th>
             <th>诊断</th>
             <th>诊断备注</th>
-            <th>离心日期</th>
+            <th>采样日期</th>
             <th>医院编号</th>
             <th>科室</th>
             <th>血浆管数</th>
@@ -47,18 +47,19 @@
 
 {% block ModalForm %}
     <div class="form-group">
-        <label for="sample_id"> 样本编号</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+            <label for="sample_id"> 样本编号</label></span>
         <input type="text" class="form-control" id="sample_id" name="sample_id"
-               placeholder="请输入样本编号" required="true">
+               placeholder="请输入样本编号，必填" required="true">
     </div>
     <div class="form-group">
         <label for="name"> 姓名</label>
         <input type="text" class="form-control" id="name" name="name"
-               placeholder="请输入姓名" required="true">
+               placeholder="请输入姓名，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="gender"> 性别</label>
-        <select class="form-control" id="gender" name="gender" required="true">
+        <select class="form-control" id="gender" name="gender">
             <option value="男" selected="selected">男</option>
             <option value="女">女</option>
         </select>
@@ -66,88 +67,141 @@
     <div class="form-group">
         <label for="age"> 年龄</label>
         <input type="text" class="form-control" id="age" name="age"
-               placeholder="请输入年龄" required="true">
+               placeholder="请输入年龄，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="patientId"> 住院号</label>
         <input type="text" class="form-control" id="patientId" name="patientId"
-               placeholder="请输入住院号" required="true">
+               placeholder="请输入住院号，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="category"> 癌种</label>
         <input type="text" class="form-control" id="category" name="category"
-               placeholder="请输入诊断信息" value="无">
+               placeholder="请输入癌种信息，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="stage"> 分期</label>
         <input type="text" class="form-control" id="stage" name="stage"
-               placeholder="请输入诊断信息" value="无">
+               placeholder="请输入分期信息，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="diagnose"> 诊断</label>
         <input type="text" class="form-control" id="diagnose" name="diagnose"
-               placeholder="请输入诊断信息" value="无">
+               placeholder="请输入诊断信息，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="diagnose_others"> 诊断备注</label>
         <input type="text" class="form-control" id="diagnose_others" name="diagnose_others"
-               placeholder="请输入诊断信息" value="无">
+               placeholder="请输入诊断备注信息，默认：无" value="无">
     </div>
     <div class="form-group">
-        <label for="centrifugation_date"> 离心日期</label>
+        <label for="centrifugation_date"> 采样日期</label>
         <input type="date" class="form-control" id="centrifugation_date" name="centrifugation_date"
-               placeholder="请输入离心日期" required="true">
+               placeholder="请输入采样日期，默认：2000-01-01" value="2000-01-01">
     </div>
     <div class="form-group">
         <label for="hospital"> 医院编号</label>
         <input type="text" class="form-control" id="hospital" name="hospital"
-               placeholder="请输入医院编号" required="true">
+               placeholder="请输入医院编号，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="department"> 科室</label>
         <input type="text" class="form-control" id="department" name="department"
-               placeholder="请输入科室" required="true">
+               placeholder="请输入科室，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="plasma_num"> 血浆管数</label>
         <input type="text" class="form-control" id="plasma_num" name="plasma_num"
-               placeholder="默认0" value="0">
+               placeholder="默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="adjacent_mucosa_num"> 癌旁组织数量</label>
         <input type="text" class="form-control" id="adjacent_mucosa_num" name="adjacent_mucosa_num"
-               placeholder="默认0" value="0">
+               placeholder="默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="cancer_tissue_num"> 癌组织数量</label>
         <input type="text" class="form-control" id="cancer_tissue_num" name="cancer_tissue_num"
-               placeholder="默认0" value="0">
+               placeholder="默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="WBC_num"> 白细胞数量</label>
         <input type="text" class="form-control" id="WBC_num" name="WBC_num"
-               placeholder="默认0" value="0">
+               placeholder="默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="stool_num"> 粪便数量</label>
         <input type="text" class="form-control" id="stool_num" name="stool_num"
-               placeholder="默认0" value="0">
+               placeholder="默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="send_date"> 寄送日期</label>
         <input type="date" class="form-control" id="send_date" name="send_date"
-               placeholder="请输入寄送日期" required="true">
+               placeholder="请输入寄送日期，默认：2000-01-01" value="2000-01-01">
     </div>
     <div class="form-group">
         <label for="others"> 备注</label>
         <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
+               placeholder="请输入备注，默认：无" value="无">
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let url = '/api/ClinicalInfo/';
+            let id = 0;
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#sample_id').val(data['sample_id']);
+                    $('#name').val(data['name']);
+                    $('#gender').val(data['gender']);
+                    $('#age').val(data['age']);
+                    $('#patientId').val(data['patientId']);
+                    $('#category').val(data['category']);
+                    $('#stage').val(data['stage']);
+                    $('#diagnose').val(data['diagnose']);
+                    $('#diagnose_others').val(data['diagnose_others']);
+                    $('#centrifugation_date').val(data['centrifugation_date']);
+                    $('#hospital').val(data['hospital']);
+                    $('#department').val(data['department']);
+                    $('#plasma_num').val(data['plasma_num']);
+                    $('#adjacent_mucosa_num').val(data['adjacent_mucosa_num']);
+                    $('#cancer_tissue_num').val(data['cancer_tissue_num']);
+                    $('#WBC_num').val(data['WBC_num']);
+                    $('#stool_num').val(data['stool_num']);
+                    $('#send_date').val(data['send_date']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#sample_id').val("");
+                    $('#name').val("");
+                    $('#gender option:first').prop("selected", 'selected');
+                    $('#age').val("");
+                    $('#patientId').val("");
+                    $('#category').val("");
+                    $('#stage').val("");
+                    $('#diagnose').val("");
+                    $('#diagnose_others').val("");
+                    $('#centrifugation_date').val("2000-01-01");
+                    $('#hospital').val("");
+                    $('#department').val("");
+                    $('#plasma_num').val("");
+                    $('#adjacent_mucosa_num').val("");
+                    $('#cancer_tissue_num').val("");
+                    $('#WBC_num').val("");
+                    $('#stool_num').val("");
+                    $('#send_date').val("2000-01-01");
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
+
             let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
@@ -259,7 +313,6 @@
             });
             table.button(0).trigger();
 
-            let id = 0;
             $('#table_id tbody').on('click', 'button', function () {
                 let data = table.row($(this).parents('tr')).data();
                 let class_name = $(this).attr('class');
@@ -267,27 +320,7 @@
                 //alert(id);
                 if (class_name == 'btn btn-info') {
                     // EDIT button
-                    $('#sample_id').val(data['sample_id']);
-                    $('#name').val(data['name']);
-                    $('#gender').val(data['gender']);
-                    $('#age').val(data['age']);
-                    $('#patientId').val(data['patientId']);
-                    $('#category').val(data['category']);
-                    $('#stage').val(data['stage']);
-                    $('#diagnose').val(data['diagnose']);
-                    $('#diagnose_others').val(data['diagnose_others']);
-                    $('#centrifugation_date').val(data['centrifugation_date']);
-                    $('#hospital').val(data['hospital']);
-                    $('#department').val(data['department']);
-                    $('#plasma_num').val(data['plasma_num']);
-                    $('#adjacent_mucosa_num').val(data['adjacent_mucosa_num']);
-                    $('#cancer_tissue_num').val(data['cancer_tissue_num']);
-                    $('#WBC_num').val(data['WBC_num']);
-                    $('#stool_num').val(data['stool_num']);
-                    $('#send_date').val(data['send_date']);
-                    $('#others').val(data['others']);
-                    $('#type').val('edit');
-                    $('#modal_title').text('更新');
+                    MyModelInit('更新', data);
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -300,27 +333,49 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
+                // 递交前检查，一般是检测model的外键是否存在
+
                 let type = $('#type').val();
                 let method = '';
-                let url = '/api/ClinicalInfo/';
+                let url_ajax = url;
                 if (type == 'new') {
                     // new
                     method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data0 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {sample_id: $('#sample_id').val()}
+                    }).responseJSON[0];
+                    if (data0 !== undefined) {
+                        $('#myModalError').text('错误！！！样本编号已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
                 } else {
                     // edit
-                    url = url + id + '/';
+                    url_ajax = url + id + '/';
                     method = 'PUT';
                 }
 
                 $.ajax({
-                    url: url,
+                    url: url_ajax,
                     method: method,
                     data: $(this).serialize(),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        location.reload();
+                        if (type == 'new') {
+                            $('#myModalError').text('添加成功！！！样本编号：' + $('#sample_id').val());
+                        } else {
+                            $('#myModalError').text('更新成功！！！样本编号：' + $('#sample_id').val());
+                        }
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
@@ -328,7 +383,7 @@
 
             $('#confirm').on('click', '#delete', function (e) {
                 $.ajax({
-                    url: '/api/ClinicalInfo/' + id + '/',
+                    url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
                         location.reload()
@@ -340,27 +395,7 @@
             });
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val("");
-                $('#name').val("");
-                $('#gender').val("");
-                $('#age').val("");
-                $('#patientId').val("");
-                $('#category').val("");
-                $('#stage').val("");
-                $('#diagnose').val("");
-                $('#diagnose_others').val("");
-                $('#centrifugation_date').val("");
-                $('#hospital').val("");
-                $('#department').val("");
-                $('#plasma_num').val("");
-                $('#adjacent_mucosa_num').val("");
-                $('#cancer_tissue_num').val("");
-                $('#WBC_num').val("");
-                $('#stool_num').val("");
-                $('#send_date').val("");
-                $('#others').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
                 $("#myModal").modal();
             });
 
@@ -376,6 +411,21 @@
                 $('#bulkDelUrl').val('ClinicalInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/ClinicalInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+
         })
 
     </script>

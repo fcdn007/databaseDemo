@@ -47,24 +47,26 @@
 {% block ModalForm %}
     <div id="usageForm">
         <div class="form-group InventoryForm">
-            <label for="dna_id"> DNA提取编号</label>
+            <span><a class="text-danger front-weight-bold">* </a>
+                    <label for="dna_id"> DNA提取编号</label></span>
             <input type="text" class="form-control" id="dna_id" name="dna_id"
-                   placeholder="请输入DNA提取编号" required="true">
+                   placeholder="请输入DNA提取编号，必填" required="true">
         </div>
         <div class="form-group">
-            <label for="singleLB_id"> 建库编号</label>
+            <span><a class="text-danger front-weight-bold">* </a>
+            <label for="singleLB_id"> 建库编号</label></span>
             <input type="text" class="form-control" id="singleLB_id" name="singleLB_id"
-                   placeholder="请输入建库编号" required="true">
+                   placeholder="请输入建库编号，必填" required="true">
         </div>
         <div class="form-group">
             <label for="LB_date"> 建库日期</label>
             <input type="date" class="form-control" id="LB_date" name="LB_date"
-                   placeholder="请输入建库日期" required="true">
+                   placeholder="请输入建库日期，默认：2000-01-01" value="2000-01-01">
         </div>
         <div class="form-group">
             <label for="mass"> 起始量(ng)</label>
             <input type="number" step="0.01" class="form-control" id="mass" name="mass"
-                   placeholder="请输入起始量(ng)，默认0" value="0">
+                   placeholder="请输入起始量(ng)，默认：0" value="0">
         </div>
     </div>
     <div class="form-group">
@@ -79,27 +81,27 @@
     <div class="form-group">
         <label for="pcr_cycles"> PCR循环数</label>
         <input type="number" class="form-control" id="pcr_cycles" name="pcr_cycles"
-               placeholder="请输入PCR循环数" required="true">
+               placeholder="请输入PCR循环数，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="LB_con"> 文库浓度(ng/ul)</label>
         <input type="number" step="0.01" class="form-control" id="LB_con" name="LB_con"
-               placeholder="请输入文库浓度(ng/ul)" required="true">
+               placeholder="请输入文库浓度(ng/ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="LB_vol"> 文库体积(ul)</label>
         <input type="number" step="0.01" class="form-control" id="LB_vol" name="LB_vol"
-               placeholder="请输入文库体积(ul)" required="true">
+               placeholder="请输入文库体积(ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="operator"> 操作人</label>
         <input type="text" class="form-control" id="operator" name="operator"
-               placeholder="请输入操作人" required="true">
+               placeholder="请输入操作人，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="singleLB_name"> 文库名</label>
         <input type="text" class="form-control" id="singleLB_name" name="singleLB_name"
-               placeholder="请输入文库名" required="true">
+               placeholder="请输入文库名，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="label"> 样本标签</label>
@@ -112,12 +114,12 @@
     <div class="form-group">
         <label for="barcodes"> index列表</label>
         <input type="text" class="form-control" id="barcodes" name="barcodes"
-               placeholder="请输入index列表" required="true">
+               placeholder="请输入index列表，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="tube_id"> 管上编号</label>
         <input type="text" class="form-control" id="tube_id" name="tube_id"
-               placeholder="请输入管上编号" required="true">
+               placeholder="请输入管上编号，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="clinical_boolen"> 是否临床</label>
@@ -129,18 +131,71 @@
     <div class="form-group">
         <label for="kit_batch"> 试剂批次</label>
         <input type="text" class="form-control" id="kit_batch" name="kit_batch"
-               placeholder="请输入试剂批次" value="无">
+               placeholder="请输入试剂批次，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="others"> 备注</label>
         <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
+               placeholder="请输入备注，默认：无" value="无">
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let id = 0;
+            let singleLB_id;
+            let id2;
+            let mass0;
+            let dnaid;
+            let url = '/api/LibraryInfo/';
+            let url2 = '/api/DNAUsageRecordInfo/';
+            let url3 = '/api/DNAInventoryInfo/';
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#singleLB_id').val(data['singleLB_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#LB_date').val(data['LB_date']);
+                    $('#mass').val(data['mass']);
+                    $('#LB_method').val(data['LB_method']);
+                    $('#pcr_cycles').val(data['pcr_cycles']);
+                    $('#LB_con').val(data['LB_con']);
+                    $('#LB_vol').val(data['LB_vol']);
+                    $('#operator').val(data['operator']);
+                    $('#singleLB_name').val(data['singleLB_name']);
+                    $('#label').val(data['label']);
+                    $('#barcodes').val(data['barcodes']);
+                    $('#others').val(data['others']);
+                    $('#tube_id').val(data['tube_id']);
+                    $('#clinical_boolen').val(data['clinical_boolen']);
+                    $('#kit_batch').val(data['kit_batch']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#singleLB_id').val("");
+                    $('#dna_id').val("");
+                    $('#LB_date').val("2000-01-01");
+                    $('#mass').val("");
+                    $('#LB_method option:first').prop("selected", 'selected');
+                    $('#pcr_cycles').val("");
+                    $('#LB_con').val("");
+                    $('#LB_vol').val("");
+                    $('#operator').val("");
+                    $('#singleLB_name').val("");
+                    $('#label option:first').prop("selected", 'selected');
+                    $('#barcodes').val("");
+                    $('#others').val("");
+                    $('#tube_id').val("");
+                    $('#clinical_boolen option:first').prop("selected", 'selected');
+                    $('#kit_batch').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
+
             let getDNAConDict = function () {
                 let ExtractInfo_all = $.ajax({
                     url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
@@ -270,14 +325,7 @@
             });
             table.button(0).trigger();
 
-            let id = 0;
-            let singleLB_id;
-            let id2;
-            let mass0;
-            let dnaid;
-            let url = '/api/LibraryInfo/';
-            let url2 = '/api/DNAUsageRecordInfo/';
-            let url3 = '/api/DNAInventoryInfo/';
+
             $('#table_id tbody').on('click', 'button', function () {
                 let data = table.row($(this).parents('tr')).data();
                 let class_name = $(this).attr('class');
@@ -292,24 +340,7 @@
                 }).responseJSON[0];
                 if (class_name == 'btn btn-info') {
                     // EDIT button
-                    $('#singleLB_id').val(data['singleLB_id']);
-                    $('#dna_id').val(data['dna_id']);
-                    $('#LB_date').val(data['LB_date']);
-                    $('#mass').val(data['mass']);
-                    $('#LB_method').val(data['LB_method']);
-                    $('#pcr_cycles').val(data['pcr_cycles']);
-                    $('#LB_con').val(data['LB_con']);
-                    $('#LB_vol').val(data['LB_vol']);
-                    $('#operator').val(data['operator']);
-                    $('#singleLB_name').val(data['singleLB_name']);
-                    $('#label').val(data['label']);
-                    $('#barcodes').val(data['barcodes']);
-                    $('#others').val(data['others']);
-                    $('#tube_id').val(data['tube_id']);
-                    $('#clinical_boolen').val(data['clinical_boolen']);
-                    $('#kit_batch').val(data['kit_batch']);
-                    $('#type').val('edit');
-                    $('#modal_title').text('更新');
+                    MyModelInit('更新', data);
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -322,26 +353,43 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                let type = $('#type').val();
-                let method = '';
-                if (type == 'new') {
-                    // new
-                    method = 'POST';
-                } else {
-                    // edit
-                    url = url + id + '/';
-                    url2 = url2 + id2.index + '/';
-                    method = 'PUT';
-                }
 
-
+                // 递交前检查，一般是检测model的外键是否存在
                 let data0 = $.ajax({
                     url: url3, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {dna_id: $('#dna_id').val()}
                 }).responseJSON[0];
+                if (data0 === undefined) {
+                    $('#myModalError').text('错误！！！DNA提取编号不存在，请填写正确的DNA提取编号。');
+                    return
+                }
+
+                let type = $('#type').val();
+                let method = '';
+                let url_ajax = url;
+                let url_ajax2 = url2;
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data1 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {singleLB_id: $('#singleLB_id').val()}
+                    }).responseJSON[0];
+                    if (data1 !== undefined) {
+                        $('#myModalError').text('错误！！！建库编号已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
+                } else {
+                    // edit
+                    url_ajax = url + id + '/';
+                    url_ajax2 = url2 + id2.index + '/';
+                    method = 'PUT';
+                }
+
                 // 增、改：更新建库表
                 $.ajax({
-                    url: url, async: false,
+                    url: url_ajax, async: false,
                     method: method,
                     data: $(this).serialize() + '&' + $.param({
                         sample_id: data0.sample_id
@@ -354,7 +402,7 @@
                             others: $('#others').val()
                         });
                         $.ajax({
-                            url: url2,
+                            url: url_ajax2,
                             method: method,
                             data: data_tmp,
                             headers: {'X-HTTP-Method-Override': 'PATCH'},
@@ -392,9 +440,21 @@
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
                         });
-                        location.reload();
+
+                        if (type == 'new') {
+                            $('#myModalError').text('添加成功！！！建库编号：' + $('#singleLB_id').val());
+                        } else {
+                            $('#myModalError').text('更新成功！！！建库编号：' + $('#singleLB_id').val());
+                        }
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
@@ -450,24 +510,7 @@
 
 
             $('#new').on('click', function (e) {
-                $('#singleLB_id').val("");
-                $('#dna_id').val("");
-                $('#LB_date').val("");
-                $('#mass').val("");
-                $('#LB_method option:first').prop("selected", 'selected');
-                $('#pcr_cycles').val("");
-                $('#LB_con').val("");
-                $('#LB_vol').val("");
-                $('#operator').val("");
-                $('#singleLB_name').val("");
-                $('#label option:first').prop("selected", 'selected');
-                $('#barcodes').val("");
-                $('#others').val("");
-                $('#tube_id').val("");
-                $('#clinical_boolen option:first').prop("selected", 'selected');
-                $('#kit_batch').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
                 $("#myModal").modal();
             });
 
@@ -488,6 +531,21 @@
                 $('#bulkDelUrl').val('LibraryInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/LibraryInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+            
         })
     </script>
 {% endblock %}

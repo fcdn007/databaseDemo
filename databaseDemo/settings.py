@@ -31,6 +31,9 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = ['*']
 SERVER_HOST = '127.0.0.1'
 
+djcelery.setup_loader()  # 去每一个应用目录下找 tasks.py 文件，到文件中去执行 celery 任务函数
+BROKER_URL = "redis://127.0.0.1:6379/2"  # 使用redis, 并指定redis的第2个数据库作为celery中间队列
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,8 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bootstrap4',
     'rest_framework',
-    'djcelery',
     'rest_framework_datatables',
+    'djcelery',
+    'gunicorn',
     'databaseDemo',
 ]
 
@@ -218,7 +222,3 @@ EMAIL_HOST_USER = 'fcdn007@163.com'  # 发送邮件的邮箱地址
 EMAIL_HOST_PASSWORD = 'fly71bird37'  # 发送邮件的邮箱密码(这里使用的是授权码)
 DEFAULT_FROM_EMAIL = 'fcdn007@163.com'
 EMAIL_PROM = '甲基化早筛项目数据库管理系统Demo<fcdn007@163.com>'  # 收件人看到的发件人
-
-
-djcelery.setup_loader()  # 去每一个应用目录下找 tasks.py 文件，到文件中去执行 celery 任务函数
-BROKER_URL = "redis://127.0.0.1:6379/2"  # 使用redis, 并指定redis的第2个数据库作为celery中间队列

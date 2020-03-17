@@ -37,44 +37,46 @@
 {% block ModalForm %}
 
     <div class="form-group">
-        <label for="poolingLB_id"> 捕获文库名</label>
+        <span><a class="text-danger front-weight-bold">* </a>
+            <label for="poolingLB_id"> 捕获文库名</label></span>
         <textarea class="form-control" rows="3" id="poolingLB_id" name="poolingLB_id"></textarea>
     </div>
     <div id="postForm">
         <div class="form-group">
-            <label for="sequencing_id"> 上机文库号</label>
+            <span><a class="text-danger front-weight-bold">* </a>
+                <label for="sequencing_id"> 上机文库号</label></span>
             <input type="text" class="form-control" id="sequencing_id" name="sequencing_id"
                    placeholder="请输入上机文库号" required="true">
         </div>
         <div class="form-group">
             <label for="send_date"> 送测日期</label>
             <input type="date" class="form-control" id="send_date" name="send_date"
-                   placeholder="请输入送测日期" value="2000-01-01">
+                   placeholder="请输入送测日期，默认：2000-01-01" value="2000-01-01">
         </div>
         <div class="form-group">
             <label for="start_time"> 上机时间</label>
             <input type="date" class="form-control" id="start_time" name="start_time"
-                   placeholder="请输入上机时间" value="2000-01-01">
+                   placeholder="请输入上机时间，默认：2000-01-01" value="2000-01-01">
         </div>
         <div class="form-group">
             <label for="end_time"> 下机时间</label>
             <input type="date" class="form-control" id="end_time" name="end_time"
-                   placeholder="请输入下机时间" value="2000-01-01">
+                   placeholder="请输入下机时间，默认：2000-01-01" value="2000-01-01">
         </div>
         <div class="form-group">
             <label for="machine_id"> 机器号</label>
             <input type="text" class="form-control" id="machine_id" name="machine_id"
-                   placeholder="请输入机器号" value="无">
+                   placeholder="请输入机器号，默认：无" value="无">
         </div>
         <div class="form-group">
             <label for="chip_id"> 芯片号</label>
             <input type="text" class="form-control" id="chip_id" name="chip_id"
-                   placeholder="请输入芯片号" value="无">
+                   placeholder="请输入芯片号，默认：无" value="无">
         </div>
         <div class="form-group">
             <label for="others"> 备注</label>
             <input type="text" class="form-control" id="others" name="others"
-                   placeholder="请输入备注" value="无">
+                   placeholder="请输入备注，默认：无" value="无">
         </div>
     </div>
 
@@ -83,8 +85,42 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let url = '/api/SequencingInfo/';
+            let url1 = '/api/CaptureInfo/';
+            let id = 0;
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#sequencing_id').val(data['sequencing_id']);
+                    $('#poolingLB_id').val(get_poolingLB_id(data['poolingLB_id']));
+                    $('#send_date').val(data['send_date']);
+                    //$('#start_time').val(data['start_time'].replace(/\//g, '-').replace(/\s+/, 'T'));
+                    $('#start_time').val(data['start_time']);
+                    $('#end_time').val(data['end_time']);
+                    $('#machine_id').val(data['machine_id']);
+                    $('#chip_id').val(data['chip_id']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#sequencing_id').val("");
+                    $('#poolingLB_id').val("");
+                    $('#send_date').val("");
+                    $('#start_time').val("2000-01-01");
+                    $('#end_time').val("2000-01-01");
+                    $('#machine_id').val("");
+                    $('#chip_id').val("");
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
+
+
             let capture_data = $.ajax({
-                url: '/api/CaptureInfo/', dataType: 'json', contentType: "application/json",
+                url: url1, dataType: 'json', contentType: "application/json",
                 type: "get", async: false
             }).responseJSON;
 
@@ -206,24 +242,14 @@
             });
             table.button(0).trigger();
 
-            let id = 0;
+
             $('#table_id tbody').on('click', 'button', function () {
                 let data = table.row($(this).parents('tr')).data();
                 let class_name = $(this).attr('class');
                 id = data['index'];
                 if (class_name == 'btn btn-info') {
                     // EDIT button
-                    $('#sequencing_id').val(data['sequencing_id']);
-                    $('#poolingLB_id').val(get_poolingLB_id(data['poolingLB_id']));
-                    $('#send_date').val(data['send_date']);
-                    //$('#start_time').val(data['start_time'].replace(/\//g, '-').replace(/\s+/, 'T'));
-                    $('#start_time').val(data['start_time']);
-                    $('#end_time').val(data['end_time']);
-                    $('#machine_id').val(data['machine_id']);
-                    $('#chip_id').val(data['chip_id']);
-                    $('#others').val(data['others']);
-                    $('#type').val('edit');
-                    $('#modal_title').text('更新');
+                    MyModelInit('更新', data);
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -236,17 +262,6 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
-                let type = $('#type').val();
-                let method = '';
-                let url = '/api/SequencingInfo/';
-                if (type == 'new') {
-                    // new
-                    method = 'POST';
-                } else {
-                    // edit
-                    url = url + id + '/';
-                    method = 'PUT';
-                }
                 let poolingLB_ids = [];
                 let text = $('#poolingLB_id').val();
                 let arry = text.split("\n");
@@ -258,18 +273,62 @@
                         }
                     }
                 }
+                // 递交前检查，一般是检测model的外键是否存在
+                for (let idx in arry) {
+                    let data0 = $.ajax({
+                        url: url1, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {poolingLB_id: arry[idx]}
+                    }).responseJSON[0];
+                    if (data0 === undefined) {
+                        $('#myModalError').text('错误！！！捕获文库名' + arry[idx] + '不存在，请填写正确的捕获文库名。');
+                        return
+                    }
+                }
+
+                let type = $('#type').val();
+                let method = '';
+                let url_ajax = url;
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data1 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {sequencing_id: $('#sequencing_id').val()}
+                    }).responseJSON[0];
+                    if (data1 !== undefined) {
+                        $('#myModalError').text('错误！！！上机文库号已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
+                } else {
+                    // edit
+                    url_ajax = url + id + '/';
+                    method = 'PUT';
+                }
+
 
                 $.ajax({
-                    url: url,
+                    url: url_ajax,
                     method: method,
-                    data: $(this).serialize() + '&' + $.param({
+                    data: $("#postForm").serialize() + '&' + $.param({
                         poolingLB_id: poolingLB_ids
                     }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        location.reload();
+                        if (type == 'new') {
+                            $('#myModalError').text('添加成功！！！上机文库号：' + $('#sequencing_id').val());
+                        } else {
+                            $('#myModalError').text('更新成功！！！上机文库号：' + $('#sequencing_id').val());
+                        }
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
@@ -291,16 +350,7 @@
 
 
             $('#new').on('click', function (e) {
-                $('#sequencing_id').val("");
-                $('#poolingLB_id').val("");
-                $('#send_date').val("");
-                $('#start_time').val("");
-                $('#end_time').val("");
-                $('#machine_id').val("");
-                $('#chip_id').val("");
-                $('#others').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
                 $("#myModal").modal();
             });
 
@@ -335,6 +385,21 @@
                 $('#bulkDelUrl').val('SequencingInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/SequencingInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+            
         })
 
     </script>

@@ -3,8 +3,11 @@
     <!-- New  button -->
     <div class="text-center" id="addbuttons">
         <button type="button" class="btn btn-primary" id="new">添加</button>
-        <button type="button" class="btn btn-primary" id="upload" style="margin: 0 50px">批量添加</button>
-        <button type="button" class="btn btn-danger" id="bulkDel">批量删除</button>
+        <button type="button" class="btn btn-info downloadExcel" style="margin: 0 10px">批量添加模板下载</button>
+        <button type="button" class="btn btn-primary" id="upload" style="margin: 0 10px">批量添加</button>
+        {% if user.bulk_delete_privilege == '有' %}
+            <button type="button" class="btn btn-danger" id="bulkDel">批量删除</button>
+        {% endif %}
     </div>
     <br>
 
@@ -17,6 +20,9 @@
                     <h4 class="modal-title" id="modal_title"></h4>
                 </div>
                 <div class="modal-body">
+                    {% block ModalFormHeader %}
+
+                    {% endblock %}
                     <form id="modelForm">
                         {% csrf_token %}
                         {% block ModalForm %}
@@ -25,6 +31,11 @@
                         <input type="hidden" id="type" name="type" value="">
                         <button id="submit" type="submit" class="btn btn-success btn-block">OK</button>
                     </form>
+                </div>
+                <div class="modal-footer">
+                    <p id="myModalError"></p>
+                    <button type="button" class="btn btn-warning" id='myModalReset'>重置</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
                 </div>
             </div>
         </div>
@@ -46,16 +57,24 @@
                             <input type="text" class="form-control" id="uploadUrl" name="uploadUrl"
                                    placeholder="请输入数据表名称" required="true">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="upload_file">
                             <label for="uploadFile"> 上传文件</label>
                             <input type="file" class="form-control" id="uploadFile" name="uploadFile"
                                    placeholder="请上传文件" required="true">
                         </div>
                         <button id='uploadSubmit' type="submit" class="btn btn-success btn-block">提交上传</button>
                     </form>
+                    <br>
+                    <dl>
+                        <dt class="text-primary front-weight-bold">上传结果信息：</dt>
+                        <dd id="uploadInfo" class="text-primary" style="white-space: pre-line"></dd>
+                        <dt class="text-danger front-weight-bold">报错信息：</dt>
+                        <dd id="uploadError" class="text-danger front-weight-bold" style="white-space: pre-line"></dd>
+                    </dl>
                 </div>
                 <div class="modal-footer">
-                    <p id="uploadError"></p>
+                    <button type="button" class="btn btn-info downloadExcel">模板下载</button>
+                    <button type="button" class="btn btn-warning" id='uploadReset'>重置</button>
                     <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
                 </div>
             </div>
@@ -68,10 +87,10 @@
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">是否确认删除?</h4>
+                    <h4 class="modal-title text-danger">是否确认删除?</h4>
                 </div>
                 <div class="modal-body">
-                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">确认删除</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-danger" id="delete">确认删除</button>
                     <button type="button" data-dismiss="modal" class="btn">取消</button>
                 </div>
             </div>
@@ -84,11 +103,11 @@
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">是否确认批量删除?</h4>
+                    <h4 class="modal-title text-danger">是否确认批量删除?</h4>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="bulkDelUrl" value="">
-                    <button type="button" data-dismiss="modal" class="btn btn-primary" id="delete">确认删除</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-danger" id="delete">确认删除</button>
                     <button type="button" data-dismiss="modal" class="btn">取消</button>
                 </div>
                 <div class="modal-footer">
@@ -111,27 +130,39 @@
                 form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
                 form_data.append('uploadUrl', $('#uploadUrl').val());
                 form_data.append('uploadOperator', "{{ user.username }}");
-                let urlUpload = {% url "upload" %};
+                let urlUpload = "{% url 'upload' %}";
 
                 $.ajax({
                     async: true, url: urlUpload, processData: false,
                     method: 'POST', data: form_data, dataType: 'json',
                     contentType: false,
                     success: function (data) {
-                        if (data.error_msg) {
-                            alert('文件上传和批量添加失败。' + data['error_msg']);
-                            $('#uploadError').text('文件上传和批量添加失败。' + data.error_msg);
+                        if (data.error_msg_fatal) {
+                            // alert('文件上传和批量添加失败。' + data['error_msg']);
+                            $('#uploadInfo').text("");
+                            $('#uploadError').text(data.error_msg_fatal);
                         } else {
                             let update_records = parseInt(data.all_records) - parseInt(data.add_records);
-                            alert('文件上传和批量添加成功，有效输入记录共有' + data.all_records +
+                            /* alert('文件上传和批量添加成功，有效输入记录共有' + data.all_records +
                                 "行。\n其中往数据库中增加" + data.add_records + '行记录，更新了' +
-                                update_records + '行记录。');
-                            $("#uploadModal").find('form').trigger("reset");
+                               update_records + '行记录。'); */
+                            $('#uploadInfo').text('文件上传和批量添加成功，输入记录共有' + data.all_records +
+                                '行，有效的共有' + data.valid_records + "行。\n其中往数据库中增加" +
+                                data.add_records + '行记录，更新了' + update_records + '行记录。' + data.warning);
+                            $('#uploadError').text(data.error_msg_tolerant);
+                            /* $("#uploadModal").find('form').trigger("reset");
                             $('#uploadModal').modal('hide');
-                            location.reload();
+                            location.reload(); */
                         }
                     }
                 });
+            });
+
+            $('#uploadReset').on('click', function (e) {
+                e.preventDefault();
+                $("#uploadFile").val("");
+                $('#uploadInfo').text("");
+                $('#uploadError').text("");
             });
 
             $('#bulkDelModal').on('click', '#delete', function (e) {
@@ -155,6 +186,7 @@
                 }
 
             });
+
         });
     </script>
 {% endblock %}

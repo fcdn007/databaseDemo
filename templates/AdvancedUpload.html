@@ -3,13 +3,12 @@
     <title>订制批量上传</title>
 {% endblock %}
 
-
 {% block content %}
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
         <h4>订制批量上传</h4><br>
         <div>
-            <p class="bg-primary text-white"> 订制捕获文库信息表</p>
+            <p class="bg-primary text-white font-weight-bold"> 订制捕获文库信息表</p>
             <p>示例</p>
             <table id="uploadFile1Col" class="table table-bordered">
                 <tr>
@@ -20,7 +19,7 @@
                     <th>捕获文库名</th>
                     <th>杂交日期</th>
                     <th>杂交探针</th>
-                    <th>杂交时间</th>
+                    <th>杂交时间(min)</th>
                     <th>PostPCR循环数</th>
                     <th>PostPCR浓度</th>
                     <th>洗脱体积</th>
@@ -43,10 +42,20 @@
                 <input type="file" class="form-control" id="uploadFile" name="uploadFile"
                        placeholder="请上传文件" required="true">
             </div>
-            <button type="submit" class="btn btn-success btn-block"
+            <button type="button" class="btn btn-info" style="margin: 0 10px"
+                    id="downloadExcel1">上传文件模板下载
+            </button>
+            <button type="submit" class="btn btn-success" style="margin: 0 10px"
                     id="uploadFile1Submit">文件上传
             </button>
-            <p id="uploadError"></p>
+            <button type="button" class="btn btn-warning" id="uploadReset">重置</button>
+            <br><br>
+            <dl>
+                <dt class="text-primary front-weight-bold">上传结果信息：</dt>
+                <dd id="uploadInfo" class="text-primary" style="white-space: pre-line"></dd>
+                <dt class="text-danger front-weight-bold">报错信息：</dt>
+                <dd id="uploadError" class="text-danger front-weight-bold" style="white-space: pre-line"></dd>
+            </dl>
         </form>
 
     </div>
@@ -71,18 +80,37 @@
                     method: 'POST', data: form_data, dataType: 'json',
                     contentType: false,
                     success: function (data) {
-                        if (data['error_msg']) {
-                            //alert('文件上传和批量添加失败。' + data['error_msg']);
-                            $('#uploadError').text('文件上传和批量添加失败。' + data['error_msg']);
+                        if (data.error_msg_fatal) {
+                            // alert('文件上传和批量添加失败。' + data['error_msg']);
+                            $('#uploadInfo').text("");
+                            $('#uploadError').text(data.error_msg_fatal);
                         } else {
-                            let update_records = parseInt(data['all_records']) - parseInt(data['add_records']);
-                            $('#uploadError').text('文件上传和批量添加成功，有效输入记录共有' + data['all_records'] +
-                                "行。\n其中往数据库中增加" + data['add_records'] + '行记录，更新了' +
-                                update_records + '行记录。');
-
+                            let update_records = parseInt(data.all_records) - parseInt(data.add_records);
+                            /* alert('文件上传和批量添加成功，有效输入记录共有' + data.all_records +
+                                "行。\n其中往数据库中增加" + data.add_records + '行记录，更新了' +
+                               update_records + '行记录。'); */
+                            $('#uploadInfo').text('文件上传和批量添加成功，输入记录共有' + data.all_records +
+                                '行，有效的共有' + data.valid_records + "行。\n其中往数据库中增加" +
+                                data.add_records + '行记录，更新了' + update_records + '行记录。' + data.warning);
+                            $('#uploadError').text(data.error_msg_tolerant);
+                            /* $("#uploadModal").find('form').trigger("reset");
+                            $('#uploadModal').modal('hide');
+                            location.reload(); */
                         }
                     }
                 });
+            });
+
+            $('.downloadExcel1').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/CaptureInfoPlus/'
+            });
+
+            $('#uploadReset').on('click', function (e) {
+                e.preventDefault();
+                $("#uploadForm").trigger("reset");
+                $('#uploadInfo').text("");
+                $('#uploadError').text("");
             });
         })
 

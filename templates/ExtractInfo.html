@@ -39,56 +39,97 @@
 {% block ModalForm %}
     <div id="InventoryForm">
         <div class="form-group">
-            <label for="sample_id"> 样本编号</label>
+            <span><a class="text-danger front-weight-bold">* </a>
+                <label for="sample_id"> 样本编号</label></span>
             <input type="text" class="form-control" id="sample_id" name="sample_id"
-                   placeholder="请输入样本编号" required="true">
+                   placeholder="请输入样本编号，必填" required="true">
         </div>
         <div class="form-group">
-            <label for="dna_id"> DNA提取编号</label>
+            <span><a class="text-danger front-weight-bold">* </a>
+            <label for="dna_id"> DNA提取编号</label></span>
             <input type="text" class="form-control" id="dna_id" name="dna_id"
-                   placeholder="请输入DNA提取编号" required="true">
+                   placeholder="请输入DNA提取编号，必填" required="true">
         </div>
     </div>
     <div class="form-group">
         <label for="extract_date"> 提取日期</label>
         <input type="date" class="form-control" id="extract_date" name="extract_date"
-               placeholder="请输入提取日期" value="2000-01-01">
+               placeholder="请输入提取日期，默认：2000-01-01" value="2000-01-01">
     </div>
     <div class="form-group">
         <label for="sample_type"> 样本类型</label>
-        <input type="text" class="form-control" id="sample_type" name="sample_type"
-               placeholder="请输入样本类型" value="无">
+        <select class="form-control" id="sample_type" name="sample_type">
+            <option value="血浆" selected="selected">血浆</option>
+            <option value="癌旁组织">癌旁组织</option>
+            <option value="癌组织">癌组织</option>
+            <option value="白细胞">白细胞</option>
+            <option value="粪便">粪便</option>
+        </select>
     </div>
     <div class="form-group">
         <label for="sample_volume"> 样本体积(ml)</label>
         <input type="number" step="0.01" class="form-control" id="sample_volume" name="sample_volume"
-               placeholder="请输入样本体积(ml)，默认0" value="0">
+               placeholder="请输入样本体积(ml)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="extract_method"> 提取方法</label>
         <input type="text" class="form-control" id="extract_method" name="extract_method"
-               placeholder="请输入提取方法" value="无">
+               placeholder="请输入提取方法，默认：无" value="无">
     </div>
     <div class="form-group">
         <label for="dna_con"> 浓度(ng/ul)</label>
         <input type="number" step="0.001" class="form-control" id="dna_con" name="dna_con"
-               placeholder="请输入浓度(ng/ul)" required="true">
+               placeholder="请输入浓度(ng/ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="dna_vol"> 体积(ul)</label>
         <input type="number" step="0.01" class="form-control" id="dna_vol" name="dna_vol"
-               placeholder="请输入体积(ul)" required="true">
+               placeholder="请输入体积(ul)，默认：0" value="0">
     </div>
     <div class="form-group">
         <label for="others"> 备注</label>
         <input type="text" class="form-control" id="others" name="others"
-               placeholder="请输入备注" value="无">
+               placeholder="请输入备注，默认：无" value="无">
     </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            let url = '/api/ExtractInfo/';
+            let url2 = '/api/DNAInventoryInfo/';
+            let url3 = '/api/ClinicalInfo/';
+            let dataModelForm;
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#sample_id').val(data['sample_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#extract_date').val(data['extract_date']);
+                    $('#sample_type').val(data['sample_type']);
+                    $('#sample_volume').val(data['sample_volume']);
+                    $('#extract_method').val(data['extract_method']);
+                    $('#dna_con').val(data['dna_con']);
+                    $('#dna_vol').val(data['dna_vol']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#sample_id').val("");
+                    $('#dna_id').val("");
+                    $('#extract_date').val("2000-01-01");
+                    $('#sample_type option:first').prop("selected", 'selected');
+                    $('#sample_volume').val("");
+                    $('#extract_method').val("");
+                    $('#dna_con').val("");
+                    $('#dna_vol').val("");
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
+
 
             let table = $('#table_id').DataTable({
                 "language": {
@@ -203,17 +244,7 @@
                 //alert(id);
                 if (class_name == 'btn btn-info') {
                     // EDIT button
-                    $('#sample_id').val(data['sample_id']);
-                    $('#dna_id').val(data['dna_id']);
-                    $('#extract_date').val(data['extract_date']);
-                    $('#sample_type').val(data['sample_type']);
-                    $('#sample_volume').val(data['sample_volume']);
-                    $('#extract_method').val(data['extract_method']);
-                    $('#dna_con').val(data['dna_con']);
-                    $('#dna_vol').val(data['dna_vol']);
-                    $('#others').val(data['others']);
-                    $('#type').val('edit');
-                    $('#modal_title').text('更新');
+                    MyModelInit('更新', data);
                     $("#myModal").modal();
                 } else {
                     // DELETE button
@@ -226,47 +257,54 @@
 
             $('#modelForm').on('submit', function (e) {
                 e.preventDefault();
+                // 递交前检查，一般是检测model的外键是否存在
+                let data0 = $.ajax({
+                    url: url3, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {sample_id: $('#sample_id').val()}
+                }).responseJSON[0];
+                if (data0 === undefined) {
+                    $('#myModalError').text('错误！！！样本编号不存在，请填写正确的样本编号。');
+                    return
+                }
+
                 let type = $('#type').val();
                 let method = '';
-                let url = '/api/ExtractInfo/';
-                let url2 = '/api/DNAInventoryInfo/';
+                let url_ajax = url;
                 if (type == 'new') {
                     // new
                     method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data1 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {dna_id: $('#dna_id').val()}
+                    }).responseJSON[0];
+                    if (data1 !== undefined) {
+                        $('#myModalError').text('错误！！！DNA提取编号已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
                 } else {
                     // edit
-                    url = url + id + '/';
+                    url_ajax = url + id + '/';
                     method = 'PUT';
                 }
 
                 // 增、改：更新提取表
                 $.ajax({
-                    url: url, async: false, method: method,
+                    url: url_ajax, async: false, method: method,
                     data: $(this).serialize(), headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
                         // 增、改：更新库存表
                         // 由于外键约束，需先创建提取表条目，再根据index创建库存表条目
+                        let data_tmp;
+                        let url_ajax2 = url2;
                         if (method == 'POST') {
                             // new
                             // 增：增加库存表条目
-                            let data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                            data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                                 totalM: $('#dna_con').val() * $('#dna_vol').val(), successM: '0', failM: '0',
                                 researchM: '0', othersM: '0'
                             });
-
-                            $.ajax({
-                                url: url2,
-                                method: method,
-                                data: data_tmp,
-                                headers: {'X-HTTP-Method-Override': 'PATCH'},
-                                success: function () {
-                                    alert('POST /api/DNAInventoryInfo/ success ');
-                                },
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    alert('POST /api/DNAInventoryInfo/ error: ' + jqXHR + ';' + textStatus + ';' +
-                                        errorThrown);
-                                }
-                            });
+                            $('#myModalError').text('添加成功！！！DNA提取编号：' + $('#dna_id').val());
                         } else {
                             // edit
                             // 改：修改库存表相应条目
@@ -275,28 +313,35 @@
                                 type: "get", async: false, data: {index: id}
                             }).responseJSON[0];
                             let totalM = $('#dna_con').val() * $('#dna_vol').val();
-                            let data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                            data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                                 totalM: totalM, successM: data0.successM, failM: data0.failM,
                                 researchM: data0.researchM, othersM: data0.othersM
                             });
-
-                            url2 = url2 + id + '/';
-                            $.ajax({
-                                url: url2,
+                            url_ajax2 = url2 + id + '/';
+                            $('#myModalError').text('更新成功！！！DNA提取编号：' + $('#dns_id').val());
+                        }
+                        $.ajax({
+                            url: url_ajax2,
                                 method: method,
                                 data: data_tmp,
                                 headers: {'X-HTTP-Method-Override': 'PATCH'},
                                 success: function () {
-                                    alert('PUT success ');
+                                    alert(method + ' ' + url2 + ' success ');
                                 },
                                 error: function (jqXHR, textStatus, errorThrown) {
-                                    alert('PUT error: ' + jqXHR + ';' + textStatus + ';' + errorThrown);
+                                    alert(method + ' ' + url2 + ' error: ' + jqXHR + ';' + textStatus + ';' +
+                                        errorThrown);
                                 }
                             });
-                        }
-                        location.reload();
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                     }
                 });
@@ -306,7 +351,7 @@
 
             $('#confirm').on('click', '#delete', function (e) {
                 $.ajax({
-                    url: '/api/ExtractInfo/' + id + '/',
+                    url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
                         location.reload()
@@ -318,22 +363,17 @@
             });
 
             $('#new').on('click', function (e) {
-                $('#sample_id').val("");
-                $('#dna_id').val("");
-                $('#extract_date').val("");
-                $('#sample_type').val("");
-                $('#sample_volume').val("");
-                $('#extract_method').val("");
-                $('#dna_con').val("");
-                $('#dna_vol').val("");
-                $('#others').val("");
-                $('#type').val('new');
-                $('#modal_title').text('新增');
+                MyModelInit('新增', {});
                 $("#myModal").modal();
             });
 
             $('#sample_id').blur(function () {
-                $('#dna_id').val($('#sample_id').val() + "_1");
+                let data0 = $.ajax({
+                    url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {sample_id: $('#sample_id').val()}
+                }).responseJSON;
+                let suffix_n = data0.length + 1
+                $('#dna_id').val($('#sample_id').val() + "_" + suffix_n);
             });
 
             $('#upload').on('click', function (e) {
@@ -348,6 +388,21 @@
                 $('#bulkDelUrl').val('ExtractInfo');
                 $("#bulkDelModal").modal();
             });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/ExtractInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+            
         })
     </script>
 {% endblock %}

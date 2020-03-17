@@ -1,8 +1,7 @@
-import os
-import uuid
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+from .utils import user_directory_path
 
 
 # 表1 临床信息表
@@ -21,7 +20,7 @@ class ClinicalInfo(models.Model):
     diagnose = models.TextField(db_column='诊断', blank=True, null=True)
     diagnose_others = models.TextField(db_column='诊断备注', blank=True, null=True)
     centrifugation_date = models.DateField(
-        db_column='离心日期', blank=True, null=True)
+        db_column='采样日期', blank=True, null=True)
     hospital = models.CharField(
         db_column='医院编号', max_length=255, blank=True, null=True)
     department = models.CharField(
@@ -280,11 +279,11 @@ class PoolingInfo(models.Model):
         db_column='捕获文库名',
         blank=True,
         null=True)
+    singleLB_Pooling_id = models.CharField(
+        db_column='测序文库编号', unique=True, max_length=255, blank=True, null=True)
     pooling_ratio = models.FloatField(db_column='pooling比例', blank=True, null=True)
     mass = models.FloatField(db_column='取样', blank=True, null=True)
     volume = models.FloatField(db_column='体积', blank=True, null=True)
-    singleLB_Pooling_id = models.CharField(
-        db_column='测序文库编号', unique=True, max_length=255, blank=True, null=True)
     others = models.CharField(
         db_column='备注', max_length=255, blank=True, null=True)
     index = models.AutoField(primary_key=True)
@@ -466,12 +465,6 @@ class QCInfo(models.Model):
         ordering = ['index']
 
 
-def user_directory_path(instance, filename):
-    ext = filename.split('.')[-1]
-    filename = '{}.{}'.format(uuid.uuid4().hex[:10], ext)
-    return os.path.join("files", filename)
-
-
 class UploadFile(models.Model):
     uploadFile = models.FileField(
         db_column='上传文件',
@@ -483,6 +476,8 @@ class UploadFile(models.Model):
         max_length=255,
         blank=True,
         null=True)
+    uploadTime = models.DateTimeField(db_column='上传时间', auto_now=True)
+    index = models.AutoField(primary_key=True)
 
     def __str__(self):
         return self.uploadFile.url
@@ -496,6 +491,8 @@ class User(AbstractUser):
     nick_name = models.CharField(max_length=255, db_column='昵称', blank=True, unique=True,
                                  error_messages={'nick_name_unique': "该昵称已被占用。"})
     email = models.EmailField('邮箱', unique=True, error_messages={'email_unique': "该邮箱地址已被占用。"})
+    bulk_delete_privilege = models.CharField(
+        db_column='批量删除权限', max_length=255, blank=True, null=True, default='无')
     index = models.AutoField(primary_key=True)
 
     def __str__(self):

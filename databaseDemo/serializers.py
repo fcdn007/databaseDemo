@@ -114,4 +114,4 @@ class QCInfoSerializer(serializers.ModelSerializer):
 class UserInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("username", "nick_name", "email", "password")
+        fields = ("username", "nick_name", "email", "bulk_delete_privilege", "password")

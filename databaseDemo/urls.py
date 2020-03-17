@@ -50,7 +50,9 @@ urlpatterns = [
     # for rest_framework
     path('api/', include(router.urls)),
     # for rest_framework auth
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # for modul excel downloading
+    re_path(r'^download_excel/(?P<model>.*)/$', views.Download_excel, name='Download_excel')
 
 ]
 
