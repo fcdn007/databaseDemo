@@ -13,7 +13,7 @@ from rest_framework import viewsets
 from .data_process import *
 from .forms import FileUploadModelForm, RegisterForm
 from .serializers import *
-from .settings import BASE_DIR
+from .settings import BASE_DIR, MEDIA_ROOT
 from .tasks import send_register_active_email
 
 
@@ -309,118 +309,171 @@ def AdvancedSearchV(request):
     models_set = [ClinicalInfo, ExtractInfo, DNAUsageRecordInfo, DNAInventoryInfo, LibraryInfo, CaptureInfo,
                   PoolingInfo, SequencingInfo, QCInfo]
     models_set2 = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo',
-                   'CaptureInfo',
-                   'PoolingInfo', 'SequencingInfo', 'QCInfo']
-    merge_df = []
+                   'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo']
+
+    # 合并所有model，形成一张大表
+    # 检测所有model的最新修改时间time1，
+    # > 如果time1等于已有的pickle的时间戳time2，直接读取已有的json文件，
+    # > 否则重新创建merge_df，并把merge_df输出为json文件，打上时间戳。清除旧的json文件(保留10个)
+    json_files = {}
+    time2 = 0
+    time2_json = ""
+    for file in os.listdir(os.path.join(MEDIA_ROOT, "json")):
+        if re.match(r'[0-9]+.*\.merge_df.json', file):
+            time2_tmp, _, _ = file.split('.')
+            time2_tmp = int(time2_tmp)
+            json_files[time2_tmp] = os.path.join(MEDIA_ROOT, "json", file)
+            if time2_tmp > time2:
+                time2 = time2_tmp
+                time2_json = json_files[time2_tmp]
+    lastTime_models = {}
     for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
-        if m == 0:
-            fields = model_fields[models_set2[m]]
-            fields_filt = fields[6:25]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['sample_id'] else 'ClinicalInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            merge_df = res_df
-        elif m == 1:
-            fields = model_fields[models_set2[m]]
-            fields_filt = fields[5:14]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['sample_id', 'dna_id'] else 'ExtractInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            columns_raw = list(merge_df.columns)
-            merge_df = pd.merge(merge_df, res_df, how='left', on='sample_id')
-            merge_df = merge_df[['sample_id', 'dna_id'] + columns_raw[1:] + fields_filt_rename[2:]]
-        elif m == 2:
-            fields = model_fields[models_set2[m]]
-            fields_filt = [fields[0]] + fields[2:7]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['dna_id'] else 'DNAUsageRecordInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
-        elif m == 3:
-            fields = model_fields[models_set2[m]]
-            fields_filt = fields[1:7]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            res_raw_shift = []
-            for l_ in res_raw:
-                res_raw_shift.append(list(l_) + [round(l_[1] - l_[2] - l_[3] - l_[4] - l_[5], 3)])
-            fields_filt_rename = [x if x in ['dna_id'] else 'DNAInventoryInfo_' + x for x in fields_filt + ['remainM']]
-            res_df = list2array(res_raw_shift, fields_filt_rename)
-            merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
-        elif m == 4:
-            fields = model_fields[models_set2[m]]
-            fields_filt = [fields[2]] + fields[5:19]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['dna_id', 'singleLB_id'] else 'LibraryInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            columns_raw = list(merge_df.columns)
-            merge_df = pd.merge(merge_df, res_df, how='left', left_on='DNAUsageRecordInfo_singleLB_id',
-                                right_on='singleLB_id')
-            merge_df['singleLB_id'] = merge_df['DNAUsageRecordInfo_singleLB_id']
-            merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id'] + columns_raw[2:] + fields_filt_rename[1:]]
-        elif m == 6:
-            fields = model_fields[models_set2[m]]
-            fields_filt = fields[3:10]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] else
-                                  'PoolingInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            columns_raw = list(merge_df.columns)
-            merge_df = pd.merge(merge_df, res_df, how='left', on='singleLB_id')
-            merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] +
-                                columns_raw[3:] + fields_filt_rename[3:]]
-        elif m == 5:
-            fields = model_fields[models_set2[m]]
-            fields_filt = fields[3:13]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['poolingLB_id'] else 'CaptureInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            columns_raw = list(merge_df.columns)
-            idx_ = columns_raw.index('PoolingInfo_pooling_ratio')
-            merge_df = pd.merge(merge_df, res_df, how='left', on='poolingLB_id')
-            merge_df = merge_df[columns_raw[:idx_] + fields_filt_rename[1:] + columns_raw[idx_:]]
-        elif m == 7:
-            fields = model_fields[models_set2[m]]
-            fields_filt = [fields[11]] + fields[1:8]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            res_raw_shift = []
-            for l_ in res_raw:
-                if l_[0] is None:
-                    continue
-                elif isinstance(l_[0], int):
-                    res_raw_shift.append(list(l_))
-                elif isinstance(l_[0], list):
-                    for idx in l_[0]:
-                        res_raw_shift.append([idx] + list(l_[1:]))
-            fields_filt_rename = [x if x in ['sequencing_id'] else 'SequencingInfo_' + x for x in fields_filt]
-            res_df = list2array(res_raw_shift, fields_filt_rename)
-            columns_raw = list(merge_df.columns)
-            idx_ = columns_raw.index('CaptureInfo_index')
-            merge_df = pd.merge(merge_df, res_df, how='left', left_on='CaptureInfo_index',
-                                right_on='SequencingInfo_poolingLB_id')
-            merge_df = merge_df[special_fields + columns_raw[5:idx_] + columns_raw[idx_ + 1:] + fields_filt_rename[2:]]
-        elif m == 8:
-            fields = model_fields[models_set2[m]]
-            fields_filt = fields[:44]
-            res_raw = list(models_set[m].objects.values_list(*fields_filt))
-            fields_filt_rename = [x if x in ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id',
-                                             'singleLB_Pooling_id', 'sequencing_id'] else 'QCInfo_' +
-                                                                                          x for x in fields_filt]
-            res_df = list2array(res_raw, fields_filt_rename)
-            merge_df = pd.merge(merge_df, res_df, how='left', on=special_fields)
+        time1_list_tmp = list(
+            set([int(x[0].strftime("%Y%m%d%H%M%S%f")) for x in models_set[m].objects.values_list("last_modify_date")]))
+        lastTime_models[models_set2[m]] = sorted(time1_list_tmp, reverse=True)[0]
+    flag_update = False
+    print("lastTime_models: ")
+    print(lastTime_models)
+    print("time2: {}; time2_json: {}".format(time2, time2_json))
+    for m in lastTime_models:
+        if lastTime_models[m] > time2:
+            flag_update = True
+            time2 = lastTime_models[m]
+    print("time2: {}; flag_update: {}".format(time2, flag_update))
+    merge_df = []
+    if flag_update:
+        for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
+            if m == 0:
+                fields = model_fields[models_set2[m]]
+                fields_filt = fields[6:25]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['sample_id'] else 'ClinicalInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                merge_df = res_df
+            elif m == 1:
+                fields = model_fields[models_set2[m]]
+                fields_filt = fields[5:14]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['sample_id', 'dna_id'] else 'ExtractInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                columns_raw = list(merge_df.columns)
+                merge_df = pd.merge(merge_df, res_df, how='left', on='sample_id')
+                merge_df = merge_df[['sample_id', 'dna_id'] + columns_raw[1:] + fields_filt_rename[2:]]
+            elif m == 2:
+                fields = model_fields[models_set2[m]]
+                fields_filt = [fields[0]] + fields[2:7]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['dna_id'] else 'DNAUsageRecordInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
+            elif m == 3:
+                fields = model_fields[models_set2[m]]
+                fields_filt = fields[1:7]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                res_raw_shift = []
+                for l_ in res_raw:
+                    res_raw_shift.append(list(l_) + [round(l_[1] - l_[2] - l_[3] - l_[4] - l_[5], 3)])
+                fields_filt_rename = [x if x in ['dna_id'] else 'DNAInventoryInfo_' + x for x in
+                                      fields_filt + ['remainM']]
+                res_df = list2array(res_raw_shift, fields_filt_rename)
+                merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
+            elif m == 4:
+                fields = model_fields[models_set2[m]]
+                fields_filt = [fields[2]] + fields[5:19]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['dna_id', 'singleLB_id'] else 'LibraryInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                columns_raw = list(merge_df.columns)
+                merge_df = pd.merge(merge_df, res_df, how='left', left_on='DNAUsageRecordInfo_singleLB_id',
+                                    right_on='singleLB_id')
+                merge_df['singleLB_id'] = merge_df['DNAUsageRecordInfo_singleLB_id']
+                merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id'] + columns_raw[2:] + fields_filt_rename[1:]]
+            elif m == 6:
+                fields = model_fields[models_set2[m]]
+                fields_filt = fields[3:10]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] else
+                                      'PoolingInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                columns_raw = list(merge_df.columns)
+                merge_df = pd.merge(merge_df, res_df, how='left', on='singleLB_id')
+                merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] +
+                                    columns_raw[3:] + fields_filt_rename[3:]]
+            elif m == 5:
+                fields = model_fields[models_set2[m]]
+                fields_filt = fields[3:13]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['poolingLB_id'] else 'CaptureInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                columns_raw = list(merge_df.columns)
+                idx_ = columns_raw.index('PoolingInfo_pooling_ratio')
+                merge_df = pd.merge(merge_df, res_df, how='left', on='poolingLB_id')
+                merge_df = merge_df[columns_raw[:idx_] + fields_filt_rename[1:] + columns_raw[idx_:]]
+            elif m == 7:
+                fields = model_fields[models_set2[m]]
+                fields_filt = [fields[11]] + fields[1:8]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                res_raw_shift = []
+                for l_ in res_raw:
+                    if l_[0] is None:
+                        continue
+                    elif isinstance(l_[0], int):
+                        res_raw_shift.append(list(l_))
+                    elif isinstance(l_[0], list):
+                        for idx in l_[0]:
+                            res_raw_shift.append([idx] + list(l_[1:]))
+                fields_filt_rename = [x if x in ['sequencing_id'] else 'SequencingInfo_' + x for x in fields_filt]
+                res_df = list2array(res_raw_shift, fields_filt_rename)
+                columns_raw = list(merge_df.columns)
+                idx_ = columns_raw.index('CaptureInfo_index')
+                merge_df = pd.merge(merge_df, res_df, how='left', left_on='CaptureInfo_index',
+                                    right_on='SequencingInfo_poolingLB_id')
+                merge_df = merge_df[
+                    special_fields + columns_raw[5:idx_] + columns_raw[idx_ + 1:] + fields_filt_rename[2:]]
+            elif m == 8:
+                fields = model_fields[models_set2[m]]
+                fields_filt = fields[:44]
+                res_raw = list(models_set[m].objects.values_list(*fields_filt))
+                fields_filt_rename = [x if x in ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id',
+                                                 'singleLB_Pooling_id', 'sequencing_id'] else 'QCInfo_' +
+                                                                                              x for x in fields_filt]
+                res_df = list2array(res_raw, fields_filt_rename)
+                merge_df = pd.merge(merge_df, res_df, how='left', on=special_fields)
+        for link in special_fields:
+            merge_df.loc[:, link].fillna(" ", inplace=True)
+        for ncol in range(6, merge_df.shape[1]):
+            for nrow in range(merge_df.shape[0]):
+                value_ = merge_df.iloc[nrow, ncol]
+                if pd.isna(value_):
+                    value_ = " "
+                elif isinstance(value_, np.floating):
+                    value_ = round(value_, 3)
+                elif isinstance(value_, np.integer) or isinstance(value_, str):
+                    value_ = value_
+                merge_df.iloc[nrow, ncol] = value_
+        merge_df.to_json(os.path.join(MEDIA_ROOT, "json", '{}.merge_df.json'.format(time2)))
+        if len(json_files.keys()) > 9:
+            time2_tmp_list = sorted(list(json_files.keys()), reverse=True)
+            for idx in range(9, len(time2_tmp_list)):
+                os.remove(json_files[time2_tmp_list[idx]])
+
+        print("merge_df is rebuild")
+    else:
+        merge_df = pd.read_json(time2_json)
+        print("read merge_df.json")
+
     merge_df_columns = list(merge_df.columns)
     filed_idx = [6, 24, 31, 36, 42, 56, 64, 68, 74, 112]
-    models_set = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo', 'CaptureInfo',
-                  'PoolingInfo', 'SequencingInfo', 'QCInfo']
     if request.method == 'POST':
-        modellist = request.POST['modellist'].split(', ')
-        # print(">>>>>>>>>>>>>> modellist >>>>>>>>")
-        # pprint(modellist)
+        model_list = request.POST['modellist'].split(', ')
+        # print(">>>>>>>>>>>>>> model_list >>>>>>>>")
+        # pprint(model_list)
         links_dict = {}
         res_columns_normal = []
-        for m in range(len(models_set)):
-            if models_set[m] in modellist:
+        for m in range(len(models_set2)):
+            if models_set2[m] in model_list:
                 res_columns_normal = res_columns_normal + merge_df_columns[filed_idx[m]:filed_idx[m + 1]]
-                for link in model_links[models_set[m]]:
+                for link in model_links[models_set2[m]]:
                     links_dict[link] = 1
         res_columns_link = []
         for link in special_fields:
@@ -448,32 +501,19 @@ def AdvancedSearchV(request):
         # make res_pro
         # print(">>>>>>>>>>>>>> res_filt >>>>>>>>")
         # pprint(res_filt)
-        res_pro = []
-        for nrow in range(len(res_filt)):
-            dat = {}
-            link_n = 0
-            for link in special_fields:
-                if link in links_dict:
-                    value_ = list(res_filt[link])[nrow]
-                    if pd.isna(value_):
-                        value_ = " "
-                    dat["link%s" % link_n] = value_
-                    link_n = link_n + 1
-            normal_n = 0
-            for col in res_columns_normal:
-                value_ = list(res_filt[col])[nrow]
-                if pd.isna(value_):
-                    value_ = " "
-                elif isinstance(value_, np.floating):
-                    value_ = "%.3f" % value_
-                elif isinstance(value_, np.integer):
-                    value_ = "%d" % value_
-                elif isinstance(value_, str):
-                    value_ = "%s" % value_
-
-                dat["normal%s" % normal_n] = value_
-                normal_n = normal_n + 1
-            res_pro.append(dat)
+        link_n = 0
+        res_pro_df = pd.DataFrame()
+        for link in special_fields:
+            if link in links_dict:
+                res_pro_df.loc[:, "link%s" % link_n] = list(res_filt[link])
+                link_n = link_n + 1
+        normal_n = 0
+        for col in res_columns_normal:
+            res_pro_df.loc[:, "normal%s" % normal_n] = list(res_filt[col])
+            normal_n = normal_n + 1
+        res_pro = res_pro_df.to_dict('records')
+        # print('res_pro')
+        # print(res_pro)
         result = {
             'draw': 1,
             'recordsTotal': len(res_raw),

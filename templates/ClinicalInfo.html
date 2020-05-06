@@ -336,7 +336,7 @@
                 let class_name = $(this).attr('class');
                 id = data['index'];
                 //alert(id);
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();

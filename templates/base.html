@@ -144,6 +144,7 @@
 <script src="{% static 'js/dataTables.colReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
 <script src="{% static 'Highcharts/highcharts.js' %}"></script>
+<script src="{% static 'Highcharts/highcharts-more.js' %}"></script>
 <script>
     $.ajaxSetup({
         headers: {"X-CSRFToken": '{{csrf_token}}'}
@@ -227,6 +228,14 @@
 
         $('#plot_highcharts').highcharts(json);
     }
+
+    String.format = function (src) {
+        if (arguments.length === 0) return null;
+        let args = Array.prototype.slice.call(arguments, 1);
+        return src.replace(/\{(\d+)\}/g, function (m, i) {
+            return args[i];
+        });
+    };
 </script>
 
 {% block button_js %}
