@@ -103,7 +103,7 @@
 
             $('.downloadExcel1').on('click', function (e) {
                 e.preventDefault();
-                window.location.href = '/download_excel/CaptureInfoPlus/'
+                window.location.href = '/download_excel/' + $('#uploadUrl').val() + '/'
             });
 
             $('#uploadReset').on('click', function (e) {

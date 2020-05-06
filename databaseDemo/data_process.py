@@ -339,16 +339,22 @@ def clean_data(data_, warning_msg_dict, error_msg_dict, skip_list, emptyDrop_lis
 
         col_data = []
         for id2 in range(len(data[id])):
-            if pd.isnull(data[id][id2]):
+            m1 = re.match(r'^(\d+)[^0-9]+$', str(data[id][id2]).strip())
+            m2 = re.match(r'^(\d+\.\d+)[^0-9]+$', str(data[id][id2]).strip())
+            if pd.isnull(data[id][id2]) or str(data[id][id2]).strip() == '-' or str(data[id][id2]).strip() == '-%' or \
+                    re.match(r'^-bp$', str(data[id][id2]).strip(), flags=re.IGNORECASE):
                 col_data.append(0)
                 warning_msg_dict['empty'].append(u'第{}行"{}"列'.format(id2 + 2, id))
             elif pd.api.types.is_number(data[id][id2]):
                 col_data.append(data[id][id2])
-            elif re.match(r'^\d+$', str(data[id][id2])):
+            elif re.match(r'^\d+$', str(data[id][id2])) or re.match(r'^\d+\.0+$', str(data[id][id2])):
                 col_data.append(int(data[id][id2]))
-            elif re.match(r'^\d+$', str(data[id][id2])) or re.match(r'^\d+\.\d+$', str(data[id][id2])) or re.match(
-                    r'^\d[eE][+-]\d+$', str(data[id][id2])):
+            elif re.match(r'^\d+\.\d+$', str(data[id][id2])) or re.match(r'^-?\d[eE][+-]\d+$', str(data[id][id2])):
                 col_data.append(float(data[id][id2]))
+            elif m1:
+                col_data.append(int(m1.group(1)))
+            elif m2:
+                col_data.append(float(m2.group(2)))
             else:
                 col_data.append(0)
                 warning_msg_dict['invalid'].append(u'第{}行"{}"列'.format(id2 + 2, id))
@@ -364,8 +370,8 @@ def clean_data(data_, warning_msg_dict, error_msg_dict, skip_list, emptyDrop_lis
 
         col_data = []
         for id2 in range(len(data[id])):
-            m1 = re.match(r'^(\d{4})(\d{2})(\d{2})', str(data[id][id2]))
-            m2 = re.match(r'^(\d{4})-(\d{2})-(\d{2})', str(data[id][id2]))
+            m1 = re.match(r'^(\d{4})(\d{2})(\d{2})$', str(data[id][id2]))
+            m2 = re.match(r'^(\d{4}).(\d{2}).(\d{2})$', str(data[id][id2]))
             if pd.isnull(data[id][id2]):
                 col_data.append('2000-01-01')
                 warning_msg_dict['empty'].append(u'第{}行"{}"列'.format(id2 + 2, id))
@@ -377,6 +383,7 @@ def clean_data(data_, warning_msg_dict, error_msg_dict, skip_list, emptyDrop_lis
                 col_data.append('2000-01-01')
                 warning_msg_dict['invalid'].append(u'第{}行"{}"列'.format(id2 + 2, id))
         data[id] = col_data
+        # print("id: {}, col_data: {}".format(id, col_data))
     return data
 
 

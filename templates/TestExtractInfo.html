@@ -1,0 +1,430 @@
+{% extends "button.html" %}
+{% block title %}
+    <title>样本DNA提取信息</title>
+{% endblock %}
+
+
+{% block content %}
+    <div class="jumbotron">
+        <h1>甲基化早筛项目数据库管理系统Demo</h1>
+        <h4>样本DNA提取信息表</h4>
+    </div>
+{% endblock %}
+
+{% block plot %}
+    <div class="row">
+        <div id="plot_highcharts" style="width: 550px; height: 400px; margin: 0 auto" class="col-9"></div>
+        <div id="plot_button" class="form-group col-3">
+            <label for="plot_highcharts_field"> 请选择用于画图的关键字段</label>
+            <select class="form-control" id="plot_highcharts_field" name="plot_highcharts_field">
+                <option value="sample_type" selected="selected">样本类型</option>
+                <option value="extract_date">提取日期</option>
+                <option value="sample_volume">样本体积</option>
+                <option value="extract_method">提取方法</option>
+                <option value="dna_con">浓度</option>
+                <option value="dna_vol">体积</option>
+            </select>
+        </div>
+    </div><br>
+{% endblock %}
+
+{% block table %}
+    <!-- datatables -->
+    <table id="table_id" class="display">
+        <thead>
+        <tr>
+            <th>索引</th>
+            <th>DNA提取编号</th>
+            <th>样本编号</th>
+            <th>提取日期</th>
+            <th>样本类型</th>
+            <th>样本体积(ml)</th>
+            <th>提取方法</th>
+            <th>浓度(ng/ul)</th>
+            <th>体积(ul)</th>
+            <th>总量(ng)</th>
+            <th>备注</th>
+            <th>上次修改时间</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+{% endblock %}
+
+{% block ModalForm %}
+    <div id="InventoryForm">
+        <div class="form-group">
+            <span><a class="text-danger front-weight-bold">* </a>
+                <label for="sample_id"> 样本编号</label></span>
+            <input type="text" class="form-control" id="sample_id" name="sample_id"
+                   placeholder="请输入样本编号，必填" required="true">
+        </div>
+        <div class="form-group">
+            <span><a class="text-danger front-weight-bold">* </a>
+            <label for="dna_id"> DNA提取编号</label></span>
+            <input type="text" class="form-control" id="dna_id" name="dna_id"
+                   placeholder="请输入DNA提取编号，必填" required="true">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="extract_date"> 提取日期</label>
+        <input type="date" class="form-control" id="extract_date" name="extract_date"
+               placeholder="请输入提取日期，默认：2000-01-01" value="2000-01-01">
+    </div>
+    <div class="form-group">
+        <label for="sample_type"> 样本类型</label>
+        <select class="form-control" id="sample_type" name="sample_type">
+            <option value="血浆" selected="selected">血浆</option>
+            <option value="癌旁组织">癌旁组织</option>
+            <option value="癌组织">癌组织</option>
+            <option value="白细胞">白细胞</option>
+            <option value="粪便">粪便</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="sample_volume"> 样本体积(ml)</label>
+        <input type="number" step="0.01" class="form-control" id="sample_volume" name="sample_volume"
+               placeholder="请输入样本体积(ml)，默认：0" value="0">
+    </div>
+    <div class="form-group">
+        <label for="extract_method"> 提取方法</label>
+        <input type="text" class="form-control" id="extract_method" name="extract_method"
+               placeholder="请输入提取方法，默认：无" value="无">
+    </div>
+    <div class="form-group">
+        <label for="dna_con"> 浓度(ng/ul)</label>
+        <input type="number" step="0.001" class="form-control" id="dna_con" name="dna_con"
+               placeholder="请输入浓度(ng/ul)，默认：0" value="0">
+    </div>
+    <div class="form-group">
+        <label for="dna_vol"> 体积(ul)</label>
+        <input type="number" step="0.01" class="form-control" id="dna_vol" name="dna_vol"
+               placeholder="请输入体积(ul)，默认：0" value="0">
+    </div>
+    <div class="form-group">
+        <label for="others"> 备注</label>
+        <input type="text" class="form-control" id="others" name="others"
+               placeholder="请输入备注，默认：无" value="无">
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        $(document).ready(function () {
+            let url = '/api/ExtractInfo/';
+            let url2 = '/api/DNAInventoryInfo/';
+            let url3 = '/api/ClinicalInfo/';
+            let dataModelForm;
+            let fieldForPie = $('#plot_highcharts_field');
+
+            function MyModelInit(title_name, data) {
+                dataModelForm = data;
+                if (title_name === '更新') {
+                    $('#sample_id').val(data['sample_id']);
+                    $('#dna_id').val(data['dna_id']);
+                    $('#extract_date').val(data['extract_date']);
+                    $('#sample_type').val(data['sample_type']);
+                    $('#sample_volume').val(data['sample_volume']);
+                    $('#extract_method').val(data['extract_method']);
+                    $('#dna_con').val(data['dna_con']);
+                    $('#dna_vol').val(data['dna_vol']);
+                    $('#others').val(data['others']);
+                    $('#type').val('edit');
+                    $('#modal_title').text('更新');
+                } else {
+                    $('#sample_id').val("");
+                    $('#dna_id').val("");
+                    $('#extract_date').val("2000-01-01");
+                    $('#sample_type option:first').prop("selected", 'selected');
+                    $('#sample_volume').val("");
+                    $('#extract_method').val("");
+                    $('#dna_con').val("");
+                    $('#dna_vol').val("");
+                    $('#others').val("");
+                    $('#type').val('new');
+                    $('#modal_title').text('新增');
+                }
+            }
+
+
+            let table = $('#table_id').DataTable({
+                "language": {
+                    "lengthMenu": "选择每页 _MENU_ 展示 ",
+                    "zeroRecords": "未找到匹配结果--抱歉",
+                    "info": "当前显示第 _PAGE_ 页结果，共 _PAGES_ 页",
+                    "infoEmpty": "没有数据",
+                    "search": "搜索",
+                    "infoFiltered": "(获取 _MAX_ 项结果)",
+                    "paginate": {
+                        "first": "首页",
+                        "previous": "上一页",
+                        "next": "下一页",
+                        "last": "末页"
+                    }
+                },
+                "scrollY": "5000px",
+                "scrollCollapse": true,
+                "pagingType": "full_numbers",
+                rowReorder: true,
+                colReorder: true,
+                searching: true,
+                select: true,
+                dom: 'lB<"clear">frtip',
+                buttons: [
+                    {
+                        extend: 'colvisGroup',
+                        text: '显示前5列',
+                        show: [0, 1, 2, 3, 4, 5, 13],
+                        hide: [6, 7, 8, 9, 10, 11, 12]
+                    },
+                    {
+                        extend: 'colvisGroup',
+                        text: '显示全部列',
+                        show: ':hidden',
+                    },
+                    {
+                        text: '指定显示列', extend: 'colvis',
+                        postfixButtons: ['colvisRestore'],
+                        columnText: function (dt, idx, title) {
+                            return (idx + 1) + ': ' + title;
+                        }
+                    },
+                    {
+                        extend: 'selectAll',
+                        text: '全选'
+                    }, {
+                        extend: 'selectRows',
+                        text: '选择多行'
+                    }, {
+                        extend: 'selectColumns',
+                        text: '选择多列'
+                    }, {
+                        extend: 'selectCells',
+                        text: '选择多个单元格'
+                    }, {
+                        extend: 'selectNone',
+                        text: '取消当前选择'
+                    },
+                    {
+                        extend: 'copy',
+                        text: '复制到剪切板'
+                    }, {
+                        extend: 'csv',
+                        text: '输出到csv'
+                    }
+                ],
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
+                //"serverSide": true,
+                "processing": true,
+                "ajax": "/api/ExtractInfo/?format=datatables",
+                "columns": [
+                    {
+                        data: 'index',
+                        width: "1%",
+                        // 若想前端显示的不一样，则需要"render"函数
+                        'render': function (data, type, full, meta) {
+                            return meta.row + 1 + meta.settings._iDisplayStart;
+                        }
+                    },
+                    {"data": "dna_id"},
+                    {"data": "sample_id"},
+                    {"data": "extract_date"},
+                    {"data": "sample_type"},
+                    {"data": "sample_volume"},
+                    {"data": "extract_method"},
+                    {"data": "dna_con"},
+                    {"data": "dna_vol"},
+                    {
+                        "data": null,
+                        render: function (data, type, row, meta) {
+                            return changeThreeDecimal_f(row.dna_con * row.dna_vol)
+                        }
+                    },
+                    {"data": "others"},
+                    {"data": "last_modify_date"},
+                    {"data": "created"},
+                    {
+                        "data": null,
+                        "defaultContent": '<button type="button" class="btn btn-info">更新</button>' + '&nbsp;&nbsp' +
+                            '<button type="button" class="btn btn-danger">删除</button>'
+                    }
+                ]
+            });
+            table.button(0).trigger();
+
+            let id = 0;
+            $('#table_id tbody').on('click', 'button', function () {
+                let data = table.row($(this).parents('tr')).data();
+                let class_name = $(this).attr('class');
+                id = data['index'];
+                //alert(id);
+                if (class_name == 'btn btn-info') {
+                    // EDIT button
+                    MyModelInit('更新', data);
+                    $("#myModal").modal();
+                } else {
+                    // DELETE button
+                    //alert('delete '+id);
+                    //$('#modal_title').text('DELETE');
+                    $("#confirm").modal();
+                }
+
+            });
+
+            $('#modelForm').on('submit', function (e) {
+                e.preventDefault();
+                // 递交前检查，一般是检测model的外键是否存在
+                let data0 = $.ajax({
+                    url: url3, dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {sample_id: $('#sample_id').val()}
+                }).responseJSON[0];
+                if (data0 === undefined) {
+                    $('#myModalError').text('错误！！！样本编号不存在，请填写正确的样本编号。');
+                    return
+                }
+
+                let type = $('#type').val();
+                let method = '';
+                let url_ajax = url;
+                if (type == 'new') {
+                    // new
+                    method = 'POST';
+                    // POST前检查，一般是检测model的关键字段值是否存在
+                    let data1 = $.ajax({
+                        url: url, dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {dna_id: $('#dna_id').val()}
+                    }).responseJSON[0];
+                    if (data1 !== undefined) {
+                        $('#myModalError').text('错误！！！DNA提取编号已存在，无法添加。如需更新该条目，请在对应行进行更新操作。');
+                        return
+                    }
+                } else {
+                    // edit
+                    url_ajax = url + id + '/';
+                    method = 'PUT';
+                }
+
+                // 增、改：更新提取表
+                $.ajax({
+                    url: url_ajax, async: false, method: method,
+                    data: $(this).serialize(), headers: {'X-HTTP-Method-Override': 'PATCH'},
+                    success: function () {
+                        // 增、改：更新库存表
+                        // 由于外键约束，需先创建提取表条目，再根据index创建库存表条目
+                        let data_tmp;
+                        let url_ajax2 = url2;
+                        if (method == 'POST') {
+                            // new
+                            // 增：增加库存表条目
+                            data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                                totalM: $('#dna_con').val() * $('#dna_vol').val(), successM: '0', failM: '0',
+                                researchM: '0', othersM: '0'
+                            });
+                            $('#myModalError').text('添加成功！！！DNA提取编号：' + $('#dna_id').val());
+                        } else {
+                            // edit
+                            // 改：修改库存表相应条目
+                            let data0 = $.ajax({
+                                url: url2, dataType: 'json', contentType: "application/json",
+                                type: "get", async: false, data: {index: id}
+                            }).responseJSON[0];
+                            let totalM = $('#dna_con').val() * $('#dna_vol').val();
+                            data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
+                                totalM: totalM, successM: data0.successM, failM: data0.failM,
+                                researchM: data0.researchM, othersM: data0.othersM
+                            });
+                            url_ajax2 = url2 + id + '/';
+                            $('#myModalError').text('更新成功！！！DNA提取编号：' + $('#dns_id').val());
+                        }
+                        $.ajax({
+                            url: url_ajax2,
+                            method: method,
+                            data: data_tmp,
+                            headers: {'X-HTTP-Method-Override': 'PATCH'},
+                            success: function () {
+                                alert(method + ' ' + url2 + ' success ');
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                alert(method + ' ' + url2 + ' error: ' + jqXHR + ';' + textStatus + ';' +
+                                    errorThrown);
+                            }
+                        });
+
+                        setTimeout(
+                            function () {
+                                location.reload();
+                            }, 3000
+                        );
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $('#myModalError').text('出现错误！！！请联系管理员');
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+
+
+            });
+
+            $('#confirm').on('click', '#delete', function (e) {
+                $.ajax({
+                    url: url + id + '/',
+                    method: 'DELETE',
+                    success: function () {
+                        location.reload()
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
+                    }
+                });
+            });
+
+            $('#new').on('click', function (e) {
+                MyModelInit('新增', {});
+                $("#myModal").modal();
+            });
+
+            $('#sample_id').blur(function () {
+                let data0 = $.ajax({
+                    url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
+                    type: "get", async: false, data: {sample_id: $('#sample_id').val()}
+                }).responseJSON;
+                let suffix_n = data0.length + 1;
+                $('#dna_id').val($('#sample_id').val() + "_" + suffix_n);
+            });
+
+            $('#upload').on('click', function (e) {
+                $('#uploadOperator').val("");
+                $('#uploadFile').val("");
+                $('#uploadError').val("");
+                $('#uploadUrl').val('ExtractInfo');
+                $("#uploadModal").modal();
+            });
+
+            $('#bulkDel').on('click', function (e) {
+                $('#bulkDelUrl').val('ExtractInfo');
+                $("#bulkDelModal").modal();
+            });
+
+            $('.downloadExcel').on('click', function (e) {
+                e.preventDefault();
+                window.location.href = '/download_excel/ExtractInfo/'
+            });
+
+            $('#myModalReset').on('click', function (e) {
+                e.preventDefault();
+                if ($('#modal_title').text() === '更新') {
+                    MyModelInit('更新', dataModelForm);
+                } else {
+                    MyModelInit('新增', {});
+                }
+            });
+
+            pie_plot('ExtractInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+
+            fieldForPie.change(function () {
+                pie_plot('ExtractInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+            });
+        })
+    </script>
+{% endblock %}

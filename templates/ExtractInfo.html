@@ -11,6 +11,22 @@
     </div>
 {% endblock %}
 
+{% block plot %}
+    <div class="row">
+        <div id="plot_highcharts" style="width: 550px; height: 400px; margin: 0 auto" class="col-9"></div>
+        <div id="plot_button" class="form-group col-3">
+            <label for="plot_highcharts_field"> 请选择用于画图的关键字段</label>
+            <select class="form-control" id="plot_highcharts_field" name="plot_highcharts_field">
+                <option value="sample_type" selected="selected">样本类型</option>
+                <option value="extract_date">提取日期</option>
+                <option value="sample_volume">样本体积</option>
+                <option value="extract_method">提取方法</option>
+                <option value="dna_con">浓度</option>
+                <option value="dna_vol">体积</option>
+            </select>
+        </div>
+    </div><br>
+{% endblock %}
 
 {% block table %}
     <!-- datatables -->
@@ -100,6 +116,7 @@
             let url2 = '/api/DNAInventoryInfo/';
             let url3 = '/api/ClinicalInfo/';
             let dataModelForm;
+            let fieldForPie = $('#plot_highcharts_field');
 
             function MyModelInit(title_name, data) {
                 dataModelForm = data;
@@ -372,7 +389,7 @@
                     url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {sample_id: $('#sample_id').val()}
                 }).responseJSON;
-                let suffix_n = data0.length + 1
+                let suffix_n = data0.length + 1;
                 $('#dna_id').val($('#sample_id').val() + "_" + suffix_n);
             });
 
@@ -402,7 +419,12 @@
                     MyModelInit('新增', {});
                 }
             });
-            
+
+            pie_plot('ExtractInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+
+            fieldForPie.change(function () {
+                pie_plot('ExtractInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+            });
         })
     </script>
 {% endblock %}

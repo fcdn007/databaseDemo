@@ -112,6 +112,10 @@
         </div>
     {% endblock %}
 
+    {% block plot %}
+
+    {% endblock %}
+
     {% block button %}
 
     {% endblock %}
@@ -139,6 +143,7 @@
 <script src="{% static 'js/dataTables.rowReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.colReorder.min.js' %}"></script>
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
+<script src="{% static 'Highcharts/highcharts.js' %}"></script>
 <script>
     $.ajaxSetup({
         headers: {"X-CSRFToken": '{{csrf_token}}'}
@@ -161,6 +166,66 @@
             s_x += '0';
         }
         return s_x;
+    }
+
+    function pie_plot(model, field_value, field_text) {
+        let ajax_data_dict = $.ajax({
+            url: "{% url 'plot_data' %}",
+            data: {
+                model: model, field: field_value
+            },
+            dataType: 'json',
+            contentType: "application/json",
+            method: "GET",
+            async: false
+        }).responseJSON;
+        let chart = {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false
+        };
+        let title = {
+            text: field_text + '占比图 (总数: ' + ajax_data_dict.sum + ')',
+            style: {
+                fontWeight: "bold"
+            }
+        };
+        let tooltip = {
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+        };
+        let plotOptions = {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: false
+                },
+                showInLegend: true
+            }
+        };
+
+        let ajax_data_array = [];
+        $.each(ajax_data_dict.data, function (k, v) {
+            ajax_data_array.push([k, v]);
+        });
+        let series = [{
+            type: 'pie',
+            name: '占比',
+            data: ajax_data_array
+        }];
+        let credits = {
+            enabled: false,
+            text: ''
+        };
+        let json = {};
+        json.chart = chart;
+        json.title = title;
+        json.tooltip = tooltip;
+        json.series = series;
+        json.plotOptions = plotOptions;
+        json.credits = credits;
+
+        $('#plot_highcharts').highcharts(json);
     }
 </script>
 

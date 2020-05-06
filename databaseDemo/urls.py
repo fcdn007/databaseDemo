@@ -52,8 +52,9 @@ urlpatterns = [
     # for rest_framework auth
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # for modul excel downloading
-    re_path(r'^download_excel/(?P<model>.*)/$', views.Download_excel, name='Download_excel')
-
+    re_path(r'^download_excel/(?P<model>.*)/$', views.Download_excel, name='Download_excel'),
+    re_path(r'^test/(?P<re_model>\w+)Info/$', views.Test_model, name='Test_model'),
+    path('plot_data/', views.plotDataV, name='plot_data')
 ]
 
 if settings.DEBUG:
