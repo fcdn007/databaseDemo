@@ -64,9 +64,9 @@ keys * hgetall cart_2
 ```ps aux|grep nginx``` 
 ```sudo service nginx status```
 
-#### uwsgi
-#### 启动uwsgi
-```uwsgi --ini uwsgi.ini```
+#### gunicorn
+#### 启动gunicorn
+```ugunicorn databaseDemo.wsgi:application -c /home/wsl/mnt/f/wsl/project/databaseDemo/gunicorn.conf.py```
 
 
 
