@@ -66,7 +66,7 @@ keys * hgetall cart_2
 
 #### gunicorn
 #### 启动gunicorn
-```ugunicorn databaseDemo.wsgi:application -c /home/wsl/mnt/f/wsl/project/databaseDemo/gunicorn.conf.py```
+```gunicorn databaseDemo.wsgi:application -c /home/wsl/mnt/f/wsl/project/databaseDemo/gunicorn.conf.py```
 
 
 
