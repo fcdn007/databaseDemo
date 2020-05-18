@@ -60,10 +60,10 @@
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-secondary h6" id="tableSet1">选取样本管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-secondary h6" id="tableSet2">选取文库管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-secondary h6" id="tableSet3">选取测序管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-secondary h6" id="tableSet4">选取所有表</button>
+            <button type="button" class="btn btn-light h6" id="tableSet1">选取样本管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-light h6" id="tableSet2">选取文库管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-light h6" id="tableSet3">选取测序管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-light h6" id="tableSet4">选取所有表</button>
         </form>
         <br>
 
@@ -71,7 +71,7 @@
             <p class="bg-info text-white">
                 &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 设置过滤条件</label></p>
             <div class="form-inline mb-1">
-                <button id='textareaAdd' class="btn btn-success h6">确认过滤条件</button>&nbsp;&nbsp
+                <button id='textareaAdd' class="btn btn-primary h6">确认过滤条件</button>&nbsp;&nbsp
                 <button id='conditionAdd' class="btn btn-info h6">添加过滤条件</button>
             </div>
             <br>
@@ -121,7 +121,7 @@
         <form id="searchForm3" role="form">
             {% csrf_token %}
             <div class="form-group">
-                <p class="bg-primary text-white">
+                <p class="bg-info text-white">
                     &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 过滤条件如下:</label></p>
                 <textarea class="form-control" rows="3" id="SearchText" name="SearchText"></textarea>
             </div>
