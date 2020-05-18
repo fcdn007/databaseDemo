@@ -168,7 +168,7 @@
         $(document).ready(function () {
             let url = '/api/ClinicalInfo/';
             let id = 0;
-            let dataModelForm;
+            let dataModelForm; //更新弹窗默认值，重置按钮需要
             let fieldForPie = $('#plot_highcharts_field');
 
             function MyModelInit(title_name, data) {
@@ -292,6 +292,7 @@
                 "serverSide": true,
                 "processing": true,
                 "ajax": "/api/ClinicalInfo/?format=datatables",
+                "deferRender": true,
                 "columns": [
                     {
                         data: 'index',
@@ -356,7 +357,7 @@
                 let type = $('#type').val();
                 let method = '';
                 let url_ajax = url;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -380,15 +381,18 @@
                     data: $(this).serialize(),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        if (type == 'new') {
-                            $('#myModalError').text('添加成功！！！样本编号：' + $('#sample_id').val());
+                        let v_tmp = $('#sample_id').val();
+                        if (type === 'new') {
+                            databaseRecordAjaxPut("ClinicalInfo", "单项添加", "样本编号：" + v_tmp);
+                            $('#myModalError').text('添加成功！！！样本编号：' + v_tmp);
                         } else {
-                            $('#myModalError').text('更新成功！！！样本编号：' + $('#sample_id').val());
+                            databaseRecordAjaxPut("ClinicalInfo", "单项更新", "样本编号：" + v_tmp);
+                            $('#myModalError').text('更新成功！！！样本编号：' + v_tmp);
                         }
 
                         setTimeout(
                             function () {
-                                location.reload();
+                                window.location.reload(true);
                             }, 3000
                         );
                     },
@@ -404,7 +408,8 @@
                     url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
-                        location.reload()
+                        databaseRecordAjaxPut("ClinicalInfo", "单项删除", "index：" + id);
+                        window.location.reload(true);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
@@ -448,6 +453,17 @@
 
             fieldForPie.change(function () {
                 pie_plot('ClinicalInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+            });
+
+            $("#modelForm input[type='text']").focus(function () {
+                let key2 = $(this).attr('id');
+                let values = $.ajax({
+                    url: "{% url 'unique' %}", data: {model: "ClinicalInfo", filed: key2},
+                    dataType: 'json', contentType: "application/json",
+                    method: "GET", async: false
+                }).responseJSON.values;
+                console.info("values:", values, "; key2:", key2);
+                input_autocomplete(values, '#' + key2);
             });
         })
 

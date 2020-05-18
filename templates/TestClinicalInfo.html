@@ -336,7 +336,7 @@
                 let class_name = $(this).attr('class');
                 id = data['index'];
                 //alert(id);
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();
@@ -356,7 +356,7 @@
                 let type = $('#type').val();
                 let method = '';
                 let url_ajax = url;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -380,7 +380,7 @@
                     data: $(this).serialize(),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        if (type == 'new') {
+                        if (type === 'new') {
                             $('#myModalError').text('添加成功！！！样本编号：' + $('#sample_id').val());
                         } else {
                             $('#myModalError').text('更新成功！！！样本编号：' + $('#sample_id').val());

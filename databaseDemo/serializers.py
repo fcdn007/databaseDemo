@@ -4,10 +4,23 @@ from rest_framework import serializers
 from .models import *
 
 
-class ClinicalInfoSerializer(serializers.ModelSerializer):
-    # If your <field_name> is declared on your serializer with the parameter required=False
-    # then this validation step will not take place if the field is not included.
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
 
+    def __init__(self, *args, **kwargs):
+        # Instantiate the superclass normally
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        fields = self.context['request'].query_params.get('fields')
+        if fields:
+            fields = fields.split(',')
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+
+class ClinicalInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -19,7 +32,7 @@ class ClinicalInfoSerializer(serializers.ModelSerializer):
                   'created')
 
 
-class ExtractInfoSerializer(serializers.ModelSerializer):
+class ExtractInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -29,7 +42,7 @@ class ExtractInfoSerializer(serializers.ModelSerializer):
                   'dna_vol', 'others', 'index', 'last_modify_date', 'created')
 
 
-class DNAUsageRecordInfoSerializer(serializers.ModelSerializer):
+class DNAUsageRecordInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -39,7 +52,7 @@ class DNAUsageRecordInfoSerializer(serializers.ModelSerializer):
                   'index', 'last_modify_date', 'created')
 
 
-class DNAInventoryInfoSerializer(serializers.ModelSerializer):
+class DNAInventoryInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -49,7 +62,7 @@ class DNAInventoryInfoSerializer(serializers.ModelSerializer):
                   'index', 'last_modify_date', 'created')
 
 
-class LibraryInfoSerializer(serializers.ModelSerializer):
+class LibraryInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -60,7 +73,7 @@ class LibraryInfoSerializer(serializers.ModelSerializer):
                   'operator', 'others', 'index', 'last_modify_date', 'created')
 
 
-class CaptureInfoSerializer(serializers.ModelSerializer):
+class CaptureInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -70,7 +83,7 @@ class CaptureInfoSerializer(serializers.ModelSerializer):
                   'operator', 'others', 'index', 'last_modify_date', 'created')
 
 
-class PoolingInfoSerializer(serializers.ModelSerializer):
+class PoolingInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -80,7 +93,7 @@ class PoolingInfoSerializer(serializers.ModelSerializer):
                   'singleLB_Pooling_id', 'others', 'index', 'last_modify_date', 'created')
 
 
-class SequencingInfoSerializer(serializers.ModelSerializer):
+class SequencingInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -90,7 +103,7 @@ class SequencingInfoSerializer(serializers.ModelSerializer):
                   'others', 'index', 'last_modify_date', 'created')
 
 
-class QCInfoSerializer(serializers.ModelSerializer):
+class QCInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
 
@@ -111,7 +124,13 @@ class QCInfoSerializer(serializers.ModelSerializer):
                   'sequencing_id', 'others', 'index', 'last_modify_date', 'created')
 
 
-class UserInfoSerializer(serializers.ModelSerializer):
+class UserInfoSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = User
         fields = ("username", "nick_name", "email", "bulk_delete_privilege", "password")
+
+
+class DatabaseRecordSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = DatabaseRecord
+        fields = ("nick_name", "model_changed", "operation", "others", "index", "last_modify_date", "created")

@@ -518,9 +518,10 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                //"serverSide": true,
+                "serverSide": true,
                 "processing": true,
                 "ajax": "/api/QCInfo/?format=datatables",
+                "deferRender": true,
                 "columns": [
                     {
                         data: 'index',
@@ -589,7 +590,7 @@
                 let data = table.row($(this).parents('tr')).data();
                 let class_name = $(this).attr('class');
                 id = data['index'];
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();
@@ -625,7 +626,7 @@
                 let type = $('#type').val();
                 let method = '';
                 let url_ajax = url;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -654,15 +655,18 @@
                     }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        if (type == 'new') {
-                            $('#myModalError').text('添加成功！！！Sample：' + $('#QC_id').val());
+                        let v_tmp = $('#QC_id').val();
+                        if (type === 'new') {
+                            databaseRecordAjaxPut("ClinicalInfo", "单项添加", "样本编号：" + v_tmp);
+                            $('#myModalError').text('添加成功！！！Sample：' + v_tmp);
                         } else {
-                            $('#myModalError').text('更新成功！！！Sample：' + $('#QC_id').val());
+                            databaseRecordAjaxPut("ClinicalInfo", "单项更新", "样本编号：" + v_tmp);
+                            $('#myModalError').text('更新成功！！！Sample：' + v_tmp);
                         }
 
                         setTimeout(
                             function () {
-                                location.reload();
+                                window.location.reload(true);
                             }, 3000
                         );
                     },
@@ -679,7 +683,8 @@
                     url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
-                        location.reload()
+                        databaseRecordAjaxPut("QCInfo", "单项删除", "index：" + id);
+                        window.location.reload(true);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
@@ -724,6 +729,17 @@
 
             fieldForPie.change(function () {
                 pie_plot('QCInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+            });
+
+            $("#modelForm input[type='text']").focus(function () {
+                let key2 = $(this).attr('id');
+                let values = $.ajax({
+                    url: "{% url 'unique' %}", data: {model: "QCInfo", filed: key2},
+                    dataType: 'json', contentType: "application/json",
+                    method: "GET", async: false
+                }).responseJSON.values;
+                console.info("values:", values, "; key2:", key2);
+                input_autocomplete(values, '#' + key2);
             });
         })
 

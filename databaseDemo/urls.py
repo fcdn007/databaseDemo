@@ -32,6 +32,7 @@ router.register(r'PoolingInfo', views.PoolingInfoViewSet)
 router.register(r'SequencingInfo', views.SequencingInfoViewSet)
 router.register(r'QCInfo', views.QCInfoViewSet)
 router.register(r'UserInfo', views.UserInfoViewSet)
+router.register(r'DatabaseRecord', views.DatabaseRecordViewSet)
 
 
 urlpatterns = [
@@ -54,7 +55,8 @@ urlpatterns = [
     # for modul excel downloading
     re_path(r'^download_excel/(?P<model>.*)/$', views.Download_excel, name='Download_excel'),
     re_path(r'^test/(?P<re_model>\w+)Info/$', views.Test_model, name='Test_model'),
-    path('plot_data/', views.plotDataV, name='plot_data')
+    path('plot_data/', views.plotDataV, name='plot_data'),
+    path('test_html/', views.test_html, name='test_html')
 ]
 
 if settings.DEBUG:

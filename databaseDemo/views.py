@@ -1,4 +1,4 @@
-import os
+import time
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import FieldError
@@ -7,38 +7,19 @@ from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from itsdangerous import SignatureExpired
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer_its
 from rest_framework import viewsets
 
-from .data_process import *
 from .forms import FileUploadModelForm, RegisterForm
 from .serializers import *
 from .settings import BASE_DIR, MEDIA_ROOT
-from .tasks import send_register_active_email
+from .tasks import send_register_active_email, make_new_merge_df_by_celery
+from .utils import *
 
 
 @never_cache
 def index(request):
     return render(request, 'base.html')
-
-def get_queryset_base(model_, query_params_):
-    query_params = {}
-    tmp_dict = query_params_.dict()
-    # print(">>>>>> model_ >>>>>")
-    # pprint(model_)
-    # print(">>>>>> query_params_ >>>>>")
-    # pprint(query_params_)
-    if 'format' in tmp_dict and tmp_dict['format'] == 'datatables':
-        return model_.objects.all()
-    for key_ in tmp_dict:
-        if key_ != 'format':
-            query_params[key_] = tmp_dict[key_]
-    if len(query_params.keys()) > 0:
-        queryset = model_.objects.filter(**query_params)
-        return queryset
-    else:
-        queryset = model_.objects.all()
-        return queryset
 
 
 class ClinicalInfoViewSet(viewsets.ModelViewSet):
@@ -119,6 +100,14 @@ class UserInfoViewSet(viewsets.ModelViewSet):
         return get_queryset_base(User, self.request.query_params)
 
 
+class DatabaseRecordViewSet(viewsets.ModelViewSet):
+    queryset = DatabaseRecord.objects.all()
+    serializer_class = DatabaseRecordSerializer
+
+    def get_queryset(self):
+        return get_queryset_base(DatabaseRecord, self.request.query_params)
+
+
 @login_required
 def Main_model(request, re_model):
     if re_model == 'Clinical':
@@ -151,6 +140,7 @@ def uploadV(request):
     # pprint(request)
     if request.method == "POST":
         form = FileUploadModelForm(data=request.POST, files=request.FILES)
+        user = User.objects.get(username=request.user.username)
         # print("form: %s" % form)
 
         if form.is_valid():
@@ -163,10 +153,25 @@ def uploadV(request):
             # read file and add records to model
             total, valid, add, warning, error_msg, fatal_error = save_records(upload_file)
             if fatal_error:
+                context2 = {
+                    'nick_name': user, 'model_changed': request.POST.get('uploadUrl'),
+                    'operation': "批量上传失败",
+                    'others': "file_path: {};fatal_error: {}".format(upload_file.uploadFile.path, fatal_error)
+                }
+                record_obj = DatabaseRecord(**context2)
+                record_obj.save()
                 return JsonResponse({
                     'error_msg_fatal': fatal_error
                 })
             else:
+                context2 = {
+                    'nick_name': user, 'model_changed': request.POST.get('uploadUrl'),
+                    'operation': "批量上传成功",
+                    'others': "file_path: {};all_records: {};valid_records: {};error_msg_tolerant: {}".format(
+                        upload_file.uploadFile.path, total, valid, error_msg)
+                }
+                record_obj = DatabaseRecord(**context2)
+                record_obj.save()
                 return JsonResponse({
                     'all_records': total, 'valid_records': valid, 'add_records': add, 'warning': warning,
                     'error_msg_tolerant': error_msg
@@ -174,18 +179,54 @@ def uploadV(request):
         else:
             # print("form.is_valid(): FALSE")
             data = {'error_msg_fatal': "严重错误！！！文件上传和批量添加失败。只允许上传以下格式文件：txt, csv and xlsx。"}
+            context2 = {
+                'nick_name': user, 'model_changed': request.POST.get('uploadUrl'),
+                'operation': "批量上传文件格式错误",
+                'others': "无"
+            }
+            record_obj = DatabaseRecord(**context2)
+            record_obj.save()
             return JsonResponse(data)
     return JsonResponse({'error_msg_fatal': '严重错误！！！只接受POST请求。'})
 
 
 def uniqueV(request):
+    foreign_keys = {
+        'ExtractInfo': ['sample_id'],
+        'DNAUsageRecordInfo': ['sample_id', 'dna_id'],
+        'DNAInventoryInfo': ['sample_id', 'dna_id'],
+        'LibraryInfo': ['sample_id', 'dna_id'],
+        'PoolingInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id'],
+        'SequencingInfo': ['poolingLB_id'],
+        'QCInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
+    }
+    query_fields = {
+        'ClinicalInfo': ["sample_id", "name", "gender", "patientId", "category", "stage", "diagnose", "diagnose_others",
+                         "centrifugation_date", "hospital", "department", "send_date", "others"],
+        'ExtractInfo': ['sample_id', 'dna_id', 'extract_date', 'sample_type', 'extract_method', 'others'],
+        'DNAUsageRecordInfo': ['sample_id', 'dna_id', 'LB_date', 'singleLB_id', 'others'],
+        'DNAInventoryInfo': ['sample_id', 'dna_id'],
+        'LibraryInfo': ['sample_id', 'dna_id', 'singleLB_id', 'tube_id', 'clinical_boolen', 'singleLB_name', 'label',
+                        'barcodes', 'LB_date', 'LB_method', 'kit_batch', 'operator', 'others'],
+        'CaptureInfo': ['poolingLB_id', 'hybrid_date', 'probes', 'operator', 'others'],
+        'PoolingInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'others'],
+        'SequencingInfo': ['poolingLB_id', 'sequencing_id', 'send_date', 'start_time', 'end_time', 'machine_id',
+                           'chip_id', 'others'],
+        'QCInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id',
+                   'others']
+    }
     data = {}
-    try:
-        key1 = KEY1_TO_MODEL[request.GET['model']]
-        key2 = request.GET['filed']
-        data['values'] = list(set([j for i in key1.objects.values_list(key2) for j in i]))
-        data['values'].sort()
-    except:
+    key1 = request.GET['model']
+    key2 = request.GET['filed']
+    if key1 in query_fields and key2 in query_fields[key1]:
+        if key1 in foreign_keys and key2 in foreign_keys[key1]:
+            data['values'] = [x[0] for x in
+                              FOREIGNKEY_TO_MODEL[key2].objects.values_list(key2).distinct().order_by(key2)]
+        else:
+            data['values'] = [x[0] for x in
+                              KEY1_TO_MODEL[key1].objects.values_list(key2).distinct().order_by(key2)]
+
+    else:
         data['values'] = []
     return JsonResponse(data)
 
@@ -216,13 +257,19 @@ def RegisterV(request):
             user.is_active = 0
             user.bulk_delete_privilege = u'无'
             user.save()
+            context2 = {
+                'nick_name': user, 'model_changed': "User",
+                'operation': "注册", 'others': "bulk_delete_privilege: {}".format(user.bulk_delete_privilege)
+            }
+            record_obj = DatabaseRecord(**context2)
+            record_obj.save()
 
             # 发送激活链接，包含激活链接：(http://%s:8000/user/active/5) % SERVER_HOST
             # 激活链接中需要包含用户的身份信息，并要把身份信息进行加密
             # 激活链接格式: /user/active/用户身份加密后的信息 /user/active/token
 
             # 加密用户的身份信息，生成激活token
-            serializer = Serializer(settings.SECRET_KEY, 3600)
+            serializer = Serializer_its(settings.SECRET_KEY, 3600)
             info = {'confirm': user.index}
             token = serializer.dumps(info)  # bytes
             token = token.decode('utf8')  # 解码, str
@@ -230,7 +277,7 @@ def RegisterV(request):
             # print(">>>>>>>>>>>>>> user.email: %s >>>>>>>>>>>" % user.email)
             # print(">>>>>>>>>>>>>> user.username: %s >>>>>>>>>>>" % user.username)
             # print(">>>>>>>>>>>>>> token: %s >>>>>>>>>>>" % token)
-            send_register_active_email(user.email, user.username, token)
+            send_register_active_email.delay(user.email, user.username, token)
             if redirect_to:
                 return JsonResponse({'success_msg': '注册成功！请查收激活邮件，激活账号后登录。', 'next': redirect_to})
             else:
@@ -246,7 +293,7 @@ def RegisterV(request):
 def ActiveV(request, token):
     # 进行用户激活
     # 进行解密，获取要激活的用户信息
-    serializer = Serializer(settings.SECRET_KEY, 3600)
+    serializer = Serializer_its(settings.SECRET_KEY, 3600)
     try:
         info = serializer.loads(token)
         # 获取待激活用户的id
@@ -255,6 +302,12 @@ def ActiveV(request, token):
         user = User.objects.get(index=user_index)
         user.is_active = 1
         user.save()
+        context2 = {
+            'nick_name': user, 'model_changed': "User",
+            'operation': "激活成功", 'others': "无"
+        }
+        record_obj = DatabaseRecord(**context2)
+        record_obj.save()
         # 跳转到登录页面
         return render(request, 'active.html', {'success_msg': '账号已激活'})
     except SignatureExpired:
@@ -275,7 +328,7 @@ def Active_resendV(request):
                 return JsonResponse({'error_msg': '用户已激活，请返回登录页面进行登录。'})
             else:
                 # 加密用户的身份信息，生成激活token
-                serializer = Serializer(settings.SECRET_KEY, 3600)
+                serializer = Serializer_its(settings.SECRET_KEY, 3600)
                 info = {'confirm': user.index}
                 token = serializer.dumps(info)  # bytes
                 token = token.decode('utf8')  # 解码, str
@@ -294,177 +347,40 @@ def Active_resendV(request):
 @login_required
 @csrf_exempt
 def AdvancedSearchV(request):
-    special_fields = ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
-    model_links = {
-        'ClinicalInfo': ['sample_id'],
-        'ExtractInfo': ['sample_id', 'dna_id'],
-        'DNAUsageRecordInfo': ['sample_id', 'dna_id'],
-        'DNAInventoryInfo': ['sample_id', 'dna_id'],
-        'LibraryInfo': ['sample_id', 'dna_id', 'singleLB_id'],
-        'CaptureInfo': ['poolingLB_id'],
-        'PoolingInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'],
-        'SequencingInfo': ['poolingLB_id', 'sequencing_id'],
-        'QCInfo': ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id', 'sequencing_id']
-    }
-    models_set = [ClinicalInfo, ExtractInfo, DNAUsageRecordInfo, DNAInventoryInfo, LibraryInfo, CaptureInfo,
-                  PoolingInfo, SequencingInfo, QCInfo]
-    models_set2 = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo',
-                   'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo']
-
     # 合并所有model，形成一张大表
     # 检测所有model的最新修改时间time1，
-    # > 如果time1等于已有的pickle的时间戳time2，直接读取已有的json文件，
+    # > 如果time1等于已有json文件的时间戳time2，直接读取已有的json文件，
     # > 否则重新创建merge_df，并把merge_df输出为json文件，打上时间戳。清除旧的json文件(保留10个)
-    json_files = {}
-    time2 = 0
-    time2_json = ""
-    for file in os.listdir(os.path.join(MEDIA_ROOT, "json")):
-        if re.match(r'[0-9]+.*\.merge_df.json', file):
-            time2_tmp, _, _ = file.split('.')
-            time2_tmp = int(time2_tmp)
-            json_files[time2_tmp] = os.path.join(MEDIA_ROOT, "json", file)
-            if time2_tmp > time2:
-                time2 = time2_tmp
-                time2_json = json_files[time2_tmp]
-    lastTime_models = {}
-    for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
-        time1_list_tmp = list(
-            set([int(x[0].strftime("%Y%m%d%H%M%S%f")) for x in models_set[m].objects.values_list("last_modify_date")]))
-        lastTime_models[models_set2[m]] = sorted(time1_list_tmp, reverse=True)[0]
-    flag_update = False
-    print("lastTime_models: ")
-    print(lastTime_models)
-    print("time2: {}; time2_json: {}".format(time2, time2_json))
-    for m in lastTime_models:
-        if lastTime_models[m] > time2:
-            flag_update = True
-            time2 = lastTime_models[m]
-    print("time2: {}; flag_update: {}".format(time2, flag_update))
     merge_df = []
+    flag_update, json_files, time2, time2_json = check_new_merge_df()
     if flag_update:
-        for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
-            if m == 0:
-                fields = model_fields[models_set2[m]]
-                fields_filt = fields[6:25]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['sample_id'] else 'ClinicalInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                merge_df = res_df
-            elif m == 1:
-                fields = model_fields[models_set2[m]]
-                fields_filt = fields[5:14]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['sample_id', 'dna_id'] else 'ExtractInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                columns_raw = list(merge_df.columns)
-                merge_df = pd.merge(merge_df, res_df, how='left', on='sample_id')
-                merge_df = merge_df[['sample_id', 'dna_id'] + columns_raw[1:] + fields_filt_rename[2:]]
-            elif m == 2:
-                fields = model_fields[models_set2[m]]
-                fields_filt = [fields[0]] + fields[2:7]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['dna_id'] else 'DNAUsageRecordInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
-            elif m == 3:
-                fields = model_fields[models_set2[m]]
-                fields_filt = fields[1:7]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                res_raw_shift = []
-                for l_ in res_raw:
-                    res_raw_shift.append(list(l_) + [round(l_[1] - l_[2] - l_[3] - l_[4] - l_[5], 3)])
-                fields_filt_rename = [x if x in ['dna_id'] else 'DNAInventoryInfo_' + x for x in
-                                      fields_filt + ['remainM']]
-                res_df = list2array(res_raw_shift, fields_filt_rename)
-                merge_df = pd.merge(merge_df, res_df, how='left', on='dna_id')
-            elif m == 4:
-                fields = model_fields[models_set2[m]]
-                fields_filt = [fields[2]] + fields[5:19]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['dna_id', 'singleLB_id'] else 'LibraryInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                columns_raw = list(merge_df.columns)
-                merge_df = pd.merge(merge_df, res_df, how='left', left_on='DNAUsageRecordInfo_singleLB_id',
-                                    right_on='singleLB_id')
-                merge_df['singleLB_id'] = merge_df['DNAUsageRecordInfo_singleLB_id']
-                merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id'] + columns_raw[2:] + fields_filt_rename[1:]]
-            elif m == 6:
-                fields = model_fields[models_set2[m]]
-                fields_filt = fields[3:10]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] else
-                                      'PoolingInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                columns_raw = list(merge_df.columns)
-                merge_df = pd.merge(merge_df, res_df, how='left', on='singleLB_id')
-                merge_df = merge_df[['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] +
-                                    columns_raw[3:] + fields_filt_rename[3:]]
-            elif m == 5:
-                fields = model_fields[models_set2[m]]
-                fields_filt = fields[3:13]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['poolingLB_id'] else 'CaptureInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                columns_raw = list(merge_df.columns)
-                idx_ = columns_raw.index('PoolingInfo_pooling_ratio')
-                merge_df = pd.merge(merge_df, res_df, how='left', on='poolingLB_id')
-                merge_df = merge_df[columns_raw[:idx_] + fields_filt_rename[1:] + columns_raw[idx_:]]
-            elif m == 7:
-                fields = model_fields[models_set2[m]]
-                fields_filt = [fields[11]] + fields[1:8]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                res_raw_shift = []
-                for l_ in res_raw:
-                    if l_[0] is None:
-                        continue
-                    elif isinstance(l_[0], int):
-                        res_raw_shift.append(list(l_))
-                    elif isinstance(l_[0], list):
-                        for idx in l_[0]:
-                            res_raw_shift.append([idx] + list(l_[1:]))
-                fields_filt_rename = [x if x in ['sequencing_id'] else 'SequencingInfo_' + x for x in fields_filt]
-                res_df = list2array(res_raw_shift, fields_filt_rename)
-                columns_raw = list(merge_df.columns)
-                idx_ = columns_raw.index('CaptureInfo_index')
-                merge_df = pd.merge(merge_df, res_df, how='left', left_on='CaptureInfo_index',
-                                    right_on='SequencingInfo_poolingLB_id')
-                merge_df = merge_df[
-                    special_fields + columns_raw[5:idx_] + columns_raw[idx_ + 1:] + fields_filt_rename[2:]]
-            elif m == 8:
-                fields = model_fields[models_set2[m]]
-                fields_filt = fields[:44]
-                res_raw = list(models_set[m].objects.values_list(*fields_filt))
-                fields_filt_rename = [x if x in ['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id',
-                                                 'singleLB_Pooling_id', 'sequencing_id'] else 'QCInfo_' +
-                                                                                              x for x in fields_filt]
-                res_df = list2array(res_raw, fields_filt_rename)
-                merge_df = pd.merge(merge_df, res_df, how='left', on=special_fields)
-        for link in special_fields:
-            merge_df.loc[:, link].fillna(" ", inplace=True)
-        for ncol in range(6, merge_df.shape[1]):
-            for nrow in range(merge_df.shape[0]):
-                value_ = merge_df.iloc[nrow, ncol]
-                if pd.isna(value_):
-                    value_ = " "
-                elif isinstance(value_, np.floating):
-                    value_ = round(value_, 3)
-                elif isinstance(value_, np.integer) or isinstance(value_, str):
-                    value_ = value_
-                merge_df.iloc[nrow, ncol] = value_
-        merge_df.to_json(os.path.join(MEDIA_ROOT, "json", '{}.merge_df.json'.format(time2)))
-        if len(json_files.keys()) > 9:
-            time2_tmp_list = sorted(list(json_files.keys()), reverse=True)
-            for idx in range(9, len(time2_tmp_list)):
-                os.remove(json_files[time2_tmp_list[idx]])
-
-        print("merge_df is rebuild")
+        # 使用djcelery异步执行make_new_merge_df
+        make_new_merge_df_by_celery.delay(json_files, time2)
     else:
         merge_df = pd.read_json(time2_json)
-        print("read merge_df.json")
+        # print("read merge_df.json")
 
-    merge_df_columns = list(merge_df.columns)
-    filed_idx = [6, 24, 31, 36, 42, 56, 64, 68, 74, 112]
     if request.method == 'POST':
+        # print("request.method == 'POST'")
+        if flag_update:  # "等待异步task make_new_merge_df完成"
+            sleep_flag = True
+            # sleep_n = 0
+            while sleep_flag:
+                # print("sleep {}".format(5*sleep_n))
+                for file in os.listdir(os.path.join(MEDIA_ROOT, "json")):
+                    if re.match(r'[0-9]+.*\.merge_df.json', file):
+                        time2_tmp, _, _ = file.split('.')
+                        time2_tmp = int(time2_tmp)
+                        # print("time2_tmp: {}".format(time2_tmp))
+                        if time2_tmp == time2:
+                            time2_json = os.path.join(MEDIA_ROOT, "json", file)
+                            sleep_flag = False
+                time.sleep(5)
+                # sleep_n += 1
+            merge_df = pd.read_json(time2_json)
+        # print(merge_df)
+        merge_df_columns = list(merge_df.columns)
+        filed_idx = [6, 24, 31, 36, 42, 56, 64, 68, 74, 112]
         model_list = request.POST['modellist'].split(', ')
         # print(">>>>>>>>>>>>>> model_list >>>>>>>>")
         # pprint(model_list)
@@ -524,6 +440,7 @@ def AdvancedSearchV(request):
         # pprint(result)
         return JsonResponse(result)
     else:
+        # print("request.method == 'get'")
         return render(request, 'AdvancedSearch.html')
 
 
@@ -653,3 +570,17 @@ def plotDataV(request):
                 data_sort[k_str] = data[k]
 
     return JsonResponse({'sum': data_sum, 'data': data_sort})
+
+
+def test_html(request):
+    # print("request: {}".format(request))
+    # user = User.objects.get(username=request.user.username)
+    # print("request.user: {}".format(request.user))
+    # context2 = {
+    #     'nick_name': user, 'model_changed': "test",
+    #     'operation': "test", 'others': "无"
+    # }
+    # record_obj = DatabaseRecord(**context2)
+    # record_obj.save()
+    # print("record_obj: {}".format(record_obj))
+    return render(request, 'test.html')

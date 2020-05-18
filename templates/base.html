@@ -8,6 +8,7 @@
         <title>数据库管理系统Demo首页</title>
     {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'jquery-ui/jquery-ui.css' %}">
     <!-- 引入bootstrap的css文件 -->
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
 
@@ -42,6 +43,10 @@
             /*checkmark arrow color*/
             border: solid white;
             border-width: 0 3px 3px 0;
+        }
+
+        .ui-autocomplete {
+            z-index: 2147483647;
         }
     </style>
 </head>
@@ -145,6 +150,7 @@
 
 <!-- bootstrap.js 依赖 jquery.js 和popper.js，因此在这里引入 -->
 <script src="{% static 'jquery/jquery.min.js' %}"></script>
+<script src="{% static 'jquery-ui/jquery-ui.js' %}"></script>
 <script src="{% static 'popper/popper.min.js' %}"></script>
 <!-- 引入bootstrap的js文件 -->
 <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
@@ -162,20 +168,21 @@
 <script src="{% static 'js/dataTables.fixedColumns.min.js' %}"></script>
 <script src="{% static 'Highcharts/highcharts.js' %}"></script>
 <script src="{% static 'Highcharts/highcharts-more.js' %}"></script>
+
 <script>
     $.ajaxSetup({
         headers: {"X-CSRFToken": '{{csrf_token}}'}
     });
 
     function changeThreeDecimal_f(x) {
-        var f_x = parseFloat(x);
+        let f_x = parseFloat(x);
         if (isNaN(f_x)) {
             alert('function:changeTwoDecimal->parameter error');
             return false;
         }
-        var f_x = Math.round(x * 1000) / 1000;
-        var s_x = f_x.toString();
-        var pos_decimal = s_x.indexOf('.');
+        f_x = Math.round(x * 1000) / 1000;
+        let s_x = f_x.toString();
+        let pos_decimal = s_x.indexOf('.');
         if (pos_decimal < 0) {
             pos_decimal = s_x.length;
             s_x += '.';
@@ -253,6 +260,77 @@
             return args[i];
         });
     };
+
+    function input_autocomplete(values, item_flag) {
+        console.info("in function input_autocomplete; values:", values, "; item_flag:", item_flag);
+        if (values.length === 0) {
+            console.log("empty list. do nothing");
+        } else if (values.length > 10) {
+            values.push('...');
+            $(item_flag).autocomplete({
+                autoFocus: false,
+                minLength: 3,
+                delay: 10,
+                source: function (request, response) {
+                    let matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+                    let max_match = 15;
+                    let n_match = 0;
+                    response($.grep(values, function (item) {
+                        let flag_match = matcher.test(item);
+                        if (item === "..." && n_match === max_match) {
+                            return true;
+                        } else if (flag_match && n_match < max_match) {
+                            n_match += 1;
+                            return flag_match;
+                        } else {
+                            return false;
+                        }
+                    }));
+                },
+                focus: function (event, ui) {
+                    if (ui.item.label === "...") {
+                        $(item_flag).val("");
+                    } else {
+                        $(item_flag).val(ui.item.label);
+                    }
+                    return false;
+                },
+                select: function (event, ui) {
+                    if (ui.item.label === "...") {
+                        $(item_flag).val("");
+                    } else {
+                        $(item_flag).val(ui.item.label);
+                    }
+                    return false;
+                }
+            });
+            console.log("if work");
+        } else {
+            $(item_flag).autocomplete({
+                autoFocus: true,
+                minLength: 0,
+                delay: 0,
+                source: values
+            }).autocomplete("search", "");
+            console.log("else work");
+        }
+    }
+
+    function databaseRecordAjaxPut(model_changed_txt, operation_txt, others_txt) {
+        let url_record = '/api/DatabaseRecord/';
+        let data_record = $.param({
+            "nick_name": "{{ user.nick_name }}",
+            "model_changed": model_changed_txt,
+            "operation": operation_txt,
+            "others": others_txt
+        });
+        $.ajax({
+            url: '/api/DatabaseRecord/',
+            method: 'POST',
+            data: data_record,
+            headers: {'X-HTTP-Method-Override': 'PATCH'}
+        });
+    }
 </script>
 
 {% block button_js %}

@@ -60,10 +60,10 @@
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-secondary h6" id="tableSet1">选取样本管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-secondary h6" id="tableSet2">选取文库管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-secondary h6" id="tableSet3">选取测序管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-secondary h6" id="tableSet4">选取所有表</button>
+            <button type="button" class="btn btn-light h6" id="tableSet1">选取样本管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-light h6" id="tableSet2">选取文库管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-light h6" id="tableSet3">选取测序管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-light h6" id="tableSet4">选取所有表</button>
         </form>
         <br>
 
@@ -71,7 +71,7 @@
             <p class="bg-info text-white">
                 &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 设置过滤条件</label></p>
             <div class="form-inline mb-1">
-                <button id='textareaAdd' class="btn btn-success h6">确认过滤条件</button>&nbsp;&nbsp
+                <button id='textareaAdd' class="btn btn-primary h6">确认过滤条件</button>&nbsp;&nbsp
                 <button id='conditionAdd' class="btn btn-info h6">添加过滤条件</button>
             </div>
             <br>
@@ -84,21 +84,21 @@
                 </select>
             </div>&nbsp;&nbsp
                 <div class="form-group">
-                    <label for="SearchModelName1" class="bg-info text-white badge badge-primary h6">查询子表
+                    <label for="SearchModelName1" class="bg-info text-white h6">查询子表
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchModelName" id="SearchModelName1" name="SearchModelName1"
                             required="true">
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
-                    <label for="SearchFieldName1" class="bg-info text-white badge badge-primary h6">查询字段
+                    <label for="SearchFieldName1" class="bg-info text-white h6">查询字段
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchFieldName" id="SearchFieldName1" name="SearchFieldName1"
                             required="true">
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
-                    <label for="SearchFieldValue1" class="bg-info text-white badge badge-primary h6">查询字段值
+                    <label for="SearchFieldValue1" class="bg-info text-white h6">查询字段值
                     </label>&nbsp
                     <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre1"
                             name="SearchFieldValuePre1" required="true">
@@ -112,8 +112,7 @@
                         <option value="lte">小于等于</option>
                     </select>&nbsp
                     <input type="text" class="form-control SearchFieldValue" id="SearchFieldValue1"
-                           name="SearchFieldValue1"
-                           placeholder="请输入查询字段值">
+                           name="SearchFieldValue1" placeholder="请输入查询字段值">
                 </div>
             </div>
         </form>
@@ -121,7 +120,7 @@
         <form id="searchForm3" role="form">
             {% csrf_token %}
             <div class="form-group">
-                <p class="bg-primary text-white">
+                <p class="bg-info text-white">
                     &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 过滤条件如下:</label></p>
                 <textarea class="form-control" rows="3" id="SearchText" name="SearchText"></textarea>
             </div>
@@ -161,15 +160,15 @@
                     + '"><option value="0" selected="selected"></option><option value="1">非' +
                     '</option></select></div>&nbsp;&nbsp;';
                 str += '<div class="form-group"><label for="SearchModelName' + i + '" class="bg-info text-white ' +
-                    'badge badge-primary h6">查询子表</label>&nbsp;&nbsp<select class="form-control ' +
+                    'h6">查询子表</label>&nbsp;&nbsp<select class="form-control ' +
                     'SearchModelName" id="SearchModelName' + i + '" name="SearchModelName' + i + '"></select>' +
                     '</div>&nbsp;&nbsp;';
                 str += '<div class="form-group"><label for="SearchFieldName' + i + '" class="bg-info text-white ' +
-                    'badge badge-primary h6">查询字段</label>&nbsp;&nbsp<select class="form-control ' +
+                    'h6">查询字段</label>&nbsp;&nbsp<select class="form-control ' +
                     'SearchFieldName" id="SearchFieldName' + i + '" name="SearchFieldName' + i + '"></select>' +
                     '</div>&nbsp;&nbsp;';
                 str += '<div class="form-group"><label for="SearchFieldValue' + i + '" class="bg-info text-white ' +
-                    'badge badge-primary h6">查询字段值</label>&nbsp<select class="form-control ' +
+                    'h6">查询字段值</label>&nbsp<select class="form-control ' +
                     'SearchFieldValuePre" id="SearchFieldValuePre' + i + '" name="SearchFieldValuePre' + i +
                     '" required="true"><option value="exact" selected="selected">等于(大小写严格匹配)</option>' +
                     '<option value="iexact">等于(忽略大小写)</option><option value="contains">包含(大小写严格匹配)' +
@@ -399,23 +398,20 @@
                 $(this).append(str);
             });
             // 查询字段值下拉选框
-            //$('.search_condition .SearchFieldValue').focus(function () {
-            // 获取想要查询的字段值
-            //    $(this).empty();
-            //    let key1 = $(this).parents('.search_condition').find('.SearchModelName').val();
-            //    let key2 = $(this).parents('.search_condition').find('.SearchFieldName').val();
-            //    let values = $.ajax({
-            //        url: "{% url 'unique' %}", data: {model: key1, filed: key2},
-            //        dataType: 'json', contentType: "application/json",
-            //        method: "GET", async: false
-            //    }).responseJSON.values;
-            //    let str = '';
-            //    $.each(values, function (index, value) {
-            //        str += '<option value="' + value +
-            //            '">' + value + '</option>';
-            //    });
-            //    $(this).append(str);
-            //});
+            $('.search_condition .SearchFieldValue').focus(function () {
+                // 获取想要查询的字段值
+                $(this).empty();
+                let key1 = $(this).parents('.search_condition').find('.SearchModelName').val();
+                let key2 = $(this).parents('.search_condition').find('.SearchFieldName').val();
+                let values = $.ajax({
+                    url: "{% url 'unique' %}", data: {model: key1, filed: key2},
+                    dataType: 'json', contentType: "application/json",
+                    method: "GET", async: false
+                }).responseJSON.values;
+                //console.info("key1:", key1, "key2:", key2, "values:", values, "values.length:",values.length);
+                //console.info("this.id", '#'+$(this).attr('id'));
+                input_autocomplete(values, '#' + $(this).attr('id'));
+            });
 
             // 实现"添加过滤条件"按钮的功能
             let conditionAdd = 1;
@@ -594,6 +590,7 @@
                             return json.data;
                         }
                     },
+                    "deferRender": true,
                     "columns": returnCols
                 });
 

@@ -220,8 +220,9 @@
             let getDNAConDict = function () {
                 let ExtractInfo_all = $.ajax({
                     url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false
+                    type: "get", async: false, data: {fields: "dna_id,dna_con"}
                 }).responseJSON;
+                console.info("ExtractInfo_all: ", ExtractInfo_all);
                 let res = {};
                 $.each(ExtractInfo_all, function (index, value) {
                     res[value.dna_id] = value.dna_con;
@@ -230,6 +231,7 @@
             };
 
             let DNAConDict = getDNAConDict();
+            console.info("DNAConDict: ", DNAConDict);
 
             let table = $('#table_id').DataTable({
                 "language": {
@@ -300,9 +302,10 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                //"serverSide": true,
+                "serverSide": true,
                 "processing": true,
                 "ajax": "/api/LibraryInfo/?format=datatables",
+                "deferRender": true,
                 "columns": [
                     {
                         data: 'index',
@@ -359,7 +362,7 @@
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {singleLB_id: singleLB_id}
                 }).responseJSON[0];
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();
@@ -389,7 +392,7 @@
                 let method = '';
                 let url_ajax = url;
                 let url_ajax2 = url2;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -417,6 +420,7 @@
                     }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
+                        let v_tmp = $('#dna_id').val();
                         // 增、改：更新使用记录表
                         let data_tmp = $('#usageForm div input').serialize() + '&' + $.param({
                             sample_id: data0.sample_id, usage: '建库成功',
@@ -427,6 +431,13 @@
                             method: method,
                             data: data_tmp,
                             headers: {'X-HTTP-Method-Override': 'PATCH'},
+                            success: function () {
+                                if (method === 'POST') {
+                                    databaseRecordAjaxPut("DNAUsageRecordInfo", "单项添加", "DNA提取编号：" + v_tmp);
+                                } else {
+                                    databaseRecordAjaxPut("DNAUsageRecordInfo", "单项更新", "DNA提取编号：" + v_tmp);
+                                }
+                            },
                             error: function (jqXHR, textStatus, errorThrown) {
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
@@ -434,7 +445,7 @@
 
                         // 更新库存表
                         let data_tmp2;
-                        if (method == 'POST') {
+                        if (method === 'POST') {
                             data_tmp2 = $('#usageForm .InventoryForm input').serialize() + '&' + $.param({
                                 sample_id: data0.sample_id,
                                 totalM: data0.totalM,
@@ -457,20 +468,26 @@
                             method: 'PUT',
                             data: data_tmp2,
                             headers: {'X-HTTP-Method-Override': 'PATCH'},
+                            success: function () {
+                                databaseRecordAjaxPut("DNAInventoryInfo", "单项更新", "DNA提取编号：" + v_tmp);
+                            },
                             error: function (jqXHR, textStatus, errorThrown) {
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
                         });
 
-                        if (type == 'new') {
-                            $('#myModalError').text('添加成功！！！建库编号：' + $('#singleLB_id').val());
+                        v_tmp = $('#singleLB_id').val();
+                        if (type === 'new') {
+                            databaseRecordAjaxPut("LibraryInfo", "单项添加", "建库编号：" + v_tmp);
+                            $('#myModalError').text('添加成功！！！建库编号：' + v_tmp);
                         } else {
-                            $('#myModalError').text('更新成功！！！建库编号：' + $('#singleLB_id').val());
+                            databaseRecordAjaxPut("LibraryInfo", "单项更新", "建库编号：" + v_tmp);
+                            $('#myModalError').text('更新成功！！！建库编号：' + v_tmp);
                         }
 
                         setTimeout(
                             function () {
-                                location.reload();
+                                window.location.reload(true);
                             }, 3000
                         );
                     },
@@ -493,6 +510,9 @@
                         $.ajax({
                             url: url2 + id2.index + '/',
                             method: 'DELETE',
+                            success: function () {
+                                databaseRecordAjaxPut("DNAUsageRecordInfo", "单项删除", "index：" + id2.index);
+                            },
                             error: function (jqXHR, textStatus, errorThrown) {
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
@@ -515,13 +535,15 @@
                             data: data_tmp2,
                             headers: {'X-HTTP-Method-Override': 'PATCH'},
                             success: function () {
-                                location.reload();
+                                databaseRecordAjaxPut("DNAInventoryInfo", "单项更新", "样本建库信息表发生单项删除操作，" +
+                                    "改变index：" + data0.index);
                             },
                             error: function (jqXHR, textStatus, errorThrown) {
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
                         });
-                        location.reload()
+                        databaseRecordAjaxPut("LibraryInfo", "单项删除", "index：" + id);
+                        window.location.reload(true);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
@@ -529,15 +551,9 @@
                 });
             });
 
-
             $('#new').on('click', function (e) {
                 MyModelInit('新增', {});
                 $("#myModal").modal();
-            });
-
-
-            $('#dna_id').blur(function () {
-                $('#singleLB_id').val($('#dna_id').val() + "_m1");
             });
 
             $('#upload').on('click', function (e) {
@@ -571,6 +587,27 @@
 
             fieldForPie.change(function () {
                 pie_plot('LibraryInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
+            });
+
+            $("#modelForm input[type='text']").focus(function () {
+                let key2 = $(this).attr('id');
+                if (key2 !== 'singleLB_id') {
+                    let values = $.ajax({
+                        url: "{% url 'unique' %}", data: {model: "LibraryInfo", filed: key2},
+                        dataType: 'json', contentType: "application/json",
+                        method: "GET", async: false
+                    }).responseJSON.values;
+                    console.info("values:", values, "; key2:", key2);
+                    input_autocomplete(values, '#' + key2);
+                } else {
+                    let v_tmp = $('#dna_id').val();
+                    let data0 = $.ajax({
+                        url: '/api/LibraryInfo/', dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {dna_id: v_tmp, fields: "index"}
+                    }).responseJSON;
+                    let suffix_n = data0.length + 1;
+                    $('#singleLB_id').val(v_tmp + "_m" + suffix_n);
+                }
             });
         })
     </script>

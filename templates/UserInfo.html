@@ -69,7 +69,7 @@
                     method: 'PUT',
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        location.reload();
+                        window.location.reload(true);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown);

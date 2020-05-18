@@ -215,9 +215,10 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                //"serverSide": true,
+                "serverSide": true,
                 "processing": true,
                 "ajax": "/api/ExtractInfo/?format=datatables",
+                "deferRender": true,
                 "columns": [
                     {
                         data: 'index',
@@ -259,7 +260,7 @@
                 let class_name = $(this).attr('class');
                 id = data['index'];
                 //alert(id);
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();
@@ -287,7 +288,7 @@
                 let type = $('#type').val();
                 let method = '';
                 let url_ajax = url;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -314,14 +315,16 @@
                         // 由于外键约束，需先创建提取表条目，再根据index创建库存表条目
                         let data_tmp;
                         let url_ajax2 = url2;
-                        if (method == 'POST') {
+                        let v_tmp = $('#dns_id').val();
+                        if (method === 'POST') {
                             // new
                             // 增：增加库存表条目
                             data_tmp = $('#InventoryForm div input').serialize() + '&' + $.param({
                                 totalM: $('#dna_con').val() * $('#dna_vol').val(), successM: '0', failM: '0',
                                 researchM: '0', othersM: '0'
                             });
-                            $('#myModalError').text('添加成功！！！DNA提取编号：' + $('#dna_id').val());
+                            databaseRecordAjaxPut("ExtractInfo", "单项添加", "DNA提取编号：" + v_tmp);
+                            $('#myModalError').text('添加成功！！！DNA提取编号：' + v_tmp);
                         } else {
                             // edit
                             // 改：修改库存表相应条目
@@ -335,25 +338,31 @@
                                 researchM: data0.researchM, othersM: data0.othersM
                             });
                             url_ajax2 = url2 + id + '/';
-                            $('#myModalError').text('更新成功！！！DNA提取编号：' + $('#dns_id').val());
+                            databaseRecordAjaxPut("ExtractInfo", "单项更新", "DNA提取编号：" + v_tmp);
+                            $('#myModalError').text('更新成功！！！DNA提取编号：' + v_tmp);
                         }
                         $.ajax({
                             url: url_ajax2,
-                                method: method,
-                                data: data_tmp,
-                                headers: {'X-HTTP-Method-Override': 'PATCH'},
-                                success: function () {
-                                    alert(method + ' ' + url2 + ' success ');
-                                },
-                                error: function (jqXHR, textStatus, errorThrown) {
-                                    alert(method + ' ' + url2 + ' error: ' + jqXHR + ';' + textStatus + ';' +
-                                        errorThrown);
+                            method: method,
+                            data: data_tmp,
+                            headers: {'X-HTTP-Method-Override': 'PATCH'},
+                            success: function () {
+                                if (method === 'POST') {
+                                    databaseRecordAjaxPut("DNAInventoryInfo", "单项添加", "DNA提取编号：" + v_tmp);
+                                } else {
+                                    databaseRecordAjaxPut("DNAInventoryInfo", "单项更新", "DNA提取编号：" + v_tmp);
                                 }
-                            });
+                                alert(method + ' ' + url2 + ' success ');
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                alert(method + ' ' + url2 + ' error: ' + jqXHR + ';' + textStatus + ';' +
+                                    errorThrown);
+                            }
+                        });
 
                         setTimeout(
                             function () {
-                                location.reload();
+                                window.location.reload(true);
                             }, 3000
                         );
                     },
@@ -371,7 +380,8 @@
                     url: url + id + '/',
                     method: 'DELETE',
                     success: function () {
-                        location.reload()
+                        databaseRecordAjaxPut("ExtractInfo", "单项删除", "index：" + id);
+                        window.location.reload(true);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
@@ -382,15 +392,6 @@
             $('#new').on('click', function (e) {
                 MyModelInit('新增', {});
                 $("#myModal").modal();
-            });
-
-            $('#sample_id').blur(function () {
-                let data0 = $.ajax({
-                    url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false, data: {sample_id: $('#sample_id').val()}
-                }).responseJSON;
-                let suffix_n = data0.length + 1;
-                $('#dna_id').val($('#sample_id').val() + "_" + suffix_n);
             });
 
             $('#upload').on('click', function (e) {
@@ -425,6 +426,29 @@
             fieldForPie.change(function () {
                 pie_plot('ExtractInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
             });
+
+            $("#modelForm input[type='text']").focus(function () {
+                let key2 = $(this).attr('id');
+                if (key2 !== 'dna_id') {
+                    let values = $.ajax({
+                        url: "{% url 'unique' %}", data: {model: "ExtractInfo", filed: key2},
+                        dataType: 'json', contentType: "application/json",
+                        method: "GET", async: false
+                    }).responseJSON.values;
+                    console.info("values:", values, "; key2:", key2);
+                    input_autocomplete(values, '#' + key2);
+                } else {
+                    let v_tmp = $('#sample_id').val();
+                    let data0 = $.ajax({
+                        url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
+                        type: "get", async: false, data: {sample_id: v_tmp, fields: "index"}
+                    }).responseJSON;
+                    let suffix_n = data0.length + 1;
+                    $('#dna_id').val(v_tmp + "_" + suffix_n);
+                }
+
+            });
+
         })
     </script>
 {% endblock %}

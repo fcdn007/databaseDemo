@@ -121,9 +121,10 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                //"serverSide": true,
+                "serverSide": true,
                 "processing": true,
                 "ajax": "/api/DNAInventoryInfo/?format=datatables",
+                "deferRender": true,
                 "columns": [
                     {
                         data: 'index',
@@ -158,6 +159,7 @@
             fieldForPie.change(function () {
                 pie_plot('DNAInventoryInfo', fieldForPie.val(), fieldForPie.find("option:selected").text());
             });
+
         })
 
     </script>

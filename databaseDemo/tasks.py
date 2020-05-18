@@ -1,13 +1,15 @@
 #!usr/bin/env python
 # -*- coding:utf-8 -*-
-from celery import task
+from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
 
+from .celerys import app
 from .settings import SERVER_HOST
+from .utils import make_new_merge_df, check_new_merge_df
 
 
-@task
+@app.task
 def send_register_active_email(to_email, username, token):
     """发送激活邮件"""
     # 组织邮件信息
@@ -22,3 +24,17 @@ def send_register_active_email(to_email, username, token):
     send_mail(subject, message, sender, receiver, html_message=html_message)
     return True
     # time.sleep(5)
+
+
+@app.task
+def make_new_merge_df_by_celery(json_files_tmp, time2):
+    make_new_merge_df(json_files_tmp, time2)
+    return True
+
+
+@shared_task
+def keep_merge_df_newest_by_celery():
+    flag_update, json_files, time2, _ = check_new_merge_df()
+    if flag_update:
+        make_new_merge_df(json_files, time2)
+    return True

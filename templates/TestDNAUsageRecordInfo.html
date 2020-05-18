@@ -217,8 +217,8 @@
             $('#table_id tbody').on('click', 'button', function () {
                 data = table.row($(this).parents('tr')).data();
                 let class_name = $(this).attr('class');
-                if (data['usage'] != '建库成功') {
-                    if (class_name == 'btn btn-info') {
+                if (data['usage'] !== '建库成功') {
+                    if (class_name === 'btn btn-info') {
                         // EDIT button
                         MyModelInit('更新', data);
                         $('#ModalFormHeader').text("");
@@ -250,7 +250,7 @@
                 let type = $('#type').val();
                 let method = '';
                 let url_ajax = url;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                 } else {
@@ -261,22 +261,22 @@
 
                 // 记录库存表条目变化
                 let data_tmp2;
-                if (method == 'POST') {
-                    if ($('#usage').val() == '建库失败') {
+                if (method === 'POST') {
+                    if ($('#usage').val() === '建库失败') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM + $('#mass').val(), researchM: data0.researchM,
                             othersM: data0.othersM
                         });
-                    } else if ($('#usage').val() == '科研项目') {
+                    } else if ($('#usage').val() === '科研项目') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM, researchM: data0.researchM + $('#mass').val(),
                             othersM: data0.othersM
                         });
-                    } else if ($('#usage').val() == '其他') {
+                    } else if ($('#usage').val() === '其他') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
@@ -286,21 +286,21 @@
                     }
                 } else {
                     sub = $('#mass').val() - data0['mass'];
-                    if ($('#usage').val() == '建库失败') {
+                    if ($('#usage').val() === '建库失败') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM + sub, researchM: data0.researchM,
                             othersM: data0.othersM
                         });
-                    } else if ($('#usage').val() == '科研项目') {
+                    } else if ($('#usage').val() === '科研项目') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
                             failM: data0.failM, researchM: data0.researchM + sub,
                             othersM: data0.othersM
                         });
-                    } else if ($('#usage').val() == '其他') {
+                    } else if ($('#usage').val() === '其他') {
                         data_tmp2 = $.param({
                             dna_id: data0.dna_id, sample_id: data0.sample_id,
                             totalM: data0.totalM, successM: data0.successM,
@@ -333,7 +333,7 @@
                             }
                         });
 
-                        if (type == 'new') {
+                        if (type === 'new') {
                             $('#myModalError').text('添加成功！！！DNA提取编号：' + $('#dna_id').val());
                         } else {
                             $('#myModalError').text('更新成功！！！DNA提取编号：' + $('#dna_id').val());
@@ -360,21 +360,21 @@
                     type: "get", async: false, data: {dna_id: data['dna_id']}
                 }).responseJSON[0];
                 let data_tmp2;
-                if (data['usage'] == '建库失败') {
+                if (data['usage'] === '建库失败') {
                     data_tmp2 = $.param({
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
                         totalM: data0.totalM, successM: data0.successM,
                         failM: data0.failM - data['mass'], researchM: data0.researchM,
                         othersM: data0.othersM
                     });
-                } else if (data['usage'] == '科研项目') {
+                } else if (data['usage'] === '科研项目') {
                     data_tmp2 = $.param({
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
                         totalM: data0.totalM, successM: data0.successM,
                         failM: data0.failM, researchM: data0.researchM - data['mass'],
                         othersM: data0.othersM
                     });
-                } else if (data['usage'] == '其他') {
+                } else if (data['usage'] === '其他') {
                     data_tmp2 = $.param({
                         dna_id: data0.dna_id, sample_id: data0.sample_id,
                         totalM: data0.totalM, successM: data0.successM,

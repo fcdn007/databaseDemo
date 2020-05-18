@@ -1,30 +1,31 @@
+import os
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-from .utils import user_directory_path
 
 
 # 表1 临床信息表
 class ClinicalInfo(models.Model):
     sample_id = models.CharField(
-        db_column='样本编号', unique=True, max_length=255, blank=True, null=True)
+        db_column='样本编号', unique=True, max_length=35, blank=True, null=True)
     name = models.CharField(
-        db_column='姓名', max_length=255, blank=True, null=True)
+        db_column='姓名', max_length=35, blank=True, null=True)
     gender = models.CharField(
-        db_column='性别', max_length=255, blank=True, null=True, default=1)
+        db_column='性别', max_length=2, blank=True, null=True, default=1)
     age = models.IntegerField(db_column='年龄', blank=True, null=True)
     patientId = models.CharField(
-        db_column='住院号', max_length=255, blank=True, null=True)
-    category = models.TextField(db_column='癌种', blank=True, null=True)
-    stage = models.TextField(db_column='分期', blank=True, null=True)
-    diagnose = models.TextField(db_column='诊断', blank=True, null=True)
+        db_column='住院号', max_length=35, blank=True, null=True)
+    category = models.CharField(db_column='癌种', max_length=50, blank=True, null=True)
+    stage = models.CharField(db_column='分期', max_length=15, blank=True, null=True)
+    diagnose = models.CharField(db_column='诊断', max_length=255, blank=True, null=True)
     diagnose_others = models.TextField(db_column='诊断备注', blank=True, null=True)
     centrifugation_date = models.DateField(
         db_column='采样日期', blank=True, null=True)
     hospital = models.CharField(
-        db_column='医院编号', max_length=255, blank=True, null=True)
+        db_column='医院编号', max_length=50, blank=True, null=True)
     department = models.CharField(
-        db_column='科室', max_length=255, blank=True, null=True)
+        db_column='科室', max_length=50, blank=True, null=True)
     plasma_num = models.PositiveIntegerField(db_column='血浆管数', default=0)
     adjacent_mucosa_num = models.PositiveIntegerField(
         db_column='癌旁组织', default=0)
@@ -32,8 +33,8 @@ class ClinicalInfo(models.Model):
     WBC_num = models.PositiveIntegerField(db_column='白细胞', default=0)
     stool_num = models.PositiveIntegerField(db_column='粪便', default=0)
     send_date = models.DateField(db_column='寄送日期', blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -49,7 +50,7 @@ class ClinicalInfo(models.Model):
 
 # 表2 样本提取表
 class ExtractInfo(models.Model):
-    dna_id = models.CharField(db_column='DNA提取编号', unique=True, max_length=255)
+    dna_id = models.CharField(db_column='DNA提取编号', unique=True, max_length=35)
     sample_id = models.ForeignKey(
         "ClinicalInfo",
         on_delete=models.CASCADE,
@@ -59,14 +60,14 @@ class ExtractInfo(models.Model):
         blank=True,
         null=True)
     extract_date = models.DateField(db_column='提取日期', blank=True, null=True)
-    sample_type = models.CharField(db_column='样本类型', max_length=255)
+    sample_type = models.CharField(db_column='样本类型', max_length=50)
     sample_volume = models.FloatField(db_column='样本体积', blank=True, null=True)
     extract_method = models.CharField(
-        db_column='提取方法', max_length=255, blank=True, null=True)
+        db_column='提取方法', max_length=50, blank=True, null=True)
     dna_con = models.FloatField(db_column='浓度', blank=True, null=True)
     dna_vol = models.FloatField(db_column='体积', blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -100,11 +101,11 @@ class DNAUsageRecordInfo(models.Model):
         null=True)
     LB_date = models.DateField(db_column='使用日期', blank=True, null=True)
     mass = models.FloatField(db_column='使用量', blank=True, null=True)
-    usage = models.CharField(db_column='用途', max_length=255)
+    usage = models.CharField(db_column='用途', max_length=25)
     singleLB_id = models.CharField(
-        db_column='建库编号', max_length=255, blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+        db_column='建库编号', max_length=35, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -158,7 +159,7 @@ class DNAInventoryInfo(models.Model):
 # 表4 甲基化建库表
 class LibraryInfo(models.Model):
     singleLB_id = models.CharField(
-        db_column='建库编号', unique=True, max_length=255, blank=True, null=True)
+        db_column='建库编号', unique=True, max_length=35, blank=True, null=True)
     sample_id = models.ForeignKey(
         "ClinicalInfo",
         on_delete=models.CASCADE,
@@ -176,28 +177,28 @@ class LibraryInfo(models.Model):
         blank=True,
         null=True)
     tube_id = models.CharField(
-        db_column='管上编号', max_length=255, blank=True, null=True)
+        db_column='管上编号', max_length=35, blank=True, null=True)
     clinical_boolen = models.CharField(
-        db_column='是否临床', max_length=255, blank=True, null=True, default=1)
+        db_column='是否临床', max_length=25, blank=True, null=True, default=1)
     singleLB_name = models.CharField(
-        db_column='文库名', max_length=255, blank=True, null=True)
+        db_column='文库名', max_length=35, blank=True, null=True)
     label = models.CharField(
-        db_column='样本标签', max_length=255, blank=True, null=True)
+        db_column='样本标签', max_length=25, blank=True, null=True)
     barcodes = models.CharField(
-        db_column='index列表', max_length=255, blank=True, null=True)
+        db_column='index列表', max_length=25, blank=True, null=True)
     LB_date = models.DateField(db_column='建库日期', blank=True, null=True)
     LB_method = models.CharField(
-        db_column='建库方法', max_length=255, blank=True, null=True)
+        db_column='建库方法', max_length=50, blank=True, null=True)
     kit_batch = models.CharField(
-        db_column='试剂批次', max_length=255, blank=True, null=True)
+        db_column='试剂批次', max_length=50, blank=True, null=True)
     mass = models.FloatField(db_column='起始量', blank=True, null=True)
     pcr_cycles = models.IntegerField(db_column='PCR循环数', blank=True, null=True)
     LB_con = models.FloatField(db_column='文库浓度', blank=True, null=True)
     LB_vol = models.FloatField(db_column='文库体积', blank=True, null=True)
     operator = models.CharField(
-        db_column='操作人', max_length=255, blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+        db_column='操作人', max_length=35, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -216,12 +217,12 @@ class CaptureInfo(models.Model):
     poolingLB_id = models.CharField(
         db_column='捕获文库名',
         unique=True,
-        max_length=255,
+        max_length=35,
         blank=True,
         null=True)
     hybrid_date = models.DateField(db_column='杂交日期', blank=True, null=True)
     probes = models.CharField(
-        db_column='杂交探针', max_length=255, blank=True, null=True)
+        db_column='杂交探针', max_length=50, blank=True, null=True)
     hybrid_min = models.FloatField(db_column='杂交时间', blank=True, null=True)
     postpcr_cycles = models.IntegerField(
         db_column='PostPCR循环数', blank=True, null=True)
@@ -229,9 +230,9 @@ class CaptureInfo(models.Model):
         db_column='PostPCR浓度', blank=True, null=True)
     elution_vol = models.FloatField(db_column='洗脱体积', blank=True, null=True)
     operator = models.CharField(
-        db_column='操作人', max_length=255, blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+        db_column='操作人', max_length=35, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -280,12 +281,12 @@ class PoolingInfo(models.Model):
         blank=True,
         null=True)
     singleLB_Pooling_id = models.CharField(
-        db_column='测序文库编号', unique=True, max_length=255, blank=True, null=True)
+        db_column='测序文库编号', unique=True, max_length=35, blank=True, null=True)
     pooling_ratio = models.FloatField(db_column='pooling比例', blank=True, null=True)
     mass = models.FloatField(db_column='取样', blank=True, null=True)
     volume = models.FloatField(db_column='体积', blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -302,7 +303,7 @@ class PoolingInfo(models.Model):
 # 表7 测序登记表
 class SequencingInfo(models.Model):
     sequencing_id = models.CharField(
-        db_column='上机文库号', unique=True, max_length=255, blank=True, null=True)
+        db_column='上机文库号', unique=True, max_length=35, blank=True, null=True)
     poolingLB_id = models.ManyToManyField(
         "CaptureInfo",
         related_name='SequencingInfo_CaptureInfo',
@@ -312,11 +313,11 @@ class SequencingInfo(models.Model):
     start_time = models.DateField(db_column='上机时间', blank=True, null=True)
     end_time = models.DateField(db_column='下机时间', blank=True, null=True)
     machine_id = models.CharField(
-        db_column='机器号', max_length=255, blank=True, null=True)
+        db_column='机器号', max_length=50, blank=True, null=True)
     chip_id = models.CharField(
-        db_column='芯片号', max_length=255, blank=True, null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+        db_column='芯片号', max_length=50, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -333,7 +334,7 @@ class SequencingInfo(models.Model):
 # 表8 样本测序质控表
 class QCInfo(models.Model):
     QC_id = models.CharField(
-        db_column='Sample', unique=True, max_length=255, blank=True, null=True)
+        db_column='Sample', unique=True, max_length=35, blank=True, null=True)
     data_size_gb_field = models.FloatField(
         db_column='Data_Size-Gb', blank=True, null=True)
     clean_rate_field = models.FloatField(
@@ -450,8 +451,8 @@ class QCInfo(models.Model):
         db_column='上机文库号',
         blank=True,
         null=True)
-    others = models.CharField(
-        db_column='备注', max_length=255, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
     index = models.AutoField(primary_key=True)
     last_modify_date = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -465,15 +466,21 @@ class QCInfo(models.Model):
         ordering = ['index']
 
 
+def user_directory_path(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = '{}.{}'.format(uuid.uuid4().hex[:10], ext)
+    return os.path.join("files", "_".join([instance.uploadOperator, instance.uploadUrl, filename]))
+
+
 class UploadFile(models.Model):
     uploadFile = models.FileField(
         db_column='上传文件',
         upload_to=user_directory_path,
         null=True)
-    uploadUrl = models.CharField(db_column='项目', max_length=255)
+    uploadUrl = models.CharField(db_column='项目', max_length=35)
     uploadOperator = models.CharField(
         db_column='上传者',
-        max_length=255,
+        max_length=35,
         blank=True,
         null=True)
     uploadTime = models.DateTimeField(db_column='上传时间', auto_now=True)
@@ -488,11 +495,11 @@ class UploadFile(models.Model):
 
 
 class User(AbstractUser):
-    nick_name = models.CharField(max_length=255, db_column='昵称', blank=True, unique=True,
+    nick_name = models.CharField(max_length=35, db_column='昵称', blank=True, unique=True,
                                  error_messages={'nick_name_unique': "该昵称已被占用。"})
     email = models.EmailField('邮箱', unique=True, error_messages={'email_unique': "该邮箱地址已被占用。"})
     bulk_delete_privilege = models.CharField(
-        db_column='批量删除权限', max_length=255, blank=True, null=True, default='无')
+        db_column='批量删除权限', max_length=35, blank=True, null=True, default='无')
     index = models.AutoField(primary_key=True)
 
     def __str__(self):
@@ -501,3 +508,32 @@ class User(AbstractUser):
     class Meta(AbstractUser.Meta):
         db_table = '用户信息表'
         verbose_name = '用户'
+
+
+# 数据库增删改记录表
+class DatabaseRecord(models.Model):
+    nick_name = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name='DatabaseRecord_User',
+        to_field="nick_name",
+        db_column='用户昵称',
+        blank=True,
+        null=True)
+    model_changed = models.CharField(
+        db_column='被变更的模型', max_length=35, blank=True, null=True)
+    operation = models.CharField(
+        db_column='操作', max_length=25, blank=True, null=True)
+    others = models.TextField(
+        db_column='备注', blank=True, null=True)
+    index = models.AutoField(primary_key=True)
+    last_modify_date = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return "{}对{}进行{}操作(时间为{})".format(self.nick_name, self.model_changed, self.operation, self.created)
+
+    class Meta:
+        db_table = '数据库增删改记录表'
+        verbose_name = '数据库增删改记录表'
+        ordering = ['index']

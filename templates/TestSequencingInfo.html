@@ -144,7 +144,7 @@
                 let arry = [];
                 for (let idx in datalist) {
                     for (let idx2 in capture_data) {
-                        if (datalist[idx] == capture_data[idx2].index) {
+                        if (datalist[idx] === capture_data[idx2].index) {
                             arry.push(capture_data[idx2].poolingLB_id);
                             break;
                         }
@@ -263,7 +263,7 @@
                 let data = table.row($(this).parents('tr')).data();
                 let class_name = $(this).attr('class');
                 id = data['index'];
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();
@@ -283,7 +283,7 @@
                 let arry = text.split("\n");
                 for (let idx in arry) {
                     for (let idx2 in capture_data) {
-                        if (capture_data[idx2].poolingLB_id == arry[idx]) {
+                        if (capture_data[idx2].poolingLB_id === arry[idx]) {
                             poolingLB_ids.push(capture_data[idx2].index);
                             break;
                         }
@@ -304,7 +304,7 @@
                 let type = $('#type').val();
                 let method = '';
                 let url_ajax = url;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -331,7 +331,7 @@
                     }),
                     headers: {'X-HTTP-Method-Override': 'PATCH'},
                     success: function () {
-                        if (type == 'new') {
+                        if (type === 'new') {
                             $('#myModalError').text('添加成功！！！上机文库号：' + $('#sequencing_id').val());
                         } else {
                             $('#myModalError').text('更新成功！！！上机文库号：' + $('#sequencing_id').val());

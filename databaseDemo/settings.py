@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 import djcelery
+from celery import platforms
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -30,9 +32,6 @@ TEMPLATE_DEBUG = True
 # TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['*']
 SERVER_HOST = '127.0.0.1'
-
-djcelery.setup_loader()  # 去每一个应用目录下找 tasks.py 文件，到文件中去执行 celery 任务函数
-BROKER_URL = "redis://127.0.0.1:6379/2"  # 使用redis, 并指定redis的第2个数据库作为celery中间队列
 
 # Application definition
 
@@ -94,7 +93,7 @@ DATABASES = {
         'NAME': 'databaseDemo',  # 数据库名
         'USER': 'django',  # 账号
         'PASSWORD': 'django',  # 密码
-        'HOST': SERVER_HOST,  # HOST
+        'HOST': '127.0.0.1',  # HOST
         'POST': 3306,  # 端口
     }
 }
@@ -222,3 +221,18 @@ EMAIL_HOST_USER = 'fcdn007@163.com'  # 发送邮件的邮箱地址
 EMAIL_HOST_PASSWORD = 'fly71bird37'  # 发送邮件的邮箱密码(这里使用的是授权码)
 DEFAULT_FROM_EMAIL = 'fcdn007@163.com'
 EMAIL_PROM = '甲基化早筛项目数据库管理系统Demo<fcdn007@163.com>'  # 收件人看到的发件人
+
+# set djcelery
+djcelery.setup_loader()  # 去每一个应用目录下找 tasks.py 文件，到文件中去执行 celery 任务函数
+BROKER_URL = "redis://127.0.0.1:6379/2"  # 使用redis, 并指定redis的第2个数据库作为celery中间队列
+CELERY_IMPORTS = ('databaseDemo.tasks',)
+CELERY_TIMEZONE = TIME_ZONE
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
+platforms.C_FORCE_ROOT = True  # 用于开启root也可以启动celery服务，默认是不允许root启动celery的
+CELERYBEAT_SCHEDULE = {
+    'check_merge_df_newest': {
+        "task": "databaseDemo.tasks.keep_merge_df_newest_by_celery",
+        "schedule": crontab(minute=0, hour=22),  # crontab(minute="*/3"),
+        "args": (),
+    },
+}

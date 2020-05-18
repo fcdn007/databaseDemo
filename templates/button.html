@@ -107,7 +107,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="bulkDelUrl" value="">
-                    <button type="button" data-dismiss="modal" class="btn btn-danger" id="delete">确认删除</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-danger" id="bulkDelete">确认删除</button>
                     <button type="button" data-dismiss="modal" class="btn">取消</button>
                 </div>
                 <div class="modal-footer">
@@ -153,6 +153,11 @@
                             /* $("#uploadModal").find('form').trigger("reset");
                             $('#uploadModal').modal('hide');
                             location.reload(); */
+                            setTimeout(
+                                function () {
+                                    window.location.reload(true);
+                                }, 30000
+                            );
                         }
                     }
                 });
@@ -165,22 +170,27 @@
                 $('#uploadError').text("");
             });
 
-            $('#bulkDelModal').on('click', '#delete', function (e) {
+            $('#bulkDelModal').on('click', '#bulkDelete', function (e) {
                 let table = $('#table_id').DataTable();
                 let arrayLen = table.rows(".selected").data().length;
                 if (arrayLen > 0) {
+                    let delete_index_list = [];
+                    let delete_model = $('#bulkDelUrl').val();
                     for (let i = 0; i < arrayLen; i++) {
+                        let delete_index = table.rows(".selected").data()[i]['index'];
                         $.ajax({
-                            url: '/api/' + $('#bulkDelUrl').val() + '/' + table.rows(".selected").data()[i]['index'] + '/',
+                            url: '/api/' + delete_model + '/' + delete_index + '/',
                             method: 'DELETE',
                             success: function () {
-                                location.reload()
+                                delete_index_list.push(delete_index);
+                                window.location.reload(true);
                             },
                             error: function (jqXHR, textStatus, errorThrown) {
                                 console.log(jqXHR + ';' + textStatus + ';' + errorThrown)
                             }
                         });
                     }
+                    databaseRecordAjaxPut(delete_model, "批量删除", "index_list：[" + delete_index_list + "]");
                 } else {
                     $('#bulkDelError').text('没有行被选中，请先选中目标行。');
                 }

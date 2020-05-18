@@ -300,9 +300,10 @@
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
-                //"serverSide": true,
+                "serverSide": true,
                 "processing": true,
                 "ajax": "/api/LibraryInfo/?format=datatables",
+                "deferRender": true,
                 "columns": [
                     {
                         data: 'index',
@@ -359,7 +360,7 @@
                     url: url2, dataType: 'json', contentType: "application/json",
                     type: "get", async: false, data: {singleLB_id: singleLB_id}
                 }).responseJSON[0];
-                if (class_name == 'btn btn-info') {
+                if (class_name === 'btn btn-info') {
                     // EDIT button
                     MyModelInit('更新', data);
                     $("#myModal").modal();
@@ -389,7 +390,7 @@
                 let method = '';
                 let url_ajax = url;
                 let url_ajax2 = url2;
-                if (type == 'new') {
+                if (type === 'new') {
                     // new
                     method = 'POST';
                     // POST前检查，一般是检测model的关键字段值是否存在
@@ -434,7 +435,7 @@
 
                         // 更新库存表
                         let data_tmp2;
-                        if (method == 'POST') {
+                        if (method === 'POST') {
                             data_tmp2 = $('#usageForm .InventoryForm input').serialize() + '&' + $.param({
                                 sample_id: data0.sample_id,
                                 totalM: data0.totalM,
@@ -462,7 +463,7 @@
                             }
                         });
 
-                        if (type == 'new') {
+                        if (type === 'new') {
                             $('#myModalError').text('添加成功！！！建库编号：' + $('#singleLB_id').val());
                         } else {
                             $('#myModalError').text('更新成功！！！建库编号：' + $('#singleLB_id').val());
