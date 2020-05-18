@@ -10,92 +10,95 @@
         <h4>高级查询</h4><br>
         <form id="searchForm1" role="form">
             <div class="form-group">
-                <p class="bg-primary text-white mb-1">
-                    &nbsp;&nbsp<label for="searchModels"> 查询表</label>
+                <p class="bg-info text-white">
+                    &nbsp;&nbsp<label for="searchModels h4"> 查询表</label>
                 </p>
                 <div>
-                    <div><span class="checkbox-inline">样本管理  </span>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                    <div class="h6"><span>样本管理  </span>&nbsp;&nbsp
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchClinicalInfo"
                                    value="ClinicalInfo" name="searchModels" checked> 样本临床信息
                         </label>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchExtractInfo"
                                    value="ExtractInfo" name="searchModels"> 样本DNA提取信息
                         </label>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchDNAUsageRecordInfo"
                                    value="DNAUsageRecordInfo" name="searchModels"> 样本DNA使用记录
                         </label>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchDNAInventoryInfo"
                                    value="DNAInventoryInfo" name="searchModels"> 样本DNA库存
                         </label>
                     </div>
                     <br>
-                    <div><span class="checkbox-inline">文库管理  </span>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                    <div class="h6"><span>文库管理  </span>&nbsp;&nbsp
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchLibraryInfo"
                                    value="LibraryInfo" name="searchModels"> 样本建库信息
                         </label>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchCaptureInfo"
                                    value="CaptureInfo" name="searchModels"> 捕获文库信息
                         </label>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchPoolingInfo"
                                    value="PoolingInfo" name="searchModels"> Pooling映射表
                         </label>
                     </div>
                     <br>
-                    <div><span class="checkbox-inline">测序管理  </span>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                    <div class="h6"><span>测序管理  </span>&nbsp;&nbsp
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchSequencingInfo"
                                    value="SequencingInfo" name="searchModels"> 测序上机信息
                         </label>&nbsp;&nbsp
-                        <label class="checkbox-inline">
+                        <label class="checkbox-inline checkbox-lg">
                             <input type="checkbox" id="searchQCInfo"
                                    value="QCInfo" name="searchModels"> 样本测序质控信息
                         </label>
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-success" id="tableSet1">选取样本管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-success" id="tableSet2">选取文库管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-success" id="tableSet3">选取测序管理表集合</button>&nbsp;
-            <button type="button" class="btn btn-success" id="tableSet4">选取所有表</button>
+            <button type="button" class="btn btn-secondary h6" id="tableSet1">选取样本管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-secondary h6" id="tableSet2">选取文库管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-secondary h6" id="tableSet3">选取测序管理表集合</button>&nbsp;
+            <button type="button" class="btn btn-secondary h6" id="tableSet4">选取所有表</button>
         </form>
         <br>
 
         <form id="searchForm2" role="form">
+            <p class="bg-info text-white">
+                &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 设置过滤条件</label></p>
             <div class="form-inline mb-1">
-                <button id='textareaAdd' class="btn btn-success">添加到查询文本框</button>&nbsp;&nbsp
-                <button id='conditionAdd' class="btn btn-success">添加过滤条件</button>
+                <button id='textareaAdd' class="btn btn-success h6">确认过滤条件</button>&nbsp;&nbsp
+                <button id='conditionAdd' class="btn btn-info h6">添加过滤条件</button>
             </div>
+            <br>
             <div class="form-inline search_condition" id="condition1">
-                <span class="text-info">过滤子条件1</span>&nbsp;&nbsp;<div class="form-group">
-                <label for="SearchNot1" class="bg-primary text-white badge badge-primary"></label>
+                <span class="text-info h6">过滤条件1</span>&nbsp;&nbsp;<div class="form-group">
+                <label for="SearchNot1" class="bg-info text-white badge badge-primary"></label>
                 <select class="form-control SearchNot" id="SearchNot1" name="SearchNot1" required="true">
                     <option value="0" selected="selected"></option>
                     <option value="1">非</option>
                 </select>
             </div>&nbsp;&nbsp
                 <div class="form-group">
-                    <label for="SearchModelName1" class="bg-primary text-white badge badge-primary"><h6>查询子表</h6>
+                    <label for="SearchModelName1" class="bg-info text-white badge badge-primary h6">查询子表
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchModelName" id="SearchModelName1" name="SearchModelName1"
                             required="true">
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
-                    <label for="SearchFieldName1" class="bg-primary text-white badge badge-primary"><h6>查询字段</h6>
+                    <label for="SearchFieldName1" class="bg-info text-white badge badge-primary h6">查询字段
                     </label>&nbsp;&nbsp
                     <select class="form-control SearchFieldName" id="SearchFieldName1" name="SearchFieldName1"
                             required="true">
                     </select>
                 </div>&nbsp;&nbsp
                 <div class="form-group">
-                    <label for="SearchFieldValue1" class="bg-primary text-white badge badge-primary"><h6>查询字段值</h6>
+                    <label for="SearchFieldValue1" class="bg-info text-white badge badge-primary h6">查询字段值
                     </label>&nbsp
                     <select class="form-control SearchFieldValuePre" id="SearchFieldValuePre1"
                             name="SearchFieldValuePre1" required="true">
@@ -115,15 +118,15 @@
             </div>
         </form>
         <br>
-        <form id="searchForm3" role="form" class="border-top border-info">
+        <form id="searchForm3" role="form">
             {% csrf_token %}
             <div class="form-group">
-                <p class="bg-primary text-white mb-1">
-                    &nbsp;&nbsp <label class="bg-primary text-white" for="SearchText"> 查询文本集合</label></p>
+                <p class="bg-primary text-white">
+                    &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 过滤条件如下:</label></p>
                 <textarea class="form-control" rows="3" id="SearchText" name="SearchText"></textarea>
             </div>
             <button id='textareaSubmit' type="submit"
-                    class="btn btn-success">查询
+                    class="btn btn-primary">查询
             </button>
             <button id='textareaClear' type="button" class="btn btn-danger">清除</button>
         </form>
@@ -152,21 +155,21 @@
         $(document).ready(function () {
             for (let i = 2; i <= 10; i++) {
                 let str = '<div class="form-inline search_condition" id="condition' + i + '">';
-                str += '<span class="text-info">过滤子条件' + i + '</span>&nbsp;&nbsp;<div class="form-group">' +
-                    '<label for="SearchNot' + i + '" class="bg-primary text-white badge ' + 'badge-primary"></label>' +
-                    '<select class="form-control ' + 'SearchNot" id="SearchNot' + i + '" ' + 'name="SearchNot' + i
-                    + '"><option value="0" ' + 'selected="selected"></option><option value="1">非' +
+                str += '<span class="text-info h6">过滤条件' + i + '</span>&nbsp;&nbsp;<div class="form-group">' +
+                    '<label for="SearchNot' + i + '" class="bg-primary text-white badge badge-info"></label>' +
+                    '<select class="form-control SearchNot" id="SearchNot' + i + '" name="SearchNot' + i
+                    + '"><option value="0" selected="selected"></option><option value="1">非' +
                     '</option></select></div>&nbsp;&nbsp;';
-                str += '<div class="form-group"><label for="SearchModelName' + i + '" class="bg-primary text-white ' +
-                    'badge badge-primary"><h6>查询子表</h6></label>&nbsp;&nbsp<select class="form-control ' +
+                str += '<div class="form-group"><label for="SearchModelName' + i + '" class="bg-info text-white ' +
+                    'badge badge-primary h6">查询子表</label>&nbsp;&nbsp<select class="form-control ' +
                     'SearchModelName" id="SearchModelName' + i + '" name="SearchModelName' + i + '"></select>' +
                     '</div>&nbsp;&nbsp;';
-                str += '<div class="form-group"><label for="SearchFieldName' + i + '" class="bg-primary text-white ' +
-                    'badge badge-primary"><h6>查询字段</h6></label>&nbsp;&nbsp<select class="form-control ' +
+                str += '<div class="form-group"><label for="SearchFieldName' + i + '" class="bg-info text-white ' +
+                    'badge badge-primary h6">查询字段</label>&nbsp;&nbsp<select class="form-control ' +
                     'SearchFieldName" id="SearchFieldName' + i + '" name="SearchFieldName' + i + '"></select>' +
                     '</div>&nbsp;&nbsp;';
-                str += '<div class="form-group"><label for="SearchFieldValue' + i + '" class="bg-primary text-white ' +
-                    'badge badge-primary"><h6>查询字段值</h6></label>&nbsp<select class="form-control ' +
+                str += '<div class="form-group"><label for="SearchFieldValue' + i + '" class="bg-info text-white ' +
+                    'badge badge-primary h6">查询字段值</label>&nbsp<select class="form-control ' +
                     'SearchFieldValuePre" id="SearchFieldValuePre' + i + '" name="SearchFieldValuePre' + i +
                     '" required="true"><option value="exact" selected="selected">等于(大小写严格匹配)</option>' +
                     '<option value="iexact">等于(忽略大小写)</option><option value="contains">包含(大小写严格匹配)' +
