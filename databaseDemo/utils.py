@@ -280,7 +280,6 @@ models_set = [ClinicalInfo, ExtractInfo, DNAUsageRecordInfo, DNAInventoryInfo, L
 models_set2 = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo',
                'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo']
 
-
 def clean_data(data_, warning_msg_dict, error_msg_dict, skip_list, emptyDrop_list, repeatDrop_list, str_list, num_list,
                date_list):
     data = data_.copy(deep=True)

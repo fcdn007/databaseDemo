@@ -537,3 +537,4 @@ class DatabaseRecord(models.Model):
         db_table = '数据库增删改记录表'
         verbose_name = '数据库增删改记录表'
         ordering = ['index']
+

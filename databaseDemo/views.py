@@ -12,7 +12,7 @@ from rest_framework import viewsets
 
 from .forms import FileUploadModelForm, RegisterForm
 from .serializers import *
-from .settings import BASE_DIR, MEDIA_ROOT
+from .settings import BASE_DIR
 from .tasks import send_register_active_email, make_new_merge_df_by_celery
 from .utils import *
 
@@ -375,6 +375,7 @@ def AdvancedSearchV(request):
                         if time2_tmp == time2:
                             time2_json = os.path.join(MEDIA_ROOT, "json", file)
                             sleep_flag = False
+                            flag_update = False
                 time.sleep(5)
                 # sleep_n += 1
             merge_df = pd.read_json(time2_json)

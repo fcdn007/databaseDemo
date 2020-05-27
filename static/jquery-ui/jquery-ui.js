@@ -3872,6 +3872,7 @@
 //>>docs: http://api.jqueryui.com/focusable-selector/
 
 
+
 // Selectors
     $.ui.focusable = function (element, hasTabindex) {
         var map, mapName, img, focusableIfVisible, fieldset,
@@ -4013,6 +4014,7 @@
 //>>label: jQuery 1.7 Support
 //>>group: Core
 //>>description: Support version 1.7.x of jQuery core
+
 
 
 // Support: jQuery 1.7 only

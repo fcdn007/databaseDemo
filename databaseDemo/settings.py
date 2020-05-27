@@ -232,7 +232,7 @@ platforms.C_FORCE_ROOT = True  # 用于开启root也可以启动celery服务，�
 CELERYBEAT_SCHEDULE = {
     'check_merge_df_newest': {
         "task": "databaseDemo.tasks.keep_merge_df_newest_by_celery",
-        "schedule": crontab(minute=0, hour=22),  # crontab(minute="*/3"),
+        "schedule": crontab(minute=0, hour=22),  # crontab(minute="*/10"),
         "args": (),
     },
 }
