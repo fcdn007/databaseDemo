@@ -7,38 +7,24 @@
     <div class="jumbotron">
         <h1>甲基化早筛项目数据库管理系统Demo</h1>
         <h4>订制批量上传</h4><br>
-        <div>
-            <p class="bg-primary text-white font-weight-bold"> 订制捕获文库信息表</p>
-            <p>示例</p>
-            <table id="uploadFile1Col" class="table table-bordered">
-                <tr>
-                    <th>建库编号</th>
-                    <th>pooling比例</th>
-                    <th>取样</th>
-                    <th>体积</th>
-                    <th>捕获文库名</th>
-                    <th>杂交日期</th>
-                    <th>杂交探针</th>
-                    <th>杂交时间(min)</th>
-                    <th>PostPCR循环数</th>
-                    <th>PostPCR浓度</th>
-                    <th>洗脱体积</th>
-                    <th>操作人</th>
-                    <th>上机文库号</th>
-                    <th>测序文库名</th>
-                    <th>备注</th>
-                </tr>
-            </table>
-        </div>
         <form id="uploadForm" role="form">
             <div class="form-group">
-                <label for="uploadUrl"> 上传文件类型</label>
+                <label for="uploadUrl" class="text-primary"> 上传文件类型</label>
                 <select class="form-control SearchModelName" id="uploadUrl" name="uploadUrl">
-                    <option value="CaptureInfoPlus" selected="selected">捕获文库信息表</option>
+                    <option value="CaptureInfoPlus">订制捕获文库信息表</option>
+                    <option value="0"></option>
                 </select>
             </div>
+            <div>
+                <p class="text-info">上传文件的表格标题如下：</p>
+                <table id="uploadFile1Col" class="table table-bordered">
+                    <tr id="customFields">
+
+                    </tr>
+                </table>
+            </div>
             <div class="form-group">
-                <label for="uploadFile"> 上传文件</label>
+                <label for="uploadFile" class="text-primary"> 上传文件</label>
                 <input type="file" class="form-control" id="uploadFile" name="uploadFile"
                        placeholder="请上传文件" required="true">
             </div>
@@ -65,41 +51,65 @@
 {% block extra_js %}
     <script>
         $(document).ready(function () {
+            function set_customFields() {
+                let v_tmp = $("#uploadUrl").val();
+                let html_txt = "";
+                if (v_tmp === "CaptureInfoPlus") {
+                    html_txt = "<th>建库编号</th><th>pooling比例</th><th>取样</th><th>体积</th><th>捕获文库名</th>" +
+                        "<th>杂交日期</th><th>杂交探针</th><th>杂交时间(min)</th><th>PostPCR循环数</th>" +
+                        "<th>PostPCR浓度</th><th>洗脱体积</th><th>操作人</th><th>上机文库号</th><th>测序文库名</th>\n" +
+                        "<th>备注</th>";
+                }
+                $("#customFields").empty();
+                $("#customFields").append(html_txt);
+            }
+
+            $("#uploadUrl").find("option[value='CaptureInfoPlus']").attr("selected", true);
+            set_customFields();
+
+            $("#uploadUrl").on("change", function () {
+                set_customFields();
+            })
 
             $('#uploadFile1Submit').on('click', function (e) {
                 e.preventDefault();
-                // 构建FormData对象
-                let form_data = new FormData();
-                form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
-                form_data.append('uploadUrl', $('#uploadUrl').val());
-                form_data.append('uploadOperator', "{{ user.username }}");
-                let urlUpload = {% url "upload" %};
+                if ($("#uploadUrl").val() === '0') {
+                    $('#uploadError').text("操作失败！！！上传文件类型不能为空");
+                } else if ($("#uploadFile").val() === "" || $('#uploadFile').val() === undefined || $('#uploadFile').val() === null) {
+                    $('#uploadError').text("操作失败！！！上传文件不能为空");
+                } else {
+                    // 构建FormData对象
+                    let form_data = new FormData();
+                    form_data.append('uploadFile', $('#uploadFile')[0].files[0]);
+                    form_data.append('uploadUrl', $('#uploadUrl').val());
+                    form_data.append('uploadOperator', "{{ user.username }}");
+                    let urlUpload = {% url "upload" %};
 
-                $.ajax({
-                    async: false, url: urlUpload, processData: false,
-                    method: 'POST', data: form_data, dataType: 'json',
-                    contentType: false,
-                    success: function (data) {
-                        if (data.error_msg_fatal) {
-                            // alert('文件上传和批量添加失败。' + data['error_msg']);
-                            $('#uploadInfo').text("");
-                            $('#uploadError').text(data.error_msg_fatal);
-                        } else {
-                            let update_records = parseInt(data.all_records) - parseInt(data.add_records);
-                            /* alert('文件上传和批量添加成功，有效输入记录共有' + data.all_records +
-                                "行。\n其中往数据库中增加" + data.add_records + '行记录，更新了' +
-                               update_records + '行记录。'); */
-                            $('#uploadInfo').text('文件上传和批量添加成功，输入记录共有' + data.all_records +
-                                '行，有效的共有' + data.valid_records + "行。\n其中往数据库中增加" +
-                                data.add_records + '行记录，更新了' + update_records + '行记录。' + data.warning);
-                            $('#uploadError').text(data.error_msg_tolerant);
-                            /* $("#uploadModal").find('form').trigger("reset");
-                            $('#uploadModal').modal('hide');
-                            location.reload(); */
+                    $.ajax({
+                        async: false, url: urlUpload, processData: false,
+                        method: 'POST', data: form_data, dataType: 'json',
+                        contentType: false,
+                        success: function (data) {
+                            if (data.error_msg_fatal) {
+                                // alert('文件上传和批量添加失败。' + data['error_msg']);
+                                $('#uploadInfo').text("");
+                                $('#uploadError').text(data.error_msg_fatal);
+                            } else {
+                                let update_records = parseInt(data.all_records) - parseInt(data.add_records);
+                                /* alert('文件上传和批量添加成功，有效输入记录共有' + data.all_records +
+                                    "行。\n其中往数据库中增加" + data.add_records + '行记录，更新了' +
+                                   update_records + '行记录。'); */
+                                $('#uploadInfo').text('文件上传和批量添加成功，输入记录共有' + data.all_records +
+                                    '行，有效的共有' + data.valid_records + "行。\n其中往数据库中增加" +
+                                    data.add_records + '行记录，更新了' + update_records + '行记录。' + data.warning);
+                                $('#uploadError').text(data.error_msg_tolerant);
+                                /* $("#uploadModal").find('form').trigger("reset");
+                                $('#uploadModal').modal('hide');
+                                location.reload(); */
+                            }
                         }
-                        window.location.reload(true);
-                    }
-                });
+                    });
+                }
             });
 
             $('.downloadExcel1').on('click', function (e) {
