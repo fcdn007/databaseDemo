@@ -871,22 +871,22 @@ def list2array(l, names):
     return pd.DataFrame(array, columns=names)
 
 
-def filter_conditionFunc(df, f, vp, v, not_):
-    filter = [True] * len(df)
+def condition_filter(df, f, vp, v, not_):
+    filter_ = [True] * len(df)
     if isinstance(df[f][0], str):
         if vp == 'exact':
-            filter = df[f] == v
+            filter_ = df[f] == v
         elif vp == 'iexact':
-            filter = [True if re.match(
+            filter_ = [True if re.match(
                 v, str(i), flags=re.IGNORECASE) else False for i in list(df[f])]
         elif vp == 'contains':
-            filter = [True if re.search(
+            filter_ = [True if re.search(
                 v, str(i)) else False for i in list(df[f])]
         elif vp == 'icontains':
-            filter = [True if re.search(
+            filter_ = [True if re.search(
                 v, str(i), flags=re.IGNORECASE) else False for i in list(df[f])]
         else:
-            filter = [True] * len(df)
+            filter_ = [True] * len(df)
     elif isinstance(df[f][0], datetime.date):
         d = datetime.date(1000, 1, 1)
         m1 = re.search(r'(\d{4}).(\d{1,2}).(\d{1,2})', v)
@@ -900,38 +900,38 @@ def filter_conditionFunc(df, f, vp, v, not_):
             d = datetime.date(int(m2.group(3)), int(
                 m2.group(2)), int(m2.group(1)))
         if vp == 'gt':
-            filter = df[f] > d
+            filter_ = df[f] > d
         elif vp == 'gte':
-            filter = df[f] >= d
+            filter_ = df[f] >= d
         elif vp == 'lt':
-            filter = df[f] < d
+            filter_ = df[f] < d
         elif vp == 'lte':
-            filter = df[f] <= d
+            filter_ = df[f] <= d
         elif vp == 'exact':
-            filter = df[f] == d
+            filter_ = df[f] == d
         else:
-            filter = [True] * len(df)
+            filter_ = [True] * len(df)
     elif isinstance(df[f][0], np.floating) or isinstance(df[f][0], np.integer):
         v = float(v)
         if vp == 'gt':
-            filter = df[f] > v
+            filter_ = df[f] > v
         elif vp == 'gte':
-            filter = df[f] >= v
+            filter_ = df[f] >= v
         elif vp == 'lt':
-            filter = df[f] < v
+            filter_ = df[f] < v
         elif vp == 'lte':
-            filter = df[f] <= v
+            filter_ = df[f] <= v
         elif vp == 'exact':
-            filter = df[f] == v
+            filter_ = df[f] == v
         else:
-            filter = [True] * len(df)
+            filter_ = [True] * len(df)
     else:
         pass
     if not_ == 1:
-        filter = [False if x else True for x in filter]
+        filter_ = [False if x else True for x in filter_]
     # print(">>>>>>>>>>>>> filter >>>>>>>>>>>")
     # pprint(filter)
-    return pd.Series(data=filter)
+    return pd.Series(data=filter_)
 
 
 def read_file_by_stream(file_path, chunk_size=512):
@@ -970,7 +970,8 @@ def get_queryset_base(model_, query_params_):
 def check_new_merge_df():
     json_files = {}
     time2 = 0
-    time2_json = ""
+    time2_df_json = ""
+    time2_len = {}
     for file in os.listdir(os.path.join(MEDIA_ROOT, "json")):
         if re.match(r'[0-9]+.*\.merge_df.json', file):
             time2_tmp, _, _ = file.split('.')
@@ -978,28 +979,37 @@ def check_new_merge_df():
             json_files[time2_tmp] = os.path.join(MEDIA_ROOT, "json", file)
             if time2_tmp > time2:
                 time2 = time2_tmp
-                time2_json = json_files[time2_tmp]
+                time2_df_json = json_files[time2_tmp]
+                time2_len = pd.read_json(os.path.join(MEDIA_ROOT, "json", re.sub(r'\.merge_df\.', '.model_len.', file))
+                                         ).to_dict(orient='records')
 
     lastTime_models = {}
+    len_models = {}
     for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
         time1_list_tmp = list(
             set([int(x[0].strftime("%Y%m%d%H%M%S%f")) for x
                  in models_set[m].objects.values_list("last_modify_date").distinct().order_by("last_modify_date")]))
         lastTime_models[models_set2[m]] = sorted(time1_list_tmp, reverse=True)[0]
+        len_models[models_set2[m]] = len(time1_list_tmp)
     flag_update = False
+    # print("len_models: ")
+    # print(len_models)
+    # print("time2_len: ")
+    # print(time2_len)
     # print("lastTime_models: ")
     # print(lastTime_models)
     # print("time2: {}; time2_json: {}".format(time2, time2_json))
     for m in lastTime_models:
-        if lastTime_models[m] > time2:
+        if lastTime_models[m] > time2 or m not in time2_len or time2_len[m] != len_models[m]:
             flag_update = True
             time2 = lastTime_models[m]
     # print("time2: {}; flag_update: {}".format(time2, flag_update))
-    return flag_update, json_files, time2, time2_json
+    return flag_update, json_files, time2, time2_df_json
 
 
 def make_new_merge_df(json_files_tmp, time2):
     merge_df_tmp = []
+    len_models = {}
     for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
         if m == 0:
             fields = model_fields[models_set2[m]]
@@ -1008,6 +1018,7 @@ def make_new_merge_df(json_files_tmp, time2):
             fields_filt_rename = [x if x in ['sample_id'] else 'ClinicalInfo_' + x for x in fields_filt]
             res_df = list2array(res_raw, fields_filt_rename)
             merge_df_tmp = res_df
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 1:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[5:14]
@@ -1017,6 +1028,7 @@ def make_new_merge_df(json_files_tmp, time2):
             columns_raw = list(merge_df_tmp.columns)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='sample_id')
             merge_df_tmp = merge_df_tmp[['sample_id', 'dna_id'] + columns_raw[1:] + fields_filt_rename[2:]]
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 2:
             fields = model_fields[models_set2[m]]
             fields_filt = [fields[0]] + fields[2:7]
@@ -1024,6 +1036,7 @@ def make_new_merge_df(json_files_tmp, time2):
             fields_filt_rename = [x if x in ['dna_id'] else 'DNAUsageRecordInfo_' + x for x in fields_filt]
             res_df = list2array(res_raw, fields_filt_rename)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='dna_id')
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 3:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[1:7]
@@ -1035,6 +1048,7 @@ def make_new_merge_df(json_files_tmp, time2):
                                   fields_filt + ['remainM']]
             res_df = list2array(res_raw_shift, fields_filt_rename)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='dna_id')
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 4:
             fields = model_fields[models_set2[m]]
             fields_filt = [fields[2]] + fields[5:19]
@@ -1047,6 +1061,7 @@ def make_new_merge_df(json_files_tmp, time2):
             merge_df_tmp['singleLB_id'] = merge_df_tmp['DNAUsageRecordInfo_singleLB_id']
             merge_df_tmp = merge_df_tmp[
                 ['sample_id', 'dna_id', 'singleLB_id'] + columns_raw[2:] + fields_filt_rename[1:]]
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 6:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[3:10]
@@ -1058,6 +1073,7 @@ def make_new_merge_df(json_files_tmp, time2):
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='singleLB_id')
             merge_df_tmp = merge_df_tmp[['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] +
                                         columns_raw[3:] + fields_filt_rename[3:]]
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 5:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[3:13]
@@ -1068,6 +1084,7 @@ def make_new_merge_df(json_files_tmp, time2):
             idx_ = columns_raw.index('PoolingInfo_pooling_ratio')
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='poolingLB_id')
             merge_df_tmp = merge_df_tmp[columns_raw[:idx_] + fields_filt_rename[1:] + columns_raw[idx_:]]
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 7:
             fields = model_fields[models_set2[m]]
             fields_filt = [fields[11]] + fields[1:8]
@@ -1089,6 +1106,7 @@ def make_new_merge_df(json_files_tmp, time2):
                                     right_on='SequencingInfo_poolingLB_id')
             merge_df_tmp = merge_df_tmp[
                 special_fields + columns_raw[5:idx_] + columns_raw[idx_ + 1:] + fields_filt_rename[2:]]
+            len_models[models_set2[m]] = res_df.shape[0]
         elif m == 8:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[:44]
@@ -1098,6 +1116,7 @@ def make_new_merge_df(json_files_tmp, time2):
                                                                                           x for x in fields_filt]
             res_df = list2array(res_raw, fields_filt_rename)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on=special_fields)
+            len_models[models_set2[m]] = res_df.shape[0]
     for link in special_fields:
         merge_df_tmp.loc[:, link].fillna(" ", inplace=True)
     for ncol in range(6, merge_df_tmp.shape[1]):
@@ -1110,9 +1129,11 @@ def make_new_merge_df(json_files_tmp, time2):
             elif isinstance(value_, np.integer) or isinstance(value_, str):
                 value_ = value_
             merge_df_tmp.iloc[nrow, ncol] = value_
-    merge_df_tmp.to_json(os.path.join(MEDIA_ROOT, "json", '{}.merge_df.json'.format(time2)))
+    merge_df_tmp.to_json(os.path.join(MEDIA_ROOT, "json", '{}.merge_df.json'.format(time2)), date_format='iso')
+    pd.DataFrame(len_models, index=[0]).to_json(os.path.join(MEDIA_ROOT, "json", '{}.model_len.json'.format(time2)))
     if len(json_files_tmp.keys()) > 9:
         time2_tmp_list = sorted(list(json_files_tmp.keys()), reverse=True)
         for idx in range(9, len(time2_tmp_list)):
             os.remove(json_files_tmp[time2_tmp_list[idx]])
+            os.remove(re.sub(r'\.merge_df\.', '.model_len.', json_files_tmp[time2_tmp_list[idx]]))
     print("merge_df_tmp is rebuild")

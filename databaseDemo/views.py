@@ -69,12 +69,14 @@ class CaptureInfoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return get_queryset_base(CaptureInfo, self.request.query_params)
 
+
 class PoolingInfoViewSet(viewsets.ModelViewSet):
     queryset = PoolingInfo.objects.all()
     serializer_class = PoolingInfoSerializer
 
     def get_queryset(self):
         return get_queryset_base(PoolingInfo, self.request.query_params)
+
 
 class SequencingInfoViewSet(viewsets.ModelViewSet):
     queryset = SequencingInfo.objects.all()
@@ -230,6 +232,7 @@ def uniqueV(request):
         data['values'] = []
     return JsonResponse(data)
 
+
 @login_required
 @never_cache
 def AdvanceUploadV(request):
@@ -355,18 +358,24 @@ def AdvancedSearchV(request):
     flag_update, json_files, time2, time2_json = check_new_merge_df()
     if flag_update:
         # 使用djcelery异步执行make_new_merge_df
+        print("do make_new_merge_df_by_celery")
         make_new_merge_df_by_celery.delay(json_files, time2)
     else:
         merge_df = pd.read_json(time2_json)
-        # print("read merge_df.json")
+        for col_ in ['ClinicalInfo_centrifugation_date', 'ClinicalInfo_send_date', 'ExtractInfo_extract_date',
+                     'DNAUsageRecordInfo_LB_date', 'LibraryInfo_LB_date', 'CaptureInfo_hybrid_date',
+                     'SequencingInfo_send_date', 'SequencingInfo_start_time', 'SequencingInfo_end_time']:
+            merge_df.loc[:, col_] = [datetime.datetime.strptime(date_, '%Y-%m-%dT%H:%M:%S.%fZ').date() for date_
+                                     in merge_df.loc[:, col_]]
+        print("read merge_df.json")
 
     if request.method == 'POST':
         # print("request.method == 'POST'")
         if flag_update:  # "等待异步task make_new_merge_df完成"
             sleep_flag = True
-            # sleep_n = 0
+            sleep_n = 0
             while sleep_flag:
-                # print("sleep {}".format(5*sleep_n))
+                print("sleep {}".format(5 * sleep_n))
                 for file in os.listdir(os.path.join(MEDIA_ROOT, "json")):
                     if re.match(r'[0-9]+.*\.merge_df.json', file):
                         time2_tmp, _, _ = file.split('.')
@@ -377,8 +386,14 @@ def AdvancedSearchV(request):
                             sleep_flag = False
                             flag_update = False
                 time.sleep(5)
-                # sleep_n += 1
+                sleep_n += 1
+
             merge_df = pd.read_json(time2_json)
+            for col_ in ['ClinicalInfo_centrifugation_date', 'ClinicalInfo_send_date', 'ExtractInfo_extract_date',
+                         'DNAUsageRecordInfo_LB_date', 'LibraryInfo_LB_date', 'CaptureInfo_hybrid_date',
+                         'SequencingInfo_send_date', 'SequencingInfo_start_time', 'SequencingInfo_end_time']:
+                merge_df.loc[:, col_] = [datetime.datetime.strptime(date_, '%Y-%m-%dT%H:%M:%S.%fZ').date() for date_ in
+                                         merge_df.loc[:, col_]]
         # print(merge_df)
         merge_df_columns = list(merge_df.columns)
         filed_idx = [6, 24, 31, 36, 42, 56, 64, 68, 74, 112]
@@ -399,7 +414,7 @@ def AdvancedSearchV(request):
         res_raw = merge_df[res_columns_link + res_columns_normal]
         # print(">>>>>>>>>>>> res_raw.column >>>>>>>>>>>>")
         # pprint(res_raw.columns)
-        res_filt = res_raw
+        res_filtered = res_raw
         if request.POST['queryset']:  # 有过滤条件
             filter_total = ""
             for i in request.POST['queryset'].split('\n'):
@@ -410,23 +425,23 @@ def AdvancedSearchV(request):
                     v = v[:-1]
                     # print(">>>>>>>>>> not_, m, f, vp, v >>>>>>>>")
                     # print("%s, %s, %s, %s, %s" % (not_, m, f, vp, v))
-                    filter_condition = filter_conditionFunc(res_raw, f, vp, v, not_) if f in special_fields else \
-                        filter_conditionFunc(res_raw, m + '_' + f, vp, v, not_)
+                    filter_condition = condition_filter(res_raw, f, vp, v, not_) if f in special_fields else \
+                        condition_filter(res_raw, m + '_' + f, vp, v, not_)
                     filter_line = filter_line & filter_condition
                 filter_total = filter_line if filter_total == "" else filter_total | filter_line
-            res_filt = res_raw[filter_total]
+            res_filtered = res_raw[filter_total]
         # make res_pro
-        # print(">>>>>>>>>>>>>> res_filt >>>>>>>>")
-        # pprint(res_filt)
+        # print(">>>>>>>>>>>>>> res_filtered >>>>>>>>")
+        # pprint(res_filtered)
         link_n = 0
         res_pro_df = pd.DataFrame()
         for link in special_fields:
             if link in links_dict:
-                res_pro_df.loc[:, "link%s" % link_n] = list(res_filt[link])
+                res_pro_df.loc[:, "link%s" % link_n] = list(res_filtered[link])
                 link_n = link_n + 1
         normal_n = 0
         for col in res_columns_normal:
-            res_pro_df.loc[:, "normal%s" % normal_n] = list(res_filt[col])
+            res_pro_df.loc[:, "normal%s" % normal_n] = list(res_filtered[col])
             normal_n = normal_n + 1
         res_pro = res_pro_df.to_dict('records')
         # print('res_pro')

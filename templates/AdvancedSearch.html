@@ -757,14 +757,14 @@
                 };
                 let plotClass = $('#plot_highcharts_class');
                 plotClass.change(function () {
-                    $("#plot_highcharts_input").empty(); //再次click后，先将plot_highcharts_input删除
+                    $("#plot_highcharts_input").empty(); //先将plot_highcharts_input删除
                     htmlStr = '<div id="plot_highcharts_input"></div>';
                     plotClass.after(htmlStr);
                     let plot_highcharts_input = $("#plot_highcharts_input");
                     plot_highcharts_input.on('change', '.plot_highcharts_model', function () {
                         // 处理逻辑
-                        $(this).next().remove();
-                        $(this).next().remove();
+                        $(this).next().remove(); // 删除字段label
+                        $(this).next().remove(); // 删除字段select
                         if ($(this).val() === 'None') {
                             // do nothing
                         } else {
@@ -788,6 +788,8 @@
                                 htmlStr += '<option value="' + v + '">' + models2label[v] + '</option>';
                             }
                         });
+                        htmlStr += '</select><label> 字段</label><select class="form-control plot_highcharts_field">' +
+                            '<option value="None" selected="selected">---</option></select>';
                     } else if (plotClass.val() === 'scatter') {
                         htmlStr = '<label for="plot_highcharts_model1"> 请选择用于x轴的数据: 子表</label>' +
                             '<select class="form-control plot_highcharts_model" id="plot_highcharts_model1">' +
@@ -817,9 +819,12 @@
                                 htmlStr += '<option value="' + v + '">' + models2label[v] + '</option>';
                             }
                         });
+                        htmlStr += '</select><label> 字段</label><select class="form-control plot_highcharts_field">' +
+                            '<option value="None" selected="selected">---</option></select>';
+                        htmlStr += '<label class="checkbox-inline">';
+                        htmlStr += '<input type="checkbox" id="scatter_remove_abnormal">剔除异常极值(当x或y轴为数值型变量时可用)</lable>';
                     }
-                    htmlStr += '</select><label> 字段</label><select class="form-control plot_highcharts_field">' +
-                        '<option value="None" selected="selected">---</option></select>';
+
                     plot_highcharts_input.append(htmlStr);
                 });
 
@@ -1040,9 +1045,73 @@
                         for (let i = 0; i <= 2; i++) {
                             this_data.push(collect_data(this_models[i].val(), this_fields[i].val()))
                         }
-                        console.log('before this_data:');
-                        console.log(this_data);
-                        if (this_data[2]['item_type'] === 'num') {
+                        // console.log('before this_data:');
+                        // console.log(this_data);
+                        if ($('#scatter_remove_abnormal').prop('checked') === true) {
+                            function compute_limit(data_) {
+                                let quart_75 = Quartile_75(data_);
+                                let quart_25 = Quartile_25(data_);
+                                return {
+                                    "min_v": quart_25 - 1.5 * (quart_75 - quart_25),
+                                    "max_v": quart_75 + 1.5 * (quart_75 - quart_25)
+                                }
+                            }
+
+                            let tmp_data = [
+                                {
+                                    'item_type': this_data[0]['item_type'],
+                                    'categories': this_data[0]['categories'],
+                                    'data': []
+                                },
+                                {
+                                    'item_type': this_data[1]['item_type'],
+                                    'categories': this_data[1]['categories'],
+                                    'data': []
+                                },
+                                {
+                                    'item_type': this_data[2]['item_type'],
+                                    'categories': this_data[2]['categories'],
+                                    'data': []
+                                }
+                            ];
+                            let x_bool = Array(this_data[0]['data'].length).fill('true');
+                            let y_bool = Array(this_data[1]['data'].length).fill('true');
+                            if (this_data[0]['item_type'] === 'num') {
+                                // do something for x_bool
+                                let limit = compute_limit(this_data[0]['data']);
+                                // console.info('>>> min_v: ', limit.min_v , '; max_v: ', limit.max_v);
+                                $.each(this_data[0]['data'], function (i, v) {
+                                    if (v < limit.min_v || v > limit.max_v) {
+                                        x_bool[i] = 'false'
+                                    }
+                                })
+                            }
+                            if (this_data[1]['item_type'] === 'num') {
+                                // do something for y_bool
+                                let limit = compute_limit(this_data[1]['data']);
+                                // console.info('>>> y_bool >>> min_v: ', limit.min_v , '; max_v: ', limit.max_v);
+                                $.each(this_data[1]['data'], function (i, v) {
+                                    if (v < limit.min_v || v > limit.max_v) {
+                                        y_bool[i] = 'false'
+                                    }
+                                })
+                            }
+                            // console.info("x_bool: ", x_bool, "; y_bool: ", y_bool);
+                            $.each(x_bool, function (i, v) {
+                                if (v === 'true' && y_bool[i] === 'true') {
+                                    tmp_data[0]['data'].push(this_data[0]['data'][i]);
+                                    tmp_data[1]['data'].push(this_data[1]['data'][i]);
+                                    if (this_data[2]['item_type'] !== '') {
+                                        tmp_data[2]['data'].push(this_data[2]['data'][i]);
+                                    }
+                                }
+                            });
+                            // console.info("tmp_data: ", tmp_data);
+                            this_data = tmp_data;
+                        }
+                        // console.log('after this_data:');
+                        // console.log(this_data);
+                        if (this_data[2]['item_type'] === 'num') { // this_data[2]代表分组，需要把连续数字转换成分组
                             let tmp_list = [];
                             $.each(this_data[2]['data'], function (i, v) {
                                 tmp_list.push(parseInt(v / 10));
@@ -1061,6 +1130,8 @@
                         } else if (this_data[2]['item_type'] === 'date') {
                             this_data[2]['item_type'] = 'str';
                         }
+                        // console.log('after2 this_data:');
+                        // console.log(this_data);
                         let chart = {
                             type: 'bubble',
                             zoomType: 'xy'
@@ -1091,8 +1162,6 @@
                             }
                         };
                         let json = {};
-                        console.log('after this_data:');
-                        console.log(this_data);
                         if (this_data[0]['item_type'] === 'num' && this_data[1]['item_type'] === 'num') {
                             // 画正常散点图
                             chart.type = 'scatter';
@@ -1152,7 +1221,7 @@
                             } else { // 无分组
                                 let data_series = [];
                                 $.each(this_data[0]['data'], function (i, v) {
-                                    console.log(String.format("无分组 {0} {1}", v, this_data[1]['data'][i]));
+                                    // console.log(String.format("无分组 {0} {1}", v, this_data[1]['data'][i]));
                                     data_series.push([v, this_data[1]['data'][i]]);
                                 });
                                 series.push({
@@ -1162,7 +1231,7 @@
                             }
                         } else if (this_data[0]['item_type'] === 'num' && this_data[1]['item_type'] !== 'num') {
                             // 画气泡图(x是数值, y是字符串/日期)
-                            series = plot_scatter_by_group(this_data, this_models, this_fields, 1, 0,
+                            series = plot_bubble_by_group(this_data, this_models, this_fields, 1, 0,
                                 xAxis, yAxis, plotOptions, tooltip, title);
                         } else if (this_data[0]['item_type'] !== 'num' && this_data[1]['item_type'] === 'num') {
                             // 画气泡图(x是字符串/日期, y是数值)
@@ -1173,8 +1242,8 @@
                             series = plot_bubble_by_group(this_data, this_models, this_fields, 0, 0,
                                 xAxis, yAxis, plotOptions, tooltip, title);
                         }
-                        console.log("series:");
-                        console.log(series);
+                        // console.log("series:");
+                        // console.log(series);
                         json.chart = chart;
                         json.title = title;
                         json.tooltip = tooltip;
