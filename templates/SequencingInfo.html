@@ -110,7 +110,7 @@
                 dataModelForm = data;
                 if (title_name === '更新') {
                     $('#sequencing_id').val(data['sequencing_id']);
-                    $('#poolingLB_id').val(get_poolingLB_id(data['poolingLB_id']));
+                    $('#poolingLB_id').val(data['poolingLBName']);
                     $('#send_date').val(data['send_date']);
                     //$('#start_time').val(data['start_time'].replace(/\//g, '-').replace(/\s+/, 'T'));
                     $('#start_time').val(data['start_time']);
@@ -139,19 +139,6 @@
                 url: url1, dataType: 'json', contentType: "application/json",
                 type: "get", async: false, data: {fields: "index,poolingLB_id"}
             }).responseJSON;
-
-            let get_poolingLB_id = function (datalist) {
-                let arry = [];
-                for (let idx in datalist) {
-                    for (let idx2 in capture_data) {
-                        if (datalist[idx] === capture_data[idx2].index) {
-                            arry.push(capture_data[idx2].poolingLB_id);
-                            break;
-                        }
-                    }
-                }
-                return arry.join("\n");
-            };
 
             let table = $('#table_id').DataTable({
                 "language": {
@@ -204,21 +191,21 @@
                         extend: 'selectRows',
                         text: '选择多行'
                     }, {
-                        extend: 'selectColumns',
-                        text: '选择多列'
-                    }, {
-                        extend: 'selectCells',
-                        text: '选择多个单元格'
-                    }, {
                         extend: 'selectNone',
                         text: '取消当前选择'
                     },
                     {
                         extend: 'copy',
-                        text: '复制到剪切板'
+                        text: '复制到剪切板',
+                        exportOptions: {
+                            columns: range(1, 10)
+                        }
                     }, {
                         extend: 'csv',
-                        text: '输出到csv'
+                        text: '输出到csv',
+                        exportOptions: {
+                            columns: range(1, 10)
+                        }
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
@@ -237,10 +224,8 @@
                     },
                     {"data": "sequencing_id"},
                     {
-                        "data": "poolingLB_id",
-                        render: function (data, type, row, meta) {
-                            return get_poolingLB_id(data)
-                        }
+                        "data": "poolingLBName",
+                        "name": "poolingLB_id__poolingLB_id"
                     },
                     {"data": "send_date"},
                     {"data": "start_time"},
@@ -281,7 +266,7 @@
                 e.preventDefault();
                 let poolingLB_ids = [];
                 let text = $('#poolingLB_id').val();
-                let arry = text.split("\n");
+                let arry = text.split(", ");
                 for (let idx in arry) {
                     for (let idx2 in capture_data) {
                         if (capture_data[idx2].poolingLB_id === arry[idx]) {

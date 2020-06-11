@@ -280,6 +280,7 @@ models_set = [ClinicalInfo, ExtractInfo, DNAUsageRecordInfo, DNAInventoryInfo, L
 models_set2 = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo', 'LibraryInfo',
                'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo']
 
+
 def clean_data(data_, warning_msg_dict, error_msg_dict, skip_list, emptyDrop_list, repeatDrop_list, str_list, num_list,
                date_list):
     data = data_.copy(deep=True)
@@ -387,18 +388,25 @@ def clean_data(data_, warning_msg_dict, error_msg_dict, skip_list, emptyDrop_lis
 
         col_data = []
         for id2 in range(len(data[id])):
-            m1 = re.match(r'^(\d{4})(\d{2})(\d{2})$', str(data[id][id2]))
-            m2 = re.match(r'^(\d{4}).(\d{2}).(\d{2})$', str(data[id][id2]))
-            if pd.isnull(data[id][id2]):
-                col_data.append('2000-01-01')
-                warning_msg_dict['empty'].append(u'第{}行"{}"列'.format(id2 + 2, id))
-            elif m1:
-                col_data.append("%s-%s-%s" % (m1.group(1), m1.group(2), m1.group(3)))
-            elif m2:
-                col_data.append("%s-%s-%s" % (m2.group(1), m2.group(2), m2.group(3)))
-            else:
-                col_data.append('2000-01-01')
-                warning_msg_dict['invalid'].append(u'第{}行"{}"列'.format(id2 + 2, id))
+            try:
+                col_data.append(pd.to_datetime(data[id][id2]).strftime("%Y-%m-%d"))
+            except ValueError:
+                m1 = re.match(r'^(\d{4})(\d{2})(\d{2})', str(data[id][id2]))
+                m2 = re.match(r'^(\d{4}).(\d{2}).(\d{2})', str(data[id][id2]))
+                m3 = re.match(r'^(\d{4})-(\d{2})-(\d{2})', str(data[id][id2]))
+                if pd.isnull(data[id][id2]):
+                    col_data.append('2000-01-01')
+                    warning_msg_dict['empty'].append(u'第{}行"{}"列'.format(id2 + 2, id))
+                elif m1:
+                    col_data.append("%s-%s-%s" % (m1.group(1), m1.group(2), m1.group(3)))
+                elif m2:
+                    col_data.append("%s-%s-%s" % (m2.group(1), m2.group(2), m2.group(3)))
+                elif m3:
+                    col_data.append("%s-%s-%s" % (m3.group(1), m3.group(2), m3.group(3)))
+                else:
+
+                    col_data.append('2000-01-01')
+                    warning_msg_dict['invalid'].append(u'第{}行"{}"列'.format(id2 + 2, id))
         data[id] = col_data
         # print("id: {}, col_data: {}".format(id, col_data))
     return data
@@ -621,7 +629,8 @@ def save_records(upload_file):
                     # 获取foreignKey对应的object
                     # print('upload_file.uploadUrl: %s; model_key: %s' % (upload_file.uploadUrl, model_key))
                     if not (upload_file.uploadUrl == 'SequencingInfo' and model_key == 'poolingLB_id'):
-                        # print('model: {}; key: {}; value: {}'.format(FOREIGNKEY_TO_MODEL[model_key], model_key, records[col][row]))
+                        # print('model: {}; key: {}; value: {}'.format(FOREIGNKEY_TO_MODEL[model_key], model_key,
+                        # records[col][row]))
                         try:
                             obj_ = FOREIGNKEY_TO_MODEL[model_key].objects.get(
                                 **{model_key: records[col][row]})
@@ -927,10 +936,10 @@ def condition_filter(df, f, vp, v, not_):
             filter_ = [True] * len(df)
     else:
         pass
-    if not_ == 1:
+    if int(not_) == 1:
         filter_ = [False if x else True for x in filter_]
     # print(">>>>>>>>>>>>> filter >>>>>>>>>>>")
-    # pprint(filter)
+    # pprint(filter_)
     return pd.Series(data=filter_)
 
 
@@ -981,16 +990,14 @@ def check_new_merge_df():
                 time2 = time2_tmp
                 time2_df_json = json_files[time2_tmp]
                 time2_len = pd.read_json(os.path.join(MEDIA_ROOT, "json", re.sub(r'\.merge_df\.', '.model_len.', file))
-                                         ).to_dict(orient='records')
+                                         ).to_dict(orient='records')[0]
 
     lastTime_models = {}
     len_models = {}
     for m in [0, 1, 2, 3, 4, 6, 5, 7, 8]:
-        time1_list_tmp = list(
-            set([int(x[0].strftime("%Y%m%d%H%M%S%f")) for x
-                 in models_set[m].objects.values_list("last_modify_date").distinct().order_by("last_modify_date")]))
-        lastTime_models[models_set2[m]] = sorted(time1_list_tmp, reverse=True)[0]
-        len_models[models_set2[m]] = len(time1_list_tmp)
+        lastTime_models[models_set2[m]] = int(models_set[m].objects.values_list("last_modify_date").distinct().order_by(
+            "-last_modify_date")[0][0].strftime("%Y%m%d%H%M%S%f"))
+        len_models[models_set2[m]] = models_set[m].objects.count()
     flag_update = False
     # print("len_models: ")
     # print(len_models)
@@ -998,12 +1005,22 @@ def check_new_merge_df():
     # print(time2_len)
     # print("lastTime_models: ")
     # print(lastTime_models)
-    # print("time2: {}; time2_json: {}".format(time2, time2_json))
+    # print("before time2: {}; flag_update: {}".format(time2, flag_update))
     for m in lastTime_models:
-        if lastTime_models[m] > time2 or m not in time2_len or time2_len[m] != len_models[m]:
+        # print("lastTime_models[m]:{}, time2:{}, m:{}, time2_len[m]:{}, len_models[m]:{}".format(lastTime_models[m],
+        #                                                                                         time2, m,
+        #                                                                                         time2_len[m],
+        #                                                                                         len_models[m]))
+        if lastTime_models[m] > time2:
             flag_update = True
             time2 = lastTime_models[m]
-    # print("time2: {}; flag_update: {}".format(time2, flag_update))
+            # print("do replacement")
+            break
+        if m not in time2_len or time2_len[m] != len_models[m]:
+            flag_update = True
+            # print("do replacement")
+            break
+    # print("after time2: {}; flag_update: {}".format(time2, flag_update))
     return flag_update, json_files, time2, time2_df_json
 
 
@@ -1018,7 +1035,7 @@ def make_new_merge_df(json_files_tmp, time2):
             fields_filt_rename = [x if x in ['sample_id'] else 'ClinicalInfo_' + x for x in fields_filt]
             res_df = list2array(res_raw, fields_filt_rename)
             merge_df_tmp = res_df
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 1:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[5:14]
@@ -1028,7 +1045,7 @@ def make_new_merge_df(json_files_tmp, time2):
             columns_raw = list(merge_df_tmp.columns)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='sample_id')
             merge_df_tmp = merge_df_tmp[['sample_id', 'dna_id'] + columns_raw[1:] + fields_filt_rename[2:]]
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 2:
             fields = model_fields[models_set2[m]]
             fields_filt = [fields[0]] + fields[2:7]
@@ -1036,7 +1053,7 @@ def make_new_merge_df(json_files_tmp, time2):
             fields_filt_rename = [x if x in ['dna_id'] else 'DNAUsageRecordInfo_' + x for x in fields_filt]
             res_df = list2array(res_raw, fields_filt_rename)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='dna_id')
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 3:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[1:7]
@@ -1048,7 +1065,7 @@ def make_new_merge_df(json_files_tmp, time2):
                                   fields_filt + ['remainM']]
             res_df = list2array(res_raw_shift, fields_filt_rename)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='dna_id')
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 4:
             fields = model_fields[models_set2[m]]
             fields_filt = [fields[2]] + fields[5:19]
@@ -1061,7 +1078,7 @@ def make_new_merge_df(json_files_tmp, time2):
             merge_df_tmp['singleLB_id'] = merge_df_tmp['DNAUsageRecordInfo_singleLB_id']
             merge_df_tmp = merge_df_tmp[
                 ['sample_id', 'dna_id', 'singleLB_id'] + columns_raw[2:] + fields_filt_rename[1:]]
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 6:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[3:10]
@@ -1073,7 +1090,7 @@ def make_new_merge_df(json_files_tmp, time2):
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='singleLB_id')
             merge_df_tmp = merge_df_tmp[['sample_id', 'dna_id', 'singleLB_id', 'poolingLB_id', 'singleLB_Pooling_id'] +
                                         columns_raw[3:] + fields_filt_rename[3:]]
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 5:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[3:13]
@@ -1084,7 +1101,7 @@ def make_new_merge_df(json_files_tmp, time2):
             idx_ = columns_raw.index('PoolingInfo_pooling_ratio')
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on='poolingLB_id')
             merge_df_tmp = merge_df_tmp[columns_raw[:idx_] + fields_filt_rename[1:] + columns_raw[idx_:]]
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 7:
             fields = model_fields[models_set2[m]]
             fields_filt = [fields[11]] + fields[1:8]
@@ -1106,7 +1123,7 @@ def make_new_merge_df(json_files_tmp, time2):
                                     right_on='SequencingInfo_poolingLB_id')
             merge_df_tmp = merge_df_tmp[
                 special_fields + columns_raw[5:idx_] + columns_raw[idx_ + 1:] + fields_filt_rename[2:]]
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
         elif m == 8:
             fields = model_fields[models_set2[m]]
             fields_filt = fields[:44]
@@ -1116,7 +1133,7 @@ def make_new_merge_df(json_files_tmp, time2):
                                                                                           x for x in fields_filt]
             res_df = list2array(res_raw, fields_filt_rename)
             merge_df_tmp = pd.merge(merge_df_tmp, res_df, how='left', on=special_fields)
-            len_models[models_set2[m]] = res_df.shape[0]
+            len_models[models_set2[m]] = models_set[m].objects.count()
     for link in special_fields:
         merge_df_tmp.loc[:, link].fillna(" ", inplace=True)
     for ncol in range(6, merge_df_tmp.shape[1]):

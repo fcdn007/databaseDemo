@@ -217,22 +217,6 @@
                 }
             }
 
-            let getDNAConDict = function () {
-                let ExtractInfo_all = $.ajax({
-                    url: '/api/ExtractInfo/', dataType: 'json', contentType: "application/json",
-                    type: "get", async: false, data: {fields: "dna_id,dna_con"}
-                }).responseJSON;
-                console.info("ExtractInfo_all: ", ExtractInfo_all);
-                let res = {};
-                $.each(ExtractInfo_all, function (index, value) {
-                    res[value.dna_id] = value.dna_con;
-                });
-                return res;
-            };
-
-            let DNAConDict = getDNAConDict();
-            console.info("DNAConDict: ", DNAConDict);
-
             let table = $('#table_id').DataTable({
                 "language": {
                     "lengthMenu": "选择每页 _MENU_ 展示 ",
@@ -284,21 +268,21 @@
                         extend: 'selectRows',
                         text: '选择多行'
                     }, {
-                        extend: 'selectColumns',
-                        text: '选择多列'
-                    }, {
-                        extend: 'selectCells',
-                        text: '选择多个单元格'
-                    }, {
                         extend: 'selectNone',
                         text: '取消当前选择'
                     },
                     {
                         extend: 'copy',
-                        text: '复制到剪切板'
+                        text: '复制到剪切板',
+                        exportOptions: {
+                            columns: range(1, 20)
+                        }
                     }, {
                         extend: 'csv',
-                        text: '输出到csv'
+                        text: '输出到csv',
+                        exportOptions: {
+                            columns: range(1, 20)
+                        }
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],
@@ -316,8 +300,8 @@
                         }
                     },
                     {"data": "singleLB_id"},
-                    {"data": "sample_id"},
-                    {"data": "dna_id"},
+                    {"data": "sample_id", "name": "sample_id__sample_id"},
+                    {"data": "dna_id", "name": "dna_id__dna_id"},
                     {"data": "tube_id"},
                     {"data": "clinical_boolen"},
                     {"data": "singleLB_name"},
@@ -326,12 +310,7 @@
                     {"data": "LB_date"},
                     {"data": "LB_method"},
                     {"data": "kit_batch"},
-                    {
-                        "data": "dna_id",
-                        render: function (data, type, row, meta) {
-                            return DNAConDict[data];
-                        }
-                    },
+                    {"data": "dnaCon", "name": "dna_id__dna_con"},
                     {"data": "mass"},
                     {"data": "pcr_cycles"},
                     {"data": "LB_con"},

@@ -65,11 +65,15 @@ class DNAInventoryInfoSerializer(DynamicFieldsModelSerializer):
 class LibraryInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
+    dnaCon = serializers.SerializerMethodField()
+
+    def get_dnaCon(self, obj):
+        return f"{obj.dna_id.dna_con}"
 
     class Meta:
         model = LibraryInfo
         fields = ('singleLB_id', 'sample_id', 'dna_id', 'tube_id', 'clinical_boolen', 'singleLB_name', 'label',
-                  'barcodes', 'LB_date', 'LB_method', 'kit_batch', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol',
+                  'barcodes', 'LB_date', 'LB_method', 'kit_batch', 'dnaCon', 'mass', 'pcr_cycles', 'LB_con', 'LB_vol',
                   'operator', 'others', 'index', 'last_modify_date', 'created')
 
 
@@ -96,10 +100,18 @@ class PoolingInfoSerializer(DynamicFieldsModelSerializer):
 class SequencingInfoSerializer(DynamicFieldsModelSerializer):
     last_modify_date = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
     created = serializers.DateTimeField(format=settings.DATETIME_FORMAT, required=False)
+    poolingLBName = serializers.SerializerMethodField()
+
+    def get_poolingLBName(self, obj):
+        names = []
+        for q_ in obj.poolingLB_id.all():
+            names.append(q_.poolingLB_id)
+        return ", ".join(names)
 
     class Meta:
         model = SequencingInfo
-        fields = ('sequencing_id', 'poolingLB_id', 'send_date', 'start_time', 'end_time', 'machine_id', 'chip_id',
+        fields = ('sequencing_id', 'poolingLB_id', 'poolingLBName', 'send_date', 'start_time', 'end_time', 'machine_id',
+                  'chip_id',
                   'others', 'index', 'last_modify_date', 'created')
 
 

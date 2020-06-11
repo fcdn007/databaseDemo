@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="172.16.184.169" id="11f3f0ae-36ab-4d35-a282-8e19a4841ebc" port="23" customName="E490_wsl" nameFormat="CUSTOM" username="wsl" />
+      <sshConfig authType="PASSWORD" host="172.16.184.169" id="85810013-cb0e-4217-becf-b3378bf5a09d" port="23" customName="E490_wsl" nameFormat="CUSTOM" username="wsl" />
+    </configs>
+  </component>
+</project>

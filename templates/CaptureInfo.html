@@ -188,21 +188,21 @@
                         extend: 'selectRows',
                         text: '选择多行'
                     }, {
-                        extend: 'selectColumns',
-                        text: '选择多列'
-                    }, {
-                        extend: 'selectCells',
-                        text: '选择多个单元格'
-                    }, {
                         extend: 'selectNone',
                         text: '取消当前选择'
                     },
                     {
                         extend: 'copy',
-                        text: '复制到剪切板'
+                        text: '复制到剪切板',
+                        exportOptions: {
+                            columns: range(1, 11)
+                        }
                     }, {
                         extend: 'csv',
-                        text: '输出到csv'
+                        text: '输出到csv',
+                        exportOptions: {
+                            columns: range(1, 11)
+                        }
                     }
                 ],
                 "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "全部"]],

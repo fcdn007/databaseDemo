@@ -103,12 +103,6 @@
                         extend: 'selectRows',
                         text: '选择多行'
                     }, {
-                        extend: 'selectColumns',
-                        text: '选择多列'
-                    }, {
-                        extend: 'selectCells',
-                        text: '选择多个单元格'
-                    }, {
                         extend: 'selectNone',
                         text: '取消当前选择'
                     },
@@ -134,8 +128,8 @@
                             return meta.row + 1 + meta.settings._iDisplayStart;
                         }
                     },
-                    {"data": "sample_id"},
-                    {"data": "dna_id"},
+                    {"data": "sample_id", "name": "sample_id__sample_id"},
+                    {"data": "dna_id", "name": "dna_id__dna_id"},
                     {"data": "totalM"},
                     {"data": "successM"},
                     {"data": "failM"},

@@ -365,8 +365,10 @@ def AdvancedSearchV(request):
         for col_ in ['ClinicalInfo_centrifugation_date', 'ClinicalInfo_send_date', 'ExtractInfo_extract_date',
                      'DNAUsageRecordInfo_LB_date', 'LibraryInfo_LB_date', 'CaptureInfo_hybrid_date',
                      'SequencingInfo_send_date', 'SequencingInfo_start_time', 'SequencingInfo_end_time']:
-            merge_df.loc[:, col_] = [datetime.datetime.strptime(date_, '%Y-%m-%dT%H:%M:%S.%fZ').date() for date_
-                                     in merge_df.loc[:, col_]]
+            merge_df.loc[:, col_] = [datetime.datetime.strptime(date_, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+                                     if re.match(r'\d+-\d+-\d+T\d+:\d+:\d+\.\d+Z', date_)
+                                     else datetime.datetime.strptime('2000-01-01', '%Y-%m-%d').date() for date_ in
+                                     merge_df.loc[:, col_]]
         print("read merge_df.json")
 
     if request.method == 'POST':
@@ -392,7 +394,9 @@ def AdvancedSearchV(request):
             for col_ in ['ClinicalInfo_centrifugation_date', 'ClinicalInfo_send_date', 'ExtractInfo_extract_date',
                          'DNAUsageRecordInfo_LB_date', 'LibraryInfo_LB_date', 'CaptureInfo_hybrid_date',
                          'SequencingInfo_send_date', 'SequencingInfo_start_time', 'SequencingInfo_end_time']:
-                merge_df.loc[:, col_] = [datetime.datetime.strptime(date_, '%Y-%m-%dT%H:%M:%S.%fZ').date() for date_ in
+                merge_df.loc[:, col_] = [datetime.datetime.strptime(date_, '%Y-%m-%dT%H:%M:%S.%fZ').date()
+                                         if re.match(r'\d+-\d+-\d+T\d+:\d+:\d+\.\d+Z', date_)
+                                         else datetime.datetime.strptime('2000-01-01', '%Y-%m-%d').date() for date_ in
                                          merge_df.loc[:, col_]]
         # print(merge_df)
         merge_df_columns = list(merge_df.columns)
@@ -415,6 +419,8 @@ def AdvancedSearchV(request):
         # print(">>>>>>>>>>>> res_raw.column >>>>>>>>>>>>")
         # pprint(res_raw.columns)
         res_filtered = res_raw
+        # print(">>>>>>>>> request.POST['queryset'] >>>>>")
+        # print(request.POST['queryset'])
         if request.POST['queryset']:  # 有过滤条件
             filter_total = ""
             for i in request.POST['queryset'].split('\n'):
@@ -427,6 +433,8 @@ def AdvancedSearchV(request):
                     # print("%s, %s, %s, %s, %s" % (not_, m, f, vp, v))
                     filter_condition = condition_filter(res_raw, f, vp, v, not_) if f in special_fields else \
                         condition_filter(res_raw, m + '_' + f, vp, v, not_)
+                    # print(">>>>>>>>>> filter_condition >>>>>>>>")
+                    # print(filter_condition)
                     filter_line = filter_line & filter_condition
                 filter_total = filter_line if filter_total == "" else filter_total | filter_line
             res_filtered = res_raw[filter_total]
@@ -444,7 +452,7 @@ def AdvancedSearchV(request):
             res_pro_df.loc[:, "normal%s" % normal_n] = list(res_filtered[col])
             normal_n = normal_n + 1
         res_pro = res_pro_df.to_dict('records')
-        # print('res_pro')
+        # print('>>>>>>>>>>>>>> res_pro >>>>>>>>')
         # print(res_pro)
         result = {
             'draw': 1,

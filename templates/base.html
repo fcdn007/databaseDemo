@@ -389,6 +389,20 @@
             return firstEl + nextEl;
         }) / data_.length));
     }
+
+    function unique(array) {
+        return $.grep(array, function (el, index) {
+            return index === $.inArray(el, array);
+        });
+    }
+
+    function range(start, end) {
+        let ans = [];
+        for (let i = start; i <= end; i++) {
+            ans.push(i);
+        }
+        return ans;
+    }
 </script>
 
 {% block button_js %}

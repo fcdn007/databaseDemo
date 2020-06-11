@@ -70,10 +70,7 @@
         <form id="searchForm2" role="form">
             <p class="bg-info text-white">
                 &nbsp;&nbsp <label class="text-white h4" for="SearchText"> 设置过滤条件</label></p>
-            <div class="form-inline mb-1">
-                <button id='textareaAdd' class="btn btn-primary h6">确认过滤条件</button>&nbsp;&nbsp
-                <button id='conditionAdd' class="btn btn-info h6">添加过滤条件</button>
-            </div>
+
             <br>
             <div class="form-inline search_condition" id="condition1">
                 <span class="text-info h6">过滤条件1</span>&nbsp;&nbsp;<div class="form-group">
@@ -116,6 +113,11 @@
                 </div>
             </div>
         </form>
+        <br>
+        <div class="form-inline mb-1">
+            <button id='textareaAdd' class="btn btn-primary h6">确认过滤条件</button>&nbsp;&nbsp
+            <button id='conditionAdd' class="btn btn-info h6">添加过滤条件</button>
+        </div>
         <br>
         <form id="searchForm3" role="form">
             {% csrf_token %}
@@ -480,9 +482,17 @@
                 let tableLinkCol = []; // 记录有效的连接字段数组元素
                 let tableNormalCol = []; // 记录各表自定义字段名称
                 let returnCols = []; // 构建request返回数据对应的col数组
+                returnCols.push({
+                    data: 'index',
+                    width: "1%",
+                    // 若想前端显示的不一样，则需要"render"函数
+                    'render': function (data, type, full, meta) {
+                        return meta.row + 1 + meta.settings._iDisplayStart;
+                    }
+                });
                 let htmlStr = ""; // 储存生成的html代码
                 let tableNormalField = []; // 记录表头字段原来的field
-                htmlStr = '<table id="table_id" class="display"><thead><tr id="tableColName">';
+                htmlStr = '<table id="table_id" class="display"><thead><tr id="tableColName"><th>索引</th>';
                 let forList = ['ClinicalInfo', 'ExtractInfo', 'DNAUsageRecordInfo', 'DNAInventoryInfo',
                     'LibraryInfo', 'CaptureInfo', 'PoolingInfo', 'SequencingInfo', 'QCInfo'];
                 $.each(forList, function (i, v) {
@@ -554,12 +564,6 @@
                         }, {
                             extend: 'selectRows',
                             text: '选择多行'
-                        }, {
-                            extend: 'selectColumns',
-                            text: '选择多列'
-                        }, {
-                            extend: 'selectCells',
-                            text: '选择多个单元格'
                         }, {
                             extend: 'selectNone',
                             text: '取消当前选择'
@@ -1045,8 +1049,8 @@
                         for (let i = 0; i <= 2; i++) {
                             this_data.push(collect_data(this_models[i].val(), this_fields[i].val()))
                         }
-                        // console.log('before this_data:');
-                        // console.log(this_data);
+                        console.log('before this_data:');
+                        console.log(this_data);
                         if ($('#scatter_remove_abnormal').prop('checked') === true) {
                             function compute_limit(data_) {
                                 let quart_75 = Quartile_75(data_);
@@ -1109,15 +1113,15 @@
                             // console.info("tmp_data: ", tmp_data);
                             this_data = tmp_data;
                         }
-                        // console.log('after this_data:');
-                        // console.log(this_data);
+                        console.log('after this_data:');
+                        console.log(this_data);
                         if (this_data[2]['item_type'] === 'num') { // this_data[2]代表分组，需要把连续数字转换成分组
                             let tmp_list = [];
                             $.each(this_data[2]['data'], function (i, v) {
                                 tmp_list.push(parseInt(v / 10));
                             });
-                            let tmp_list_set = JSON.parse(JSON.stringify(tmp_list));
-                            tmp_list_set = jQuery.unique(tmp_list_set.sort());
+                            let tmp_list_set = unique(tmp_list).sort();
+                            console.info("tmp_list_set: ", tmp_list_set);
                             this_data[2]['categories'] = [];
                             $.each(tmp_list_set, function (i, v) {
                                 this_data[2]['categories'].push(String.format("{0}~{1}", 10 * v, 10 * (v + 1)));
@@ -1130,8 +1134,8 @@
                         } else if (this_data[2]['item_type'] === 'date') {
                             this_data[2]['item_type'] = 'str';
                         }
-                        // console.log('after2 this_data:');
-                        // console.log(this_data);
+                        console.log('after2 this_data:');
+                        console.log(this_data);
                         let chart = {
                             type: 'bubble',
                             zoomType: 'xy'
